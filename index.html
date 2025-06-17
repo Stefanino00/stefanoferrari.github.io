@@ -3,11 +3,221 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Stefano Ferrari - Sito personale</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>3D Controller Interface</title>
+
+  <!-- IMPORT GSAP PER ANIMAZIONI -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js" integrity="sha512-d+NqPtGmH4evgbh8Rb0bLHJqIjSDW7bWyS3CTT5qqoqfB7bZWx426oB6RjyWtRZIQ38DjS46YdzOOoXa1+T2ow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- FONT GOOGLE PER TESTI -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+
+  <style>
+    /* RESET GLOBALE */
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+    }
+    /* BODY - sfondo, font, flex per centrare */
+    body {
+      background: #111;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      perspective: 1000px;
+      overflow: hidden;
+
+      /* CURSORE CUSTOM (default e fallback) */
+      cursor: url('cursor/default.cur'), default;
+      user-select: none;
+    }
+
+    /* CONTENITORE PRINCIPALE CONTROLLER */
+    .controller {
+      width: 600px;
+      max-width: 90%;
+      position: relative;
+    }
+
+    /* GRIGLIA TASTI (3 colonne, gap 20px) */
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: 100px;
+      grid-gap: 20px;
+
+      /* preserva profondità 3D */
+      transform-style: preserve-3d;
+      transform: rotateX(20deg);
+    }
+
+    /* STILE BASE TASTO */
+    .key {
+      background: #222;
+      border-radius: 10px;
+      box-shadow:
+        0 8px 15px rgba(0, 0, 0, 0.6),
+        inset 0 2px 0 rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+      position: relative;
+      overflow: visible;
+      user-select: none;
+    }
+
+    /* SUPERFICIE TASTO IN 3D */
+    .key::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(145deg, #333, #111);
+      border-radius: inherit;
+      transform: translateZ(4px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* TESTO DEL TASTO */
+    .key .label {
+      position: relative;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 25px;
+      color: grey;
+      transform: translateZ(8px) scale(1);
+      transition: color 0.2s ease, transform 0.2s ease;
+      z-index: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* HOVER SUL TESTO */
+    .key:hover .label {
+      color: #fff;
+      transform: translateZ(16px) scale(1.1);
+    }
+
+    /* STILE QUANDO IL TASTO È PREMUTO */
+    .key.active {
+      transform: translateZ(-4px) translateY(4px);
+      box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    /* TASTO ABOUT ME GRANDE, OCCUPA 3 COLONNE */
+    .key.about {
+      font-size: 24px;
+      grid-column: span 3;
+      background: #333;
+    }
+
+    /* RIPPLES: cerchio per onda d'urto */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple-animation 600ms linear;
+      background-color: rgba(0, 255, 255, 0.5);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* ANIMAZIONE RIPPLE */
+    @keyframes ripple-animation {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <h1>Benvenuto sul mio sito!</h1>
-  <p>Qui posso giocare con il CSS e fare quello che voglio.</p>
+  <div class="controller">
+    <div class="keys">
+      <!-- TASTO ABOUT ME -->
+      <div class="key about" data-sound="about">
+        <span class="label">About Me</span>
+      </div>
+      <!-- TASTO PORTFOLIO -->
+      <div class="key" data-sound="portfolio">
+        <span class="label">Portfolio</span>
+      </div>
+      <!-- TASTO SKILLS -->
+      <div class="key" data-sound="skills">
+        <span class="label">Skills</span>
+      </div>
+      <!-- TASTO CONTACT -->
+      <div class="key" data-sound="contact">
+        <span class="label">Contact</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ##################################################
+    // MAPPATURA SUONI: per ogni tasto, lo stesso suono click
+    // Puoi cambiare i file audio se vuoi suoni diversi
+    // ##################################################
+    const soundMap = {
+      about: new Audio('sounds/click.mp3'),
+      portfolio: new Audio('sounds/click.mp3'),
+      skills: new Audio('sounds/click.mp3'),
+      contact: new Audio('sounds/click.mp3')
+    };
+
+    // ##################################################
+    // SELEZIONO TUTTI I TASTI DEL CONTROLLER
+    // ##################################################
+    document.querySelectorAll('.key').forEach(key => {
+      // Ricavo il nome del suono dal data-attribute
+      const soundKey = key.dataset.sound;
+      const audio = soundMap[soundKey];
+
+      // GESTISCO EVENTO MOUSE DOWN (quando premi)
+      key.addEventListener('mousedown', (e) => {
+        // Aggiungo classe 'active' per effetto tasto premuto
+        key.classList.add('active');
+
+        // RIPRODUCO IL SUONO DI CLICK
+        if (audio) {
+          audio.currentTime = 0; // reset all'inizio
+          audio.play();
+        }
+
+        // ANIMAZIONE RIMBALZO col GSAP (scrolla verso il basso e torna)
+        gsap.to(key, { y: 5, duration: 0.1, yoyo: true, repeat: 1 });
+
+        // CREO RIPPLES (onda d'urto visiva)
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple');
+
+        // Calcolo posizione click relativa al tasto
+        const rect = key.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Posiziono il ripple dove hai cliccato
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+
+        // Aggiungo ripple al DOM dentro il tasto
+        key.appendChild(ripple);
+
+        // Rimuovo ripple dopo che l'animazione finisce
+        ripple.addEventListener('animationend', () => ripple.remove());
+      });
+
+      // GESTISCO EVENTI MOUSE UP E LEAVE per togliere classe active
+      key.addEventListener('mouseup', () => key.classList.remove('active'));
+      key.addEventListener('mouseleave', () => key.classList.remove('active'));
+    });
+  </script>
 </body>
 </html>

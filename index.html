@@ -11,140 +11,60 @@
   <!-- FONT GOOGLE PER TESTI -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-
+  <link rel="stylesheet" href="css/style.css" />
+  <title>Test Titolo Animato</title>
   <style>
-    /* RESET GLOBALE */
-    * {
-      margin: 0; padding: 0; box-sizing: border-box;
-    }
-    /* BODY - sfondo, font, flex per centrare */
     body {
       background: #111;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      perspective: 1000px;
-      overflow: hidden;
-
-      /* CURSORE CUSTOM (default e fallback) */
-      cursor: url('cursor/default.cur'), default;
-      user-select: none;
-    }
-
-    /* CONTENITORE PRINCIPALE CONTROLLER */
-    .controller {
-      width: 600px;
-      max-width: 90%;
-      position: relative;
-    }
-
-    /* GRIGLIA TASTI (3 colonne, gap 20px) */
-    .keys {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-auto-rows: 100px;
-      grid-gap: 20px;
-
-      /* preserva profondità 3D */
-      transform-style: preserve-3d;
-      transform: rotateX(20deg);
-    }
-
-    /* STILE BASE TASTO */
-    .key {
-      background: #222;
-      border-radius: 10px;
-      box-shadow:
-        0 8px 15px rgba(0, 0, 0, 0.6),
-        inset 0 2px 0 rgba(255, 255, 255, 0.1);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      transform-style: preserve-3d;
-      transition: transform 0.1s ease-out;
-      position: relative;
-      overflow: visible;
-      user-select: none;
-    }
-
-    /* SUPERFICIE TASTO IN 3D */
-    .key::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(145deg, #333, #111);
-      border-radius: inherit;
-      transform: translateZ(4px);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* TESTO DEL TASTO */
-    .key .label {
-      position: relative;
+      color: #ccc;
       font-family: "Bebas Neue", sans-serif;
-      font-size: 25px;
-      color: grey;
-      transform: translateZ(8px) scale(1);
-      transition: color 0.2s ease, transform 0.2s ease;
-      z-index: 1;
-      pointer-events: none;
+      margin: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* CENTRA TUTTO ORIZZONTALMENTE */
+    }
+
+    .fancy-title {
+      font-size: 64px;
+      color: #ccc;
+      display: flex;
+      gap: 6px;
+      cursor: default;
       user-select: none;
+      perspective: 600px; /* per effetto 3D */
+      transition: color 0.5s ease;
+      margin-bottom: 200px;
+      margin-top: -200px;   /* sposta in alto */
     }
 
-    /* HOVER SUL TESTO */
-    .key:hover .label {
-      color: #fff;
-      transform: translateZ(16px) scale(1.1);
+    .fancy-title span {
+      display: inline-block;
+      transition: transform 0.3s ease, color 0.5s ease;
+      will-change: transform, color;
+      color: #ccc;
     }
 
-    /* STILE QUANDO IL TASTO È PREMUTO */
-    .key.active {
-      transform: translateZ(-4px) translateY(4px);
-      box-shadow:
-        0 4px 8px rgba(0, 0, 0, 0.7),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-
-    /* TASTO ABOUT ME GRANDE, OCCUPA 3 COLONNE */
-    .key.about {
-      font-size: 24px;
-      grid-column: span 3;
-      background: #333;
-    }
-
-    /* RIPPLES: cerchio per onda d'urto */
-    .ripple {
-      position: absolute;
-      border-radius: 50%;
-      transform: scale(0);
-      animation: ripple-animation 600ms linear;
-      background-color: rgba(0, 255, 255, 0.5);
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    /* ANIMAZIONE RIPPLE */
-    @keyframes ripple-animation {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
+    /* Colore di base quando si passa col mouse sull'intero titolo */
+    .fancy-title:hover {
+      color: rgb(0, 89, 255);
     }
   </style>
 </head>
 
 <body>
+
+  <h1 id="fancy-title" class="fancy-title">
+    <!-- ogni lettera in uno span per muoverla singolarmente -->
+    <span>S</span><span>T</span><span>E</span><span>F</span><span>A</span><span>N</span><span>O</span> 
+    <span>F</span><span>E</span><span>R</span><span>R</span><span>A</span><span>R</span><span>I</span>
+  </h1>
+  
   <div class="controller">
     <div class="keys">
       <!-- TASTO ABOUT ME -->
-      <div class="key about" data-sound="about">
+      <a href="aboutme.html" class="key about" data-sound="about">
         <span class="label">About Me</span>
-      </div>
+      </a>
       <!-- TASTO PORTFOLIO -->
       <div class="key" data-sound="portfolio">
         <span class="label">Portfolio</span>
@@ -192,7 +112,7 @@
         }
 
         // ANIMAZIONE RIMBALZO col GSAP (scrolla verso il basso e torna)
-        gsap.to(key, { y: 5, duration: 0.1, yoyo: true, repeat: 1 });
+        gsap.to(key, { y: 5, duration: 0.4, yoyo: true, repeat: 1 });
 
         // CREO RIPPLES (onda d'urto visiva)
         const ripple = document.createElement('span');
@@ -219,5 +139,51 @@
       key.addEventListener('mouseleave', () => key.classList.remove('active'));
     });
   </script>
+  <script>
+    const title = document.getElementById('fancy-title');
+
+    title.addEventListener('mousemove', e => {
+      const spans = title.querySelectorAll('span');
+      const rect = title.getBoundingClientRect();
+
+      spans.forEach(span => {
+        const spanRect = span.getBoundingClientRect();
+        const spanCenterX = spanRect.left + spanRect.width / 20;
+        const spanCenterY = spanRect.top + spanRect.height / 20;
+
+        const deltaX = e.clientX - spanCenterX;
+        const deltaY = e.clientY - spanCenterY;
+
+        const maxOffset = 2;
+
+        const offsetX = -deltaX / 2; 
+        const offsetY = -deltaY / 2;
+
+        const moveX = Math.max(-maxOffset, Math.min(maxOffset, offsetX));
+        const moveY = Math.max(-maxOffset, Math.min(maxOffset, offsetY));
+
+        span.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+
+        const dist = Math.hypot(deltaX, deltaY);
+        const maxDist = rect.width / 2;
+        const intensity = Math.min(1, 1 - dist / maxDist);
+
+        span.style.color = `rgba(0, 255, 255, ${intensity})`;
+      });
+    });
+
+    title.addEventListener('mouseleave', () => {
+      const spans = title.querySelectorAll('span');
+      spans.forEach(span => {
+        span.style.transform = '';
+        span.style.color = '#ccc';
+      });
+    });
+  </script>
+
+  <footer class="site-footer">
+    Stefano Ferrari - all rights reserved
+  </footer>
+  
 </body>
 </html>

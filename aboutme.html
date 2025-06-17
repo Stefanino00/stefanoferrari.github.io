@@ -1,0 +1,33 @@
+<!-- aboutme.html -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About Me - Stefano Ferrari</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <section class="about-section">
+    <div class="about-container">
+      <img src="images/me-bw.jpg" alt="Stefano Ferrari" class="about-photo" />
+      <div class="about-text">
+        <h1>Stefano Ferrari</h1>
+        <p>Ciao, sono uno studente di Ingegneria Industriale appassionato di tecnologia, musica e video editing.</p>
+        <p>Amo tutto ciò che riguarda il mondo digitale, dalla programmazione alla gestione dei social media, passando per il DJing e la creazione video.</p>
+        <p>Benvenuto nel mio spazio digitale!</p>
+
+        <div class="key about" data-sound="about" tabindex="0">Torna Home</div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // semplice gestione click per tornare alla home
+    document.querySelector('.key.about').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

@@ -11,47 +11,10 @@
   <!-- FONT GOOGLE PER TESTI -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <!-- Il file style.css ora contiene gli stili che erano inline -->
   <link rel="stylesheet" href="css/style.css" />
-  <title>Test Titolo Animato</title>
-  <style>
-    body {
-      background: #111;
-      color: #ccc;
-      font-family: "Bebas Neue", sans-serif;
-      margin: 40px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center; /* CENTRA TUTTO ORIZZONTALMENTE */
-    }
-
-    .fancy-title {
-      font-size: 64px;
-      color: #ccc;
-      display: flex;
-      gap: 6px;
-      cursor: default;
-      user-select: none;
-      perspective: 600px; /* per effetto 3D */
-      transition: color 0.5s ease;
-      margin-bottom: 200px;
-      margin-top: -200px;   /* sposta in alto */
-    }
-
-    .fancy-title span {
-      display: inline-block;
-      transition: transform 0.3s ease, color 0.5s ease;
-      will-change: transform, color;
-      color: #ccc;
-    }
-
-    /* Colore di base quando si passa col mouse sull'intero titolo */
-    .fancy-title:hover {
-      color: rgb(0, 89, 255);
-    }
-  </style>
 </head>
-
-<body>
+<body class="home-page">
 
   <h1 id="fancy-title" class="fancy-title">
     <!-- ogni lettera in uno span per muoverla singolarmente -->
@@ -148,8 +111,8 @@
 
       spans.forEach(span => {
         const spanRect = span.getBoundingClientRect();
-        const spanCenterX = spanRect.left + spanRect.width / 20;
-        const spanCenterY = spanRect.top + spanRect.height / 20;
+        const spanCenterX = spanRect.left + spanRect.width / 2; // Corretto: diviso 2, non 20
+        const spanCenterY = spanRect.top + spanRect.height / 2;
 
         const deltaX = e.clientX - spanCenterX;
         const deltaY = e.clientY - spanCenterY;

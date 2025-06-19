@@ -1,33 +1,302 @@
-<!-- aboutme.html -->
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>About Me - Stefano Ferrari</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat&display=swap" rel="stylesheet" />
+
+  <!-- IMPORT GSAP PER ANIMAZIONI -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js" integrity="sha512-d+NqPtGmH4evgbh8Rb0bLHJqIjSDW7bWyS3CTT5qqoqfB7bZWx426oB6RjyWtRZIQ38DjS46YdzOOoXa1+T2ow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- FONT GOOGLE PER TESTI -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Contenitore principale: immagine + testo */
+    .about-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      max-width: 900px;
+      margin: 80px auto;
+      position: relative;
+    }
+    /* Linea verticale di separazione */
+    .divider {
+      position: absolute;
+      width: 2px;
+      height: 0;
+      background: linear-gradient(to bottom, #0ff, #0aa);
+      left: 50%; transform: translateX(-50%);
+    }
+    .content {
+      flex: 2;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 1s ease-out;
+    }
+    /* Immagine elegante con animazione hover */
+    .about-image {
+      width: 300px;
+      height: auto;
+      border-radius: 10px;
+      overflow: hidden;
+      transform: scale(0.9);
+      transition: transform 0.5s ease;
+    }
+    .about-image img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .about-image:hover {
+      transform: scale(1);
+    }
+    /* Sezione testi */
+    .about-text {
+      max-width: 400px;
+      text-align: left;
+      font-family: 'Bebas Neue', sans-serif;
+      color: #ccc;
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    .about-text h2 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+    .about-text p {
+      margin-bottom: 16px;
+      line-height: 1.4;
+      font-size: 20px;
+    }
+    /* Tasto Torna Home più piccolo */
+    .keys.single .key {
+      grid-template-columns: 1fr;
+    }
+    .key.about {
+      font-size: 18px;
+      width: 200px;
+      height: 50px;
+      grid-column: auto;
+      background: #333;
+    }
+    .controller-bottom {
+      margin-top: 40px;
+      display: flex;
+      justify-content: center;
+    }
+  </style>
 </head>
 <body>
-  <section class="about-section">
-    <div class="about-container">
-      <img src="images/me-bw.jpg" alt="Stefano Ferrari" class="about-photo" />
-      <div class="about-text">
-        <h1>Stefano Ferrari</h1>
-        <p>Ciao, sono uno studente di Ingegneria Industriale appassionato di tecnologia, musica e video editing.</p>
-        <p>Amo tutto ciò che riguarda il mondo digitale, dalla programmazione alla gestione dei social media, passando per il DJing e la creazione video.</p>
-        <p>Benvenuto nel mio spazio digitale!</p>
-
-        <div class="key about" data-sound="about" tabindex="0">Torna Home</div>
+    <div class="container">
+        <div class="image-wrapper">
+          <img src="images/Stefano_dj.JPG" alt="Stefano DJ">
+        </div>
+    
+        <div class="divider" id="divider"></div>
+    
+        <div class="content" id="textContent">
+          <div class="title">Stefano Ferrari</div>
+          <div class="paragraph">
+            Ciao! Sono Stefano, un appassionato di tecnologia, musica e creazione di contenuti. Il mio percorso spazia dalla meccanica all’informatica, dalla gestione social alla produzione video.
+          </div>
+          <div class="paragraph">
+            Sono anche un DJ e creo video per aziende, lavoro su siti web e sistemi gestionali. Amo unire creatività e tecnica per portare idee alla vita.
+          </div>
+          <div class="paragraph">
+            Il mio obiettivo? Costruire ponti tra arte e ingegneria, con eleganza e precisione.
+          </div>
+          <button class="back-button" onclick="window.location.href='index.html'">Torna alla Home</button>
+        </div>
       </div>
-    </div>
-  </section>
+    
 
+  <!-- Tasto Torna Home -->
+  <div class="controller controller-bottom">
+    <div class="keys single">
+      <a href="index.html" class="key about" data-sound="about">
+        <span class="label">Torna Home</span>
+      </a>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    Stefano Ferrari - all rights reserved
+  </footer>
+
+  <!-- Script animazione Divider e testo -->
   <script>
-    // semplice gestione click per tornare alla home
-    document.querySelector('.key.about').addEventListener('click', () => {
-      window.location.href = 'index.html';
+    // Animate divider height
+    gsap.to('.divider', { height: '80%', duration: 1.2, ease: 'power2.out' });
+    // Animate about-text fade-in
+    gsap.to('.about-text', { y: 0, opacity: 1, delay: 0.5, duration: 1, ease: 'power2.out' });
+
+    // Gestione tasto come in index
+    const soundMap = { about: new Audio('sounds/click.mp3') };
+    document.querySelectorAll('.key').forEach(key => {
+      const audio = soundMap[key.dataset.sound];
+      key.addEventListener('mousedown', e => {
+        key.classList.add('active');
+        if (audio) { audio.currentTime = 0; audio.play(); }
+        gsap.to(key, { y: 5, duration: 0.4, yoyo: true, repeat: 1 });
+        const ripple = document.createElement('span'); ripple.classList.add('ripple');
+        const rect = key.getBoundingClientRect();
+        ripple.style.left = `${e.clientX - rect.left}px`;
+        ripple.style.top = `${e.clientY - rect.top}px`;
+        key.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+      });
+      key.addEventListener('mouseup', () => key.classList.remove('active'));
+      key.addEventListener('mouseleave', () => key.classList.remove('active'));
     });
+
+    // Title 3D mousemove (come in index, solo scala ridotta)
+    const title = document.getElementById('fancy-title');
+    title.style.fontSize = '32px';
+    title.querySelectorAll('span').forEach(span => span.style.transition = 'transform 0.3s, color 0.5s');
+    title.addEventListener('mousemove', e => {
+      const spans = title.querySelectorAll('span');
+      const rect = title.getBoundingClientRect();
+      spans.forEach(span => {
+        const spanRect = span.getBoundingClientRect();
+        const dx = e.clientX - (spanRect.left + spanRect.width/2);
+        const dy = e.clientY - (spanRect.top + spanRect.height/2);
+        const moveX = Math.max(-2, Math.min(2, -dx/2));
+        const moveY = Math.max(-2, Math.min(2, -dy/2));
+        span.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+        const dist = Math.hypot(dx, dy);
+        const intensity = Math.min(1, 1 - dist/(rect.width/2));
+        span.style.color = `rgba(0,255,255,${intensity})`;
+      });
+    });
+    title.addEventListener('mouseleave', () => title.querySelectorAll('span').forEach(span => { span.style.transform=''; span.style.color='#ccc'; }));
+
+
   </script>
+    <script>
+        window.addEventListener("load", () => {
+          // Anima la linea verticale
+          const divider = document.getElementById("divider");
+          divider.style.height = "80%";
+    
+          // Anima il testo
+          const text = document.getElementById("textContent");
+          setTimeout(() => {
+            text.style.opacity = "1";
+            text.style.transform = "translateY(0)";
+          }, 500);
+        });
+      </script>
 </body>
 </html>
+
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(to right, #1e1e1e, #2c2c2c);
+      color: #ffffff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+      padding: 2rem;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      gap: 3rem;
+    }
+
+    .image-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .image-wrapper img {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 1rem;
+      transition: transform 0.5s ease;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    .image-wrapper img:hover {
+      transform: scale(1.05);
+    }
+
+    .divider {
+      width: 2px;
+      background-color: #ffffff44;
+      height: 0%;
+      transition: height 1s ease-in-out;
+    }
+
+    .content {
+      flex: 2;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 1s ease-out;
+    }
+
+    .title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #ffffff;
+      text-shadow: 2px 2px #0ff;
+    }
+
+    .paragraph {
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      max-width: 600px;
+    }
+
+    .back-button {
+      margin-top: 2rem;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: linear-gradient(to right, #0ff, #08f);
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .back-button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        padding: 1rem;
+      }
+
+      .divider {
+        width: 80%;
+        height: 2px !important;
+      }
+
+      .image-wrapper {
+        margin-bottom: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>

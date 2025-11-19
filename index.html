@@ -7,7 +7,7 @@
 <style>
   body { font-family: Arial, sans-serif; padding: 20px; }
   #domande { margin-top: 20px; }
-  .domanda { margin-bottom: 15px; }
+  .domanda { margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
 </style>
 </head>
 <body>
@@ -16,86 +16,84 @@
 <input type="password" id="codice" placeholder="Codice segreto">
 <button onclick="verificaCodice()">Accedi</button>
 
-<div id="upload" style="display:none;">
-  <h2>Carica il PDF delle domande:</h2>
-  <input type="file" id="fileInput" accept="application/pdf">
-  <button onclick="leggiPDF()">Leggi PDF</button>
-</div>
-
-<div id="domande"></div>
+<div id="domande" style="display:none;"></div>
 
 <script>
 function verificaCodice() {
     const codice = document.getElementById('codice').value;
     if (codice === "13112005") {
         alert("Accesso consentito!");
-        document.getElementById('upload').style.display = 'block';
+        caricaPDF();
     } else {
         alert("Codice errato. Accesso negato.");
     }
 }
 
-function leggiPDF() {
-    const file = document.getElementById('fileInput').files[0];
-    if (!file) {
-        alert("Seleziona un file PDF!");
-        return;
+function caricaPDF() {
+    const pdfPath = "domandetest.pdf"; // PDF già presente nella stessa cartella
+
+    pdfjsLib.getDocument(pdfPath).promise.then(pdf => {
+        let domande = [];
+        let totalePagine = pdf.numPages;
+        let pagineLetto = 0;
+
+        for (let i = 1; i <= totalePagine; i++) {
+            pdf.getPage(i).then(page => {
+                page.getTextContent().then(content => {
+                    let text = content.items.map(item => item.str).join("\n");
+                    let lines = text.split("\n");
+                    let domanda_corrente = null;
+                    let opzioni = [];
+
+                    lines.forEach(line => {
+                        if (/^\d+\./.test(line.trim())) {
+                            if (domanda_corrente) {
+                                domanda_corrente.opzioni = opzioni;
+                                domande.push(domanda_corrente);
+                                opzioni = [];
+                            }
+                            domanda_corrente = { testo: line.trim(), corretta: null };
+                        } else if (/^[A-D]\s/.test(line.trim())) {
+                            let opzione = line.trim();
+                            if (opzione.includes("●") || opzione.includes("•")) {
+                                domanda_corrente.corretta = opzione[0];
+                                opzione = opzione.replace("●", "").replace("•", "").trim();
+                            }
+                            opzioni.push(opzione);
+                        }
+                    });
+
+                    if (domanda_corrente) {
+                        domanda_corrente.opzioni = opzioni;
+                        domande.push(domanda_corrente);
+                    }
+
+                    pagineLetto++;
+                    if (pagineLetto === totalePagine) {
+                        mostraDomande(domande);
+                    }
+                });
+            });
+        }
+    }).catch(err => alert("Errore nel caricare il PDF: " + err));
+}
+
+function mostraDomande(domande) {
+    // Mischia le domande in ordine casuale
+    for (let i = domande.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [domande[i], domande[j]] = [domande[j], domande[i]];
     }
 
-    const fileReader = new FileReader();
-    fileReader.onload = function() {
-        const typedarray = new Uint8Array(this.result);
-
-        pdfjsLib.getDocument(typedarray).promise.then(pdf => {
-            let domande = [];
-            let totalePagine = pdf.numPages;
-
-            for (let i = 1; i <= totalePagine; i++) {
-                pdf.getPage(i).then(page => {
-                    page.getTextContent().then(content => {
-                        let text = content.items.map(item => item.str).join("\n");
-                        let lines = text.split("\n");
-                        let domanda_corrente = null;
-                        let opzioni = [];
-
-                        lines.forEach(line => {
-                            if (/^\d+\./.test(line.trim())) {
-                                if (domanda_corrente) {
-                                    domanda_corrente.opzioni = opzioni;
-                                    domande.push(domanda_corrente);
-                                    opzioni = [];
-                                }
-                                domanda_corrente = { testo: line.trim(), corretta: null };
-                            } else if (/^[A-D]\s/.test(line.trim())) {
-                                let opzione = line.trim();
-                                if (opzione.includes("●") || opzione.includes("•")) {
-                                    domanda_corrente.corretta = opzione[0];
-                                    opzione = opzione.replace("●", "").replace("•", "").trim();
-                                }
-                                opzioni.push(opzione);
-                            }
-                        });
-
-                        if (domanda_corrente) {
-                            domanda_corrente.opzioni = opzioni;
-                            domande.push(domanda_corrente);
-                        }
-
-                        // Mostra le domande
-                        const container = document.getElementById("domande");
-                        container.innerHTML = "";
-                        domande.forEach((d, idx) => {
-                            let div = document.createElement("div");
-                            div.className = "domanda";
-                            div.innerHTML = `<b>${idx+1}. ${d.testo}</b><br>${d.opzioni.map((o,i)=> String.fromCharCode(65+i)+": "+o).join("<br>")}<br><i>Corretta: ${d.corretta || "?"}</i>`;
-                            container.appendChild(div);
-                        });
-                    });
-                });
-            }
-        });
-    };
-    fileReader.readAsArrayBuffer(file);
+    const container = document.getElementById("domande");
+    container.style.display = "block";
+    container.innerHTML = "";
+    domande.forEach((d, idx) => {
+        let div = document.createElement("div");
+        div.className = "domanda";
+        div.innerHTML = `<b>${idx+1}. ${d.testo}</b><br>${d.opzioni.map((o,i)=> String.fromCharCode(65+i)+": "+o).join("<br>")}<br><i>Corretta: ${d.corretta || "?"}</i>`;
+        container.appendChild(div);
+    });
 }
 </script>
 

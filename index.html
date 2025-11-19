@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Allenamento test</title>
+<title>Test Distinte</title>
 
 <!-- Stili migliorati per visibilità -->
 <style>
@@ -18,7 +18,7 @@
   button.secondary{ background:#f0f0f0; color:#111; }
   .hidden{ display:none; }
   #answers{ margin-top:12px; display:grid; gap:8px; grid-template-columns:1fr; min-height:80px; }
-  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:2px solid #000000; background:#ffffff; cursor:pointer; font-size:15px; min-height:48px; font-weight:600; }
+  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:2px solid #cbd5e1; background:#17ad80; cursor:pointer; font-size:15px; min-height:48px; font-weight:600; }
   .ans-btn[disabled]{ opacity:.6; cursor:not-allowed; }
   #feedback{ margin-top:12px; font-weight:700; }
   pre#debug{ background:#0b1220; color:#d1d5db; padding:12px; border-radius:8px; max-height:220px; overflow:auto; font-size:12px; white-space:pre-wrap; }
@@ -42,14 +42,13 @@
     <div style="margin-top:10px;" class="row">
       <input id="accessCode" type="password" placeholder="Codice di accesso">
       <button id="btnLogin">Accedi</button>
+
     </div>
     <div id="loginMsg" class="small" style="color:#b00; margin-top:8px;"></div>
   </div>
 
   <div id="quizCard" class="card hidden">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h4>Quiz creato a solo scopo di allenamento</h4>
-        <br>
       <div>
         <h1 id="questionTitle">Domanda</h1>
         <div class="small" id="qInfo">0 / 0</div>
@@ -70,15 +69,33 @@
 
     <div class="meta">
       <div id="elapsed">Tempo: 0s</div>
-      
+      <div id="lastAction">Ultima azione: -</div>
     </div>
 
+    <!-- Debug JSON visibile della domanda corrente (utile per capire perché UI appare vuota) -->
+    <div id="currentQuestionJson" class="qjson hidden"></div>
+  </div>
 
+  <div id="fallbackCard" class="card hidden">
+    <h1>Fallback: incolla il testo (se il PDF non viene caricato)</h1>
+    <div class="small">Ogni domanda inizia con <code>-</code>, risposte A-D; la corretta con <code>*</code> davanti alla lettera.</div>
+    <textarea id="manualInput" rows="8" placeholder="Incolla qui il testo..."></textarea>
+    <div style="margin-top:10px;" class="row">
+      <button id="useManual">Usa testo incollato</button>
+      <button id="clearManual" class="secondary">Pulisci</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>Debug (log)</h1>
+    <div class="small">Log visibile per capire cosa succede.</div>
+    <pre id="debug">Pronto.</pre>
+  </div>
 </div>
 
 <script>
 /* ========== CONFIG ========== */
-const ACCESS_CODE = "789456";
+const ACCESS_CODE = "13112005";
 const PDF_FILE = "domandetest3.pdf";
 
 /* stato */

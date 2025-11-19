@@ -2,32 +2,116 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Test Accesso</title>
+<title>Esame CEFRA</title>
 <style>
-  #debug { background: #f0f0f0; padding: 10px; margin-top: 10px; max-height: 200px; overflow-y: scroll; font-size: 12px; }
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  #login, #quiz { margin-top: 20px; }
+  #debug { border: 1px solid #ccc; padding: 10px; margin-top: 20px; height: 200px; overflow-y: scroll; background: #f9f9f9; }
+  .domanda { margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; }
+  .risposta-corretta { background-color: #c8ffc8; }
 </style>
 </head>
 <body>
 
-<input type="password" id="codeInput" placeholder="Inserisci codice">
-<button onclick="checkCode()">Accedi</button>
+<h1>Esame CEFRA</h1>
 
-<div id="debug"></div>
+<div id="login">
+  <label>Codice: <input type="text" id="codice"></label>
+  <button id="btnLogin">Accedi</button>
+</div>
 
+<div id="quiz" style="display:none;">
+  <h2>Domande</h2>
+  <div id="domande"></div>
+</div>
+
+<div id="debug">
+  <strong>Debug:</strong><br>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
 <script>
-const debugDiv = document.getElementById("debug");
-function logDebug(msg){ debugDiv.innerHTML += msg + "<br>"; }
+const debugDiv = document.getElementById('debug');
+function logDebug(msg) {
+  debugDiv.innerHTML += msg + "<br>";
+  debugDiv.scrollTop = debugDiv.scrollHeight;
+}
 
-function checkCode(){
-  const input = document.getElementById("codeInput").value;
-  logDebug("Hai inserito: " + input);
-  if(input === "13112005"){
+// Login semplice
+document.getElementById('btnLogin').addEventListener('click', () => {
+  const codice = document.getElementById('codice').value;
+  if (codice === '13112005') {
     logDebug("Accesso consentito!");
-    alert("Accesso consentito!"); 
+    document.getElementById('login').style.display = 'none';
+    loadPDF();
   } else {
-    logDebug("Codice errato!");
-    alert("Codice errato!");
+    alert('Codice errato');
+    logDebug("Accesso negato per codice: " + codice);
   }
+});
+
+// Caricamento e parsing PDF
+async function loadPDF() {
+  const url = 'domandetest.pdf';
+  logDebug(`Inizio caricamento PDF: ${url}`);
+
+  const loadingTask = pdfjsLib.getDocument(url);
+  const pdf = await loadingTask.promise;
+  logDebug(`PDF caricato con successo. Numero pagine: ${pdf.numPages}`);
+
+  let testoCompleto = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items.map(item => item.str).join(' ');
+    logDebug(`Testo pagina ${i}: ${pageText.substring(0, 50)}...`);
+    testoCompleto += pageText + "\n";
+  }
+
+  parseDomande(testoCompleto);
+}
+
+// Parsing domande e risposte
+function parseDomande(testo) {
+  logDebug("Parsing domande...");
+
+  // Split per domande basandoci sul fatto che iniziano con "●"
+  let rawDomande = testo.split('●').map(d => d.trim()).filter(d => d.length > 0);
+  logDebug(`Numero domande trovate: ${rawDomande.length}`);
+
+  // Creazione array di oggetti domanda/risposte
+  let domande = rawDomande.map(d => {
+    const lines = d.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+    const domanda = lines.shift(); // prima riga è la domanda
+    const risposte = lines.map(r => ({
+      testo: r.replace(/^([A-D])\s*/, ''),
+      lettera: r.match(/^([A-D])/) ? r.match(/^([A-D])/)[1] : '',
+      corretta: r.includes('●')
+    }));
+    return { domanda, risposte };
+  });
+
+  // Mescola domande
+  domande = domande.sort(() => Math.random() - 0.5);
+  logDebug("Domande mischiate.");
+
+  showDomande(domande);
+}
+
+// Mostra domande sulla pagina
+function showDomande(domande) {
+  const container = document.getElementById('domande');
+  container.innerHTML = '';
+  domande.forEach((d, i) => {
+    const div = document.createElement('div');
+    div.className = 'domanda';
+    div.innerHTML = `<strong>${i+1}. ${d.domanda}</strong><br>` +
+      d.risposte.map(r => `<div class="${r.corretta ? 'risposta-corretta' : ''}">${r.lettera}. ${r.testo}</div>`).join('');
+    container.appendChild(div);
+  });
+
+  document.getElementById('quiz').style.display = 'block';
+  logDebug("Domande mostrate sul sito.");
 }
 </script>
 

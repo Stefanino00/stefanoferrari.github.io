@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Allenamento test</title>
+<title>Allenamento test - debug</title>
 
 <!-- Stili migliorati per visibilità -->
 <style>
@@ -30,14 +30,13 @@
   .badge{ background:#eef6ff; color:var(--accent); padding:4px 8px; border-radius:999px; font-weight:700; }
   code{ background:#f3f4f6; padding:2px 6px; border-radius:6px; }
   .qjson{ background:#f8fafc; border:1px dashed #cbd5e1; padding:8px; margin-top:10px; font-size:12px; color:#334155; border-radius:6px; white-space:pre-wrap; }
-
-  /* Stili per mobile */
+  /* parse debug */
+  #parseDebugCard { background:#fff9e6; border:1px solid #f2d488; }
+  #parseDebug { background:#fff; border-radius:6px; padding:10px; max-height:260px; overflow:auto; font-family:monospace; font-size:13px; color:#111; }
+  .muted { color:#666; font-size:12px; }
   @media (max-width: 600px) {
-    .wrap {
-      margin: 10px auto; /* Riduci margine verticale */
-      padding: 10px;     /* Riduci padding laterale */
-    }
-    html, body { font-size: 17px; } /* Aumenta leggermente il font base */
+    .wrap { margin: 10px auto; padding: 10px; }
+    html, body { font-size: 17px; }
     .small { font-size: 14px; }
   }
 </style>
@@ -53,7 +52,6 @@
     <div style="margin-top:10px;" class="row">
       <input id="accessCode" type="password" placeholder="Codice di accesso">
       <button id="btnLogin">Accedi</button>
-      <!-- Demo rapido (nascosto alla vista ma presente) -->
       <button id="btnDemo" class="secondary" style="display:none">Demo</button>
     </div>
     <div id="loginMsg" class="small" style="color:#b00; margin-top:8px;"></div>
@@ -78,7 +76,6 @@
       <div style="margin-top:12px;" class="row">
         <button id="nextBtn" class="hidden">Prossima domanda</button>
         <button id="endBtn" class="secondary hidden">Termina test</button>
-        <!-- bottoni finali che il JS mostra in endTest -->
         <button id="restartBtn" class="hidden secondary">Ricomincia</button>
         <button id="downloadBtn" class="hidden">Scarica risultato</button>
       </div>
@@ -89,13 +86,12 @@
       <div id="lastAction">Ultima azione: -</div>
     </div>
 
-    <!-- Debug JSON visibile della domanda corrente (utile per capire perché UI appare vuota) -->
     <div id="currentQuestionJson" class="qjson hidden"></div>
   </div>
 
   <div id="fallbackCard" class="card hidden">
     <h1>Fallback: incolla il testo (se il PDF non viene caricato)</h1>
-    <div class="small">Ogni domanda inizia con <code>-</code>, risposte A-D; la corretta con <code>*</code> davanti alla lettera.</div>
+    <div class="small">Ogni domanda inizia con <code>-</code>, risposte A-D; la corretta con <code>* D testo</code> (asterisco + spazio + lettera + spazio).</div>
     <textarea id="manualInput" rows="8" placeholder="Incolla qui il testo..."></textarea>
     <div style="margin-top:10px;" class="row">
       <button id="useManual">Usa testo incollato</button>
@@ -103,7 +99,12 @@
     </div>
   </div>
 
-
+  <!-- PANEL: Parse debug visibile -->
+  <div id="parseDebugCard" class="card">
+    <h1>Parse debug (visibile)</h1>
+    <div class="muted">Vedi qui le righe normalizzate, i primi charcode e i match. Utile per problemi con caratteri non-ASCII.</div>
+    <pre id="parseDebug"></pre>
+  </div>
 </div>
 
 <script>
@@ -130,13 +131,28 @@ function sanitizeStr(s){
     .trim();
 }
 
-/* debug log su UI (robusto: aggiorna lastAction anche se debug non esiste) */
-function debugLog(...args){
-  const el = document.getElementById('debug');
-  const t = new Date().toISOString().slice(11,19);
-  if (el) {
-    el.textContent = `${t} › ${args.map(a=> (typeof a==='object'? JSON.stringify(a,null,2): a)).join(' ')}\n` + el.textContent;
+/* parse debug append (visibile) */
+function appendParseDebug(txt){
+  const el = document.getElementById('parseDebug');
+  if(!el) return;
+  el.textContent = txt + "\n\n" + el.textContent;
+}
+
+/* helper per codepoint stringa (primi N caratteri) */
+function charCodesSummary(s, n = 12){
+  const out = [];
+  for(let i=0;i<Math.min(s.length,n);i++){
+    const c = s.charAt(i);
+    const code = s.codePointAt(i);
+    out.push(`${i}:${c} (U+${code.toString(16).toUpperCase()} ${code})`);
+    // if codepoint is surrogate pair, skip extra index
+    if(code > 0xFFFF) i++;
   }
+  return out.join(' | ');
+}
+
+/* debug log su UI "lastAction" */
+function debugLog(...args){
   const lastEl = document.getElementById('lastAction');
   if (lastEl) lastEl.textContent = 'Ultima azione: ' + (args[0] || '-');
 }
@@ -149,20 +165,21 @@ document.getElementById('btnLogin')?.addEventListener('click', () => {
     startApp();
   } else {
     document.getElementById('loginMsg').textContent = 'Codice errato.';
-    debugLog('Login fallito', code);
+    appendParseDebug(`LOGIN FALLITO: codice="${code}"`);
+    debugLog('Login fallito');
   }
 });
-document.getElementById('btnDemo')?.addEventListener('click', () => { debugLog('Demo: salto login'); startApp(); });
+document.getElementById('btnDemo')?.addEventListener('click', () => { appendParseDebug('Demo: salto login'); startApp(); });
 
 /* start: tenta PDF */
 async function startApp(){
   document.getElementById('quizCard').classList.remove('hidden');
   document.getElementById('fallbackCard')?.classList.add('hidden');
-  if (document.getElementById('debug')) document.getElementById('debug').textContent = '';
-  debugLog('Avvio: provo a caricare PDF', PDF_FILE);
+  document.getElementById('parseDebug').textContent = ''; // pulisci debug
+  appendParseDebug(`Avvio parsing PDF: ${PDF_FILE}`);
 
   if(!window.pdfjsLib){
-    debugLog('pdfjs non caricato');
+    appendParseDebug('pdfjs non caricato');
     document.getElementById('fallbackCard')?.classList.remove('hidden');
     return;
   }
@@ -172,18 +189,18 @@ async function startApp(){
     const resp = await fetch(PDF_FILE);
     if(!resp.ok) throw new Error('PDF non trovato: ' + resp.status);
     const arrayBuffer = await resp.arrayBuffer();
-    debugLog('PDF scaricato bytes:', arrayBuffer.byteLength);
+    appendParseDebug('PDF scaricato bytes: ' + arrayBuffer.byteLength);
     const text = await extractTextFromPDF(arrayBuffer);
-    debugLog('Testo estratto (prime 300 ch):', text.slice(0,300));
+    appendParseDebug('Testo estratto (prime 300 ch):\n' + text.slice(0,300));
     parseQuestionsFromPlainText(text);
   } catch(err){
-    debugLog('Errore caricamento PDF:', err.message || err);
+    appendParseDebug('Errore caricamento PDF: ' + (err.message || err));
     document.getElementById('fallbackCard')?.classList.remove('hidden');
     return;
   }
 
   if(questions.length === 0){
-    debugLog('Parsing non ha trovato domande valide -> mostra fallback');
+    appendParseDebug('Parsing non ha trovato domande valide -> mostra fallback');
     document.getElementById('fallbackCard')?.classList.remove('hidden');
     return;
   }
@@ -198,7 +215,7 @@ async function startApp(){
 async function extractTextFromPDF(arrayBuffer){
   const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
   const pdf = await loadingTask.promise;
-  debugLog('PDF caricato pagine:', pdf.numPages);
+  appendParseDebug('PDF caricato pagine: ' + pdf.numPages);
   let fullText = "";
   for(let p=1;p<=pdf.numPages;p++){
     try {
@@ -208,7 +225,7 @@ async function extractTextFromPDF(arrayBuffer){
       const pageText = strings.join(' ');
       fullText += pageText + '\n\n';
     } catch(e){
-      debugLog('Errore estrazione pagina', p, e.message || e);
+      appendParseDebug('Errore estrazione pagina ' + p + ': ' + (e.message || e));
     }
   }
   return normalizeExtractedText(fullText);
@@ -217,29 +234,34 @@ async function extractTextFromPDF(arrayBuffer){
 /* normalizza: reinserisce break utili e pulisce stringhe invisibili */
 function normalizeExtractedText(t){
   let s = String(t || '');
-  // rimuovi caratteri invisibili
   s = s.replace(/\u00A0/g,' ').replace(/[\u200B\u200C\u200D\uFEFF]/g,'');
-  // collassa spazi multipli ma mantieni linebreaks a loro posto convertendoli in \n
   s = s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-  // cerca pattern "- " (domanda) e " A " " B "... e assicurati linebreak
   s = s.replace(/\s-\s/g, '\n- ');
   s = s.replace(/\s([A-D])\s+/g, '\n$1 ');
   s = s.replace(/\*(?=[A-D]\s)/g, '\n*');
-  // riduci multiple spazi a singolo spazio dentro le linee
   const lines = s.split('\n').map(l => l.replace(/\s+/g,' ').trim()).filter(l=>l.length>0);
   return lines.join('\n');
 }
 
-/* parsing robusto */
+/* parsing robusto con debug dettagliato */
 function parseQuestionsFromPlainText(text){
   questions = [];
-  const rawLines = text.split(/\r?\n/).map(l => sanitizeStr(l)).filter(l=>l.length>0);
-  debugLog('Righe estratte:', rawLines.length);
+  const rawLines = text.split(/\r?\n/).map(l => l).filter(l=>l.length>0);
+  appendParseDebug('Righe estratte: ' + rawLines.length);
 
   let current = null;
   let idCounter = 0;
   for (let i = 0; i < rawLines.length; i++) {
-    const line = rawLines[i];
+    const originalLine = rawLines[i];
+    const line = sanitizeStr(originalLine);
+
+    // log le prime 80 righe o le righe che contengono asterisco/lettera
+    const interest = line.includes('*') || /^[A-Da-d]\s+/.test(line) || line.startsWith('-');
+    if (i < 80 && interest) {
+      appendParseDebug(`RIGA ${i+1}: "${originalLine}"\n - sanitized: "${line}"\n - chars: ${charCodesSummary(originalLine, 12)}`);
+    } else if (i < 12 && !interest) {
+      appendParseDebug(`RIGA ${i+1}: "${originalLine}" (short preview)`);
+    }
 
     if (line.startsWith('-')) {
       current = { text: sanitizeStr(line.replace(/^\-\s*/, '')), answers: [], id: ++idCounter };
@@ -249,20 +271,23 @@ function parseQuestionsFromPlainText(text){
 
     // NORMALIZZA LA RIGA: sostituisci vari simboli simili all'asterisco,
     // normalizza spazi strani (NBSP ecc.) e rimuovi caratteri zero-width
-    let normalized = String(line);
-    // asterischi "strani" in Unicode -> standard '*'
-    normalized = normalized.replace(/[\u2217\u2731\u204E\u066D\u06DE]/g, '*');
-    // spazi non-standard -> spazio normale
+    let normalized = String(originalLine);
+    normalized = normalized.replace(/[\u2217\u2731\u204E\u066D\u06DE\u2042\u204E\u2731\u2729\u2736\*]/g, '*'); // include normal '*' per semplificare
     normalized = normalized.replace(/[\u00A0\u2007\u202F]/g, ' ');
-    // rimuovi zero-width e BOM
     normalized = normalized.replace(/[\u200B\u200C\u200D\uFEFF]/g, '');
-    // trim left/right
-    normalized = normalized.trim();
+    normalized = normalized.replace(/\s+/g, ' ').trim();
+
+    // additionally, collapse sequences like '*\u200B D' so asterisk is obvious
+    normalized = normalized.replace(/^\*\s*/,'* ');
 
     // Match rigoroso: SOLO formato "* <lettera> <testo>"
-    // richiede asterisco all'inizio, almeno uno spazio, lettera A-D, almeno uno spazio, poi testo
     const correctFormat = normalized.match(/^\*\s+([A-D])\s+(.*)$/i);
     const normalFormat  = normalized.match(/^([A-D])\s+(.*)$/i);
+
+    // Debug: se c'è un asterisco ma non entra nel correctFormat, logga dettagli
+    if (normalized.includes('*') && !correctFormat) {
+      appendParseDebug(`-- Asterisco presente ma NON match corretto. normalized="${normalized}"\n   chars: ${charCodesSummary(normalized, 12)}`);
+    }
 
     if (correctFormat || normalFormat) {
       const isCorrect = !!correctFormat;
@@ -273,7 +298,7 @@ function parseQuestionsFromPlainText(text){
       if (!current) {
         current = { text: "(Domanda non trovata — generata automaticamente)", answers: [], id: ++idCounter };
         questions.push(current);
-        debugLog('Risposta trovata senza domanda, riga', i + 1);
+        appendParseDebug('Risposta trovata senza domanda, riga ' + (i+1));
       }
 
       current.answers.push({
@@ -282,6 +307,7 @@ function parseQuestionsFromPlainText(text){
         correct: isCorrect
       });
 
+      appendParseDebug(`Aggiunta risposta: label=${rawLabel} correct=${isCorrect} text="${rawText}"`);
       continue;
     }
 
@@ -297,33 +323,29 @@ function parseQuestionsFromPlainText(text){
     }
   }
 
-
-
   const before = questions.length;
   questions = questions.filter(q => q.answers && q.answers.length >= 2);
-  debugLog(`Parsing completato. Domande: ${before} -> valide: ${questions.length}`);
-  debugLog('Anteprima 5 domande:', questions.slice(0,5).map(q => ({id:q.id, text:q.text.slice(0,120), answers:q.answers})));
+  appendParseDebug(`Parsing completato. Domande: ${before} -> valide: ${questions.length}`);
+  appendParseDebug('Anteprima 5 domande: ' + JSON.stringify(questions.slice(0,5).map(q => ({id:q.id, text:q.text.slice(0,120), answers:q.answers})), null, 2));
 
   if(questions.length > 0){
     shuffleOrder();
     idx = 0; correctCount = 0; totalAnswered = 0;
-    // non partire showQuestion qui: startApp lo fa
   }
 }
 
 /* shuffle */
 function shuffleArray(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }
-function shuffleOrder(){ order = questions.map((_,i)=>i); shuffleArray(order); debugLog('Ordine mescolato, tot:', order.length); }
+function shuffleOrder(){ order = questions.map((_,i)=>i); shuffleArray(order); appendParseDebug('Ordine mescolato, tot: ' + order.length); }
 
 /* mostra domanda */
 function showQuestion(){
-  if(!questions || questions.length===0){ document.getElementById('questionTitle').innerText='Nessuna domanda disponibile'; document.getElementById('answers').innerHTML=''; debugLog('showQuestion: nessuna'); return; }
+  if(!questions || questions.length===0){ document.getElementById('questionTitle').innerText='Nessuna domanda disponibile'; document.getElementById('answers').innerHTML=''; appendParseDebug('showQuestion: nessuna'); return; }
   if(idx >= order.length){ endTest(); return; }
   const qIndex = order[idx];
   const q = questions[qIndex];
-  if(!q){ debugLog('Domanda non trovata indice', qIndex); endTest(); return; }
+  if(!q){ appendParseDebug('Domanda non trovata indice ' + qIndex); endTest(); return; }
 
-  // Visual debug: mostra l'oggetto JSON della domanda corrente per troubleshooting
   const jq = document.getElementById('currentQuestionJson');
   if (jq) {
     jq.classList.remove('hidden');
@@ -337,31 +359,23 @@ function showQuestion(){
 
   const answersDiv = document.getElementById('answers');
   answersDiv.innerHTML = '';
-  // render in ordine A,B,C,D (se presenti)
   q.answers.forEach(a => {
       const btn = document.createElement('button');
       btn.className = 'ans-btn';
       btn.type = 'button';
-      
-      // Pulizia testo per PDF
       let cleanText = sanitizeStr(a.text);
       btn.textContent = `${a.label}) ${cleanText}`;
-      
       btn.dataset.correct = a.correct ? '1' : '0';
-      
-      // Stile che forza il testo visibile anche se lungo
       btn.style.whiteSpace = 'pre-wrap';
       btn.style.wordBreak = 'break-word';
-      
       btn.addEventListener('click', () => handleAnswerClick(btn, a));
       answersDiv.appendChild(btn);
   });
 
-
   document.getElementById('nextBtn').classList.add('hidden');
   document.getElementById('endBtn').classList.add('hidden');
 
-  debugLog('Mostrata domanda id', q.id, 'testo (prime 80):', q.text.slice(0,80));
+  appendParseDebug('Mostrata domanda id ' + q.id + ' (' + (q.text||'') .slice(0,80) + ')');
 }
 
 /* click risposta */
@@ -376,13 +390,13 @@ function handleAnswerClick(button, answerObj){
   if(correct){
     fbEl.className = 'small correct';
     fbEl.innerText = 'CORRETTO ✓';
-    debugLog('Risposta corretta', answerObj.label, answerObj.text);
+    appendParseDebug('Risposta corretta: ' + answerObj.label + ' - ' + answerObj.text);
   } else {
     fbEl.className = 'small wrong';
     const q = questions[order[idx]];
     const correctAnswers = q.answers.filter(a=>a.correct).map(a=>`${a.label}) ${a.text}`).join('  |  ');
     fbEl.innerText = 'SBAGLIATO ✗  — Risposta corretta: ' + correctAnswers;
-    debugLog('Risposta sbagliata', answerObj.label, answerObj.text, 'corrette:', correctAnswers);
+    appendParseDebug('Risposta sbagliata: ' + answerObj.label + ' — corrette: ' + correctAnswers);
   }
 
   document.getElementById('scoreBadge').innerText = `${correctCount}/${totalAnswered}`;
@@ -409,8 +423,6 @@ function endTest(){
   stopTimer();
   const tot = totalAnswered;
   const perc = tot>0 ? Math.round((correctCount/tot)*100) : 0;
-
-  // Sostituisci solo il contenuto del quiz, non i pulsanti (uso fallback se manca quizContent)
   const container = document.getElementById('quizContent') || document.getElementById('quizCard');
   if(container){
     container.innerHTML = `
@@ -418,14 +430,11 @@ function endTest(){
       <div class="small">Hai risposto a <strong>${tot}</strong> domande. Corrette: <strong>${correctCount}</strong> (${perc}%).</div>
     `;
   }
-
-  // Nascondi i pulsanti del quiz e mostra quelli finali (se esistono)
   document.getElementById('nextBtn')?.classList.add('hidden');
   document.getElementById('endBtn')?.classList.add('hidden');
   document.getElementById('restartBtn')?.classList.remove('hidden');
   document.getElementById('downloadBtn')?.classList.remove('hidden');
-
-  debugLog('Test terminato. Tot:', tot, 'Corrette:', correctCount, 'Perc:', perc + '%');
+  appendParseDebug('Test terminato. Tot: ' + tot + ' Corrette: ' + correctCount + ' (' + perc + '%)');
 }
 
 /* timer */
@@ -435,20 +444,20 @@ function stopTimer(){ if(timerInterval) clearInterval(timerInterval); }
 /* fallback manual */
 document.getElementById('useManual')?.addEventListener('click', () => {
   const txt = document.getElementById('manualInput').value;
-  if(!txt || txt.trim().length<10){ debugLog('manualInput vuoto o corto'); alert('Incolla il contenuto prima di premere "Usa testo incollato".'); return; }
-  debugLog('Usando testo incollato come sorgente domande');
+  if(!txt || txt.trim().length<10){ appendParseDebug('manualInput vuoto o corto'); alert('Incolla il contenuto prima di premere "Usa testo incollato".'); return; }
+  appendParseDebug('Usando testo incollato come sorgente domande');
   const fallbackCard = document.getElementById('fallbackCard');
 
   parseQuestionsFromPlainText(txt);
-  if(questions.length === 0){ debugLog('Testo incollato non valido'); alert('Testo non valido: nessuna domanda trovata.'); return; }
+  if(questions.length === 0){ appendParseDebug('Testo incollato non valido'); alert('Testo non valido: nessuna domanda trovata.'); return; }
   shuffleOrder(); idx=0; correctCount=0; totalAnswered=0; startTime=Date.now(); startTimer();
   if (fallbackCard) fallbackCard.classList.add('hidden');
   document.getElementById('quizCard').classList.remove('hidden');
   showQuestion();
 });
-document.getElementById('clearManual')?.addEventListener('click', () => { document.getElementById('manualInput').value=''; debugLog('manualInput pulito'); });
+document.getElementById('clearManual')?.addEventListener('click', () => { document.getElementById('manualInput').value=''; appendParseDebug('manualInput pulito'); });
 
-debugLog('Interfaccia pronta. Pronto a caricare', PDF_FILE);
+appendParseDebug('Interfaccia pronta. Pronto a caricare ' + PDF_FILE);
 </script>
 </body>
 </html>

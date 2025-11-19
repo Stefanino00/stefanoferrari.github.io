@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Soccorritore</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Quiz Soccorritore</h1>
+
+    <div id="quiz-container">
+        {% for q in questions %}
+        <div class="question-block">
+            <p><strong>{{ loop.index }}. {{ q.question }}</strong></p>
+            <ul>
+                {% for a in q.answers %}
+                <li>
+                    <button class="answer-btn" data-correct="{{ a.correct|tojson }}">{{ a.text }}</button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('.answer-btn').click(function() {
+                var btn = $(this);
+                var correct = btn.data('correct');
+                $.ajax({
+                    url: '/check_answer',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ correct: correct }),
+                    success: function(response) {
+                        if(response.result === 'corretta'){
+                            btn.css('background-color', 'green');
+                        } else {
+                            btn.css('background-color', 'red');
+                        }
+                        btn.prop('disabled', true);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

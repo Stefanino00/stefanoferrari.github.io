@@ -108,6 +108,7 @@
 </div>
 
 <script>
+
 /* ========== CONFIG ========== */
 const ACCESS_CODE = "2005";
 const PDF_FILE = "domandetest3.pdf";
@@ -125,9 +126,9 @@ let timerInterval = null;
 function sanitizeStr(s){
   if(!s && s!==0) return '';
   return String(s)
-    .replace(/\u00A0/g,' ')   // nbsp
-    .replace(/[\u200B\u200C\u200D\uFEFF]/g,'') // zero width & BOM
-    .replace(/\s+/g,' ')      // collapse multiple spaces
+    .replace(/\u00A0/g,' ')
+    .replace(/[\u200B\u200C\u200D\uFEFF]/g,'')
+    .replace(/\s+/g,' ')
     .trim();
 }
 
@@ -138,24 +139,85 @@ function appendParseDebug(txt){
   el.textContent = txt + "\n\n" + el.textContent;
 }
 
-/* helper per codepoint stringa (primi N caratteri) */
+/* helper per codepoint stringa */
 function charCodesSummary(s, n = 12){
   const out = [];
   for(let i=0;i<Math.min(s.length,n);i++){
     const c = s.charAt(i);
     const code = s.codePointAt(i);
     out.push(`${i}:${c} (U+${code.toString(16).toUpperCase()} ${code})`);
-    // if codepoint is surrogate pair, skip extra index
     if(code > 0xFFFF) i++;
   }
   return out.join(' | ');
 }
 
-/* debug log su UI "lastAction" */
-function debugLog(...args){
-  const lastEl = document.getElementById('lastAction');
-  if (lastEl) lastEl.textContent = 'Ultima azione: ' + (args[0] || '-');
+/* normalizza testo PDF o manual input */
+function normalizeExtractedText(t){
+  let s = String(t || '');
+  s = s.replace(/\u00A0/g,' ').replace(/[\u200B\u200C\u200D\uFEFF]/g,'');
+  s = s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  s = s.replace(/\s-\s/g, '\n- ');      // domande
+  s = s.replace(/\s([A-D])\s+/g, '\n$1 '); // risposte
+  s = s.replace(/\*(?=\s*[A-D]\s)/g, '*'); // asterisco corretto
+  const lines = s.split('\n').map(l => l.replace(/\s+/g,' ').trim()).filter(l=>l.length>0);
+  return lines.join('\n');
 }
+
+/* parsing domande e risposte */
+function parseQuestionsFromPlainText(text){
+  questions = [];
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+  appendParseDebug('Righe estratte: ' + lines.length);
+
+  let current = null;
+  let idCounter = 0;
+
+  for(let i=0;i<lines.length;i++){
+    const line = sanitizeStr(lines[i]);
+
+    if(line.startsWith('-')){
+      current = { text: line.slice(1).trim(), answers: [], id: ++idCounter };
+      questions.push(current);
+      continue;
+    }
+
+  
+    let isCorrect = false;
+    let normLine = line;
+    if(normLine.startsWith('*')){
+      isCorrect = true;
+      normLine = normLine.slice(1).trim();
+    }
+
+    const match = normLine.match(/^([A-D])\s+(.*)$/i);
+    if(match && current){
+      const label = match[1].toUpperCase();
+      const text = match[2].trim();
+      current.answers.push({ label, text, correct: isCorrect });
+      appendParseDebug(`Aggiunta risposta: label=${label} correct=${isCorrect} text="${text}"`);
+      continue;
+    }
+
+    // Se non è risposta e c'è una domanda corrente con risposte, è continuazione risposta
+    if(current && current.answers.length > 0){
+      current.answers[current.answers.length-1].text += ' ' + line;
+    }
+    // Se non è risposta e non c'è domanda, genera domanda automatica
+    else if(!current){
+      current = { text: line, answers: [], id: ++idCounter };
+      questions.push(current);
+    }
+    // Altrimenti è continuazione testo domanda
+    else{
+      current.text += ' ' + line;
+    }
+  }
+
+  // Filtra domande con almeno 2 risposte
+  questions = questions.filter(q => q.answers.length>=2);
+  appendParseDebug(`Parsing completato. Domande valide: ${questions.length}`);
+}
+
 
 /* login */
 document.getElementById('btnLogin')?.addEventListener('click', () => {

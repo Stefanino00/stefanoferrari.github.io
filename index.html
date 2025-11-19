@@ -3,34 +3,35 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Simulazione Test Soccorritore (PDF)</title>
+<title>Simulazione Test Soccorritore (PDF) - FIX</title>
 
-<!-- Stili semplici e leggibili -->
+<!-- Stili migliorati per visibilità -->
 <style>
   :root{ --bg:#f6f8fb; --card:#fff; --accent:#0b77f4; --ok:#1e9e4a; --ko:#d32f2f; }
   html,body{ height:100%; margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial; background:var(--bg); color:#111; }
-  .wrap{ max-width:980px; margin:28px auto; padding:20px; }
-  .card{ background:var(--card); border-radius:10px; box-shadow:0 6px 18px rgba(15,20,30,0.08); padding:18px; margin-bottom:14px; }
-  h1{ margin:0 0 6px 0; font-size:20px; }
-  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .wrap{ max-width:980px; margin:20px auto; padding:16px; }
+  .card{ background:var(--card); border-radius:10px; box-shadow:0 6px 18px rgba(15,20,30,0.08); padding:16px; margin-bottom:14px; }
+  h1{ margin:0 0 6px 0; font-size:18px; }
+  .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   input[type=password], textarea{ width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; font-size:15px; box-sizing:border-box; }
   button{ background:var(--accent); color:#fff; border:0; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600; }
   button.secondary{ background:#f0f0f0; color:#111; }
   .hidden{ display:none; }
-  #answers{ margin-top:12px; display:grid; gap:8px; grid-template-columns:1fr; }
-  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-size:15px; }
+  #answers{ margin-top:12px; display:grid; gap:8px; grid-template-columns:1fr; min-height:80px; }
+  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:2px solid #cbd5e1; background:#fff; cursor:pointer; font-size:15px; min-height:48px; font-weight:600; }
   .ans-btn[disabled]{ opacity:.6; cursor:not-allowed; }
   #feedback{ margin-top:12px; font-weight:700; }
-  pre#debug{ background:#0f1724; color:#d1d5db; padding:12px; border-radius:8px; max-height:220px; overflow:auto; font-size:13px; white-space:pre-wrap; }
+  pre#debug{ background:#0b1220; color:#d1d5db; padding:12px; border-radius:8px; max-height:220px; overflow:auto; font-size:12px; white-space:pre-wrap; }
   .small { font-size:13px; color:#555; }
   .correct { color:var(--ok); }
   .wrong { color:var(--ko); }
   .meta { display:flex; gap:8px; align-items:center; margin-top:8px; color:#666; font-size:13px; }
   .badge{ background:#eef6ff; color:var(--accent); padding:4px 8px; border-radius:999px; font-weight:700; }
   code{ background:#f3f4f6; padding:2px 6px; border-radius:6px; }
+  .qjson{ background:#f8fafc; border:1px dashed #cbd5e1; padding:8px; margin-top:10px; font-size:12px; color:#334155; border-radius:6px; white-space:pre-wrap; }
 </style>
 
-<!-- Carico pdf.js da un CDN (worker configurato lato client) -->
+<!-- pdf.js -->
 <script src="https://unpkg.com/pdfjs-dist@3.8.162/build/pdf.min.js"></script>
 </head>
 <body>
@@ -38,7 +39,7 @@
   <div class="card">
     <h1>Accesso test</h1>
     <div class="small">Inserisci il codice per avviare il test (codice: <code>13112005</code>)</div>
-    <div style="margin-top:12px;" class="row">
+    <div style="margin-top:10px;" class="row">
       <input id="accessCode" type="password" placeholder="Codice di accesso">
       <button id="btnLogin">Accedi</button>
       <button id="btnDemo" class="secondary">Demo (salta login)</button>
@@ -70,11 +71,14 @@
       <div id="elapsed">Tempo: 0s</div>
       <div id="lastAction">Ultima azione: -</div>
     </div>
+
+    <!-- Debug JSON visibile della domanda corrente (utile per capire perché UI appare vuota) -->
+    <div id="currentQuestionJson" class="qjson hidden"></div>
   </div>
 
   <div id="fallbackCard" class="card hidden">
     <h1>Fallback: incolla il testo (se il PDF non viene caricato)</h1>
-    <div class="small">Se il fetch del PDF fallisce, incolla qui il contenuto estratto (ogni domanda inizia con <code>-</code>, risposte A-D; la corretta con <code>*</code> davanti).</div>
+    <div class="small">Ogni domanda inizia con <code>-</code>, risposte A-D; la corretta con <code>*</code> davanti alla lettera.</div>
     <textarea id="manualInput" rows="8" placeholder="Incolla qui il testo..."></textarea>
     <div style="margin-top:10px;" class="row">
       <button id="useManual">Usa testo incollato</button>
@@ -83,37 +87,37 @@
   </div>
 
   <div class="card">
-    <h1>Debug</h1>
-    <div class="small">Log visibile per capire cosa succede (utile per debug).</div>
+    <h1>Debug (log)</h1>
+    <div class="small">Log visibile per capire cosa succede.</div>
     <pre id="debug">Pronto.</pre>
   </div>
 </div>
 
 <script>
-/*
-  index.html aggiornato per leggere domandetest3.pdf (PDF) e parsare il formato:
-    - ogni domanda inizia con '-'
-    - risposte A/B/C/D su righe successive
-    - la risposta corretta ha un '*' davanti (es. "*A Risposta..." oppure "A *Risposta" o "A Risposta *")
-  Usa pdf.js (caricato sopra) per estrarre il testo lato client.
-  Commenti ed error handling per essere robusti.
-*/
-
-/* -------- CONFIG -------- */
+/* ========== CONFIG ========== */
 const ACCESS_CODE = "13112005";
-const PDF_FILE = "domandetest3.pdf";          // file pdf che hai caricato
-const TXT_FALLBACKS = ["domandetest2","domandetest2.txt"]; // fallback di testo (se vuoi)
+const PDF_FILE = "domandetest3.pdf";
 
-/* -------- stato applicazione -------- */
-let questions = [];     // array domande strutturate { text, answers: [{label,text,correct}], id }
-let order = [];         // ordine random delle domande
-let idx = 0;            // indice corrente
+/* stato */
+let questions = [];
+let order = [];
+let idx = 0;
 let correctCount = 0;
 let totalAnswered = 0;
 let startTime = null;
 let timerInterval = null;
 
-/* -------- helper debug UI -------- */
+/* util: rimuove caratteri invisibili e trim */
+function sanitizeStr(s){
+  if(!s && s!==0) return '';
+  return String(s)
+    .replace(/\u00A0/g,' ')   // nbsp
+    .replace(/[\u200B\u200C\u200D\uFEFF]/g,'') // zero width & BOM
+    .replace(/\s+/g,' ')      // collapse multiple spaces
+    .trim();
+}
+
+/* debug log su UI */
 function debugLog(...args){
   const el = document.getElementById('debug');
   const t = new Date().toISOString().slice(11,19);
@@ -121,7 +125,7 @@ function debugLog(...args){
   document.getElementById('lastAction').textContent = 'Ultima azione: ' + (args[0] || '-');
 }
 
-/* -------- Login e pulsanti -------- */
+/* login */
 document.getElementById('btnLogin').addEventListener('click', () => {
   const code = document.getElementById('accessCode').value.trim();
   if(code === ACCESS_CODE){
@@ -132,241 +136,173 @@ document.getElementById('btnLogin').addEventListener('click', () => {
     debugLog('Login fallito', code);
   }
 });
-document.getElementById('btnDemo').addEventListener('click', () => {
-  debugLog('Demo: salto login');
-  startApp();
-});
+document.getElementById('btnDemo').addEventListener('click', () => { debugLog('Demo: salto login'); startApp(); });
 
-/* -------- Avvio applicazione: prova a leggere PDF -> se no fallback testo -------- */
+/* start: tenta PDF */
 async function startApp(){
   document.getElementById('quizCard').classList.remove('hidden');
   document.getElementById('fallbackCard').classList.add('hidden');
-  document.getElementById('debug').textContent = ''; // reset debug
+  document.getElementById('debug').textContent = '';
   debugLog('Avvio: provo a caricare PDF', PDF_FILE);
 
-  // config del worker di pdf.js (usa lo stesso CDN)
-  if(window.pdfjsLib){
-    // workerSrc necessario per alcune build
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@3.8.162/build/pdf.worker.min.js";
-  } else {
-    debugLog('pdfjs non disponibile sul client. Assicurati che lo script sia caricato.');
-    // fallback a textarea
+  if(!window.pdfjsLib){
+    debugLog('pdfjs non caricato');
     document.getElementById('fallbackCard').classList.remove('hidden');
     return;
   }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@3.8.162/build/pdf.worker.min.js";
 
-  // prova a fetchare il PDF (arrayBuffer)
   try {
     const resp = await fetch(PDF_FILE);
     if(!resp.ok) throw new Error('PDF non trovato: ' + resp.status);
     const arrayBuffer = await resp.arrayBuffer();
-    debugLog('PDF scaricato, bytes:', arrayBuffer.byteLength);
+    debugLog('PDF scaricato bytes:', arrayBuffer.byteLength);
     const text = await extractTextFromPDF(arrayBuffer);
-    debugLog('Testo estratto dal PDF (prima parte):', text.slice(0,300));
+    debugLog('Testo estratto (prime 300 ch):', text.slice(0,300));
     parseQuestionsFromPlainText(text);
   } catch(err){
     debugLog('Errore caricamento PDF:', err.message || err);
-    // prova fallback a file txt (se presenti)
-    for(const f of TXT_FALLBACKS){
-      try {
-        debugLog('Provo a caricare fallback testo:', f);
-        const r = await fetch(f);
-        if(!r.ok){ debugLog('Fallback non trovato:', f, 'status', r.status); continue; }
-        const t = await r.text();
-        debugLog('Fallback testo caricato:', f, 'bytes', t.length);
-        parseQuestionsFromPlainText(t);
-        return;
-      } catch(e){
-        debugLog('Errore fallback fetch', f, e.message || e);
-      }
-    }
-    // abilita fallback manuale (textarea)
-    debugLog('Nessun file caricato -> attivo textarea fallback');
     document.getElementById('fallbackCard').classList.remove('hidden');
     return;
   }
 
-  // dopo parsing controlliamo se ci sono domande valide
   if(questions.length === 0){
-    debugLog('Parsing non ha trovato domande valide -> fallback abilitato');
+    debugLog('Parsing non ha trovato domande valide -> mostra fallback');
     document.getElementById('fallbackCard').classList.remove('hidden');
     return;
   }
 
-  // setup test
   shuffleOrder();
   idx = 0; correctCount = 0; totalAnswered = 0;
-  startTime = Date.now();
-  startTimer();
+  startTime = Date.now(); startTimer();
   showQuestion();
 }
 
-/* -------- Estrazione testo dal PDF usando pdf.js -------- */
+/* estrai testo con pdf.js */
 async function extractTextFromPDF(arrayBuffer){
-  // carica documento
   const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
   const pdf = await loadingTask.promise;
-  debugLog('PDF caricato, pagine:', pdf.numPages);
+  debugLog('PDF caricato pagine:', pdf.numPages);
   let fullText = "";
-  // estrai pagina per pagina
-  for(let p=1; p<=pdf.numPages; p++){
+  for(let p=1;p<=pdf.numPages;p++){
     try {
       const page = await pdf.getPage(p);
       const content = await page.getTextContent();
-      // content.items è un array di oggetti con str
-      const strings = content.items.map(i => i.str);
+      const strings = content.items.map(i => i.str || '');
       const pageText = strings.join(' ');
-      // Aggiungiamo un separatore di pagina per sicurezza
       fullText += pageText + '\n\n';
     } catch(e){
       debugLog('Errore estrazione pagina', p, e.message || e);
     }
   }
-  // ritorna testo normalizzato
   return normalizeExtractedText(fullText);
 }
 
-/* -------- Normalizza il testo estratto (compatto ma con \n per separazioni) -------- */
+/* normalizza: reinserisce break utili e pulisce stringhe invisibili */
 function normalizeExtractedText(t){
-  // PDF text extraction può unire frasi; cerco di reinserire break dove ci sono '- ' iniziali e dove ci sono lettere A-D seguite da spazio.
-  // Sostituisco sequenze multiple di spazi con uno spazio
-  let s = t.replace(/\u00A0/g,' ').replace(/\s+/g,' ');
-  // metto a capo prima di trattini che indicano nuove domande, se presenti come " - " oppure "- "
-  s = s.replace(/ - /g, '\n- ');
+  let s = String(t || '');
+  // rimuovi caratteri invisibili
+  s = s.replace(/\u00A0/g,' ').replace(/[\u200B\u200C\u200D\uFEFF]/g,'');
+  // collassa spazi multipli ma mantieni linebreaks a loro posto convertendoli in \n
+  s = s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  // cerca pattern "- " (domanda) e " A " " B "... e assicurati linebreak
   s = s.replace(/\s-\s/g, '\n- ');
-  // metto a capo prima delle opzioni " A " " B " ecc. ma solo se appaiono con lettera maiuscola seguita da spazio e una parola (evito separazioni false)
   s = s.replace(/\s([A-D])\s+/g, '\n$1 ');
-  // metto a capo anche dove compare "*A" (asterisco+lettera)
   s = s.replace(/\*(?=[A-D]\s)/g, '\n*');
-  // Ora split in righe su '\n' e risettiamo una linea per ogni elemento, poi join con \n
-  const lines = s.split('\n').map(l => l.trim()).filter(l=>l.length>0);
+  // riduci multiple spazi a singolo spazio dentro le linee
+  const lines = s.split('\n').map(l => l.replace(/\s+/g,' ').trim()).filter(l=>l.length>0);
   return lines.join('\n');
 }
 
-/* -------- Parsing del testo (formato con '-' domanda e risposte A-D) -------- */
+/* parsing robusto */
 function parseQuestionsFromPlainText(text){
   questions = [];
-  // separo in righe
-  const rawLines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
-  debugLog('Numero righe estratte:', rawLines.length);
+  const rawLines = text.split(/\r?\n/).map(l => sanitizeStr(l)).filter(l=>l.length>0);
+  debugLog('Righe estratte:', rawLines.length);
 
   let current = null;
   let idCounter = 0;
 
   for(let i=0;i<rawLines.length;i++){
     const line = rawLines[i];
-    // se la riga inizia con '-' => nuova domanda
     if(line.startsWith('-')){
-      // chiudi eventuale domanda precedente
-      current = { text: line.replace(/^\-\s*/,'').trim(), answers: [], id: ++idCounter };
+      current = { text: sanitizeStr(line.replace(/^\-\s*/,'')), answers: [], id: ++idCounter };
       questions.push(current);
       continue;
     }
-    // altrimenti cerco se è una risposta: può essere "*A ..." oppure "A ..." o "A *..." ecc.
-    const answerMatch = line.match(/^\*?\s*([A-D])\s*[\)\.\-]?\s*(.*)$/i); // cattura *A, A) A. A-
+    // match risposta: accetta "*A" o "A" o "A)" ecc.
+    const answerMatch = line.match(/^\*?\s*([A-D])\s*[\)\.\-]?\s*(.*)$/i);
     if(answerMatch){
       const rawLabel = answerMatch[1].toUpperCase();
-      let rawText = answerMatch[2].trim();
-      // determina se c'era un asterisco davanti nella riga
+      let rawText = sanitizeStr(answerMatch[2] || '');
       const leadingStar = /^\*\s*/.test(line);
-      // oppure se l'asterisco è dentro il testo (es. "Risposta *" o "Risposta*")
       const trailingStar = /\*\s*$/.test(rawText);
-      // se trailingStar rimuovilo
       if(trailingStar) rawText = rawText.replace(/\*\s*$/,'').trim();
-      // se rawText inizia con '*' (es. "*Risposta")
-      if(/^\*\s*/.test(rawText)) { rawText = rawText.replace(/^\*\s*/,'').trim(); }
-
+      if(/^\*\s*/.test(rawText)) rawText = rawText.replace(/^\*\s*/,'').trim();
       const correct = leadingStar || trailingStar;
-      // se non c'è una domanda corrente, creane una placeholder (evitiamo crash)
       if(!current){
         current = { text: "(Domanda non trovata — generata automaticamente)", answers: [], id: ++idCounter };
         questions.push(current);
-        debugLog('Trovata risposta senza domanda. Generata domanda placeholder alla riga', i+1);
+        debugLog('Risposta trovata senza domanda, riga', i+1);
       }
-      current.answers.push({ label: rawLabel, text: rawText, correct: !!correct });
+      current.answers.push({ label: rawLabel, text: sanitizeStr(rawText), correct: !!correct });
       continue;
     }
-
-    // Se la riga non è né domanda né risposta, può essere continuazione della domanda (testo su più righe)
+    // linea non match: potrebbe essere continuazione domanda oppure continuazione ultima risposta
     if(current && current.answers.length === 0){
-      // appendiamo alla domanda corrente (se ancora non abbiamo risposte)
-      current.text += ' ' + line;
+      current.text = sanitizeStr(current.text + ' ' + line);
     } else if(current && current.answers.length > 0){
-      // potrebbe essere testo continuativo della precedente risposta: aggiungiamolo all'ultima risposta
       const last = current.answers[current.answers.length-1];
-      if(last){
-        last.text += ' ' + line;
-      }
+      if(last) last.text = sanitizeStr(last.text + ' ' + line);
     } else {
-      // linea ignota: la consideriamo come domanda nuova
-      current = { text: line.trim(), answers: [], id: ++idCounter };
+      current = { text: sanitizeStr(line), answers: [], id: ++idCounter };
       questions.push(current);
     }
   }
 
-  // Pulizia: rimuovo domande che non hanno almeno 2 risposte valide (preferisco >=3/4)
   const before = questions.length;
   questions = questions.filter(q => q.answers && q.answers.length >= 2);
-  debugLog(`Parsing completato. Domande trovate: ${before} -> valide: ${questions.length}`);
-  debugLog('Prime 5 domande (anteprima):', questions.slice(0,5).map(q=>({id:q.id, text:q.text.slice(0,120), answers:q.answers})));
+  debugLog(`Parsing completato. Domande: ${before} -> valide: ${questions.length}`);
+  debugLog('Anteprima 5 domande:', questions.slice(0,5).map(q => ({id:q.id, text:q.text.slice(0,120), answers:q.answers})));
 
-  // se ci sono domande valide, continua con test
   if(questions.length > 0){
     shuffleOrder();
     idx = 0; correctCount = 0; totalAnswered = 0;
-    startTime = Date.now(); startTimer();
-    showQuestion();
+    // non partire showQuestion qui: startApp lo fa
   }
 }
 
-/* -------- misc helpers: shuffle -------- */
-function shuffleArray(a){
-  for(let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-}
+/* shuffle */
+function shuffleArray(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }
+function shuffleOrder(){ order = questions.map((_,i)=>i); shuffleArray(order); debugLog('Ordine mescolato, tot:', order.length); }
 
-/* -------- ordina le domande casualmente -------- */
-function shuffleOrder(){
-  order = questions.map((_,i)=>i);
-  shuffleArray(order);
-  debugLog('Ordine domande mescolato, tot:', order.length);
-}
-
-/* -------- mostra domanda corrente -------- */
+/* mostra domanda */
 function showQuestion(){
-  if(!questions || questions.length === 0){
-    document.getElementById('questionTitle').textContent = 'Nessuna domanda disponibile';
-    document.getElementById('answers').innerHTML = '';
-    debugLog('showQuestion: nessuna domanda');
-    return;
-  }
-  if(idx >= order.length){
-    endTest();
-    return;
-  }
+  if(!questions || questions.length===0){ document.getElementById('questionTitle').innerText='Nessuna domanda disponibile'; document.getElementById('answers').innerHTML=''; debugLog('showQuestion: nessuna'); return; }
+  if(idx >= order.length){ endTest(); return; }
   const qIndex = order[idx];
   const q = questions[qIndex];
-  if(!q){
-    debugLog('Errore: domanda non trovata per indice', qIndex);
-    endTest();
-    return;
-  }
+  if(!q){ debugLog('Domanda non trovata indice', qIndex); endTest(); return; }
 
-  document.getElementById('questionTitle').textContent = q.text;
-  document.getElementById('qInfo').textContent = `${idx+1} / ${order.length}`;
-  document.getElementById('feedback').textContent = '';
-  document.getElementById('scoreBadge').textContent = `${correctCount}/${totalAnswered}`;
+  // Visual debug: mostra l'oggetto JSON della domanda corrente per troubleshooting
+  const jq = document.getElementById('currentQuestionJson');
+  jq.classList.remove('hidden');
+  jq.innerText = JSON.stringify(q, null, 2);
 
-  // Render risposte: manteniamo ordine A-B-C-D (non mischio ora)
+  document.getElementById('questionTitle').innerText = q.text || '(testo vuoto)';
+  document.getElementById('qInfo').innerText = `${idx+1} / ${order.length}`;
+  document.getElementById('feedback').innerText = '';
+  document.getElementById('scoreBadge').innerText = `${correctCount}/${totalAnswered}`;
+
   const answersDiv = document.getElementById('answers');
   answersDiv.innerHTML = '';
+  // render in ordine A,B,C,D (se presenti)
   q.answers.forEach(a => {
     const btn = document.createElement('button');
     btn.className = 'ans-btn';
     btn.type = 'button';
-    btn.textContent = `${a.label}) ${a.text}`;
+    // uso innerText per maggiore compatibilità
+    btn.innerText = `${a.label}) ${a.text}`;
     btn.dataset.correct = a.correct ? '1' : '0';
     btn.addEventListener('click', () => handleAnswerClick(btn, a));
     answersDiv.appendChild(btn);
@@ -375,59 +311,45 @@ function showQuestion(){
   document.getElementById('nextBtn').classList.add('hidden');
   document.getElementById('endBtn').classList.add('hidden');
 
-  debugLog('Mostrata domanda id', q.id, q.text.slice(0,120));
+  debugLog('Mostrata domanda id', q.id, 'testo (prime 80):', q.text.slice(0,80));
 }
 
-/* -------- gestione click risposta -------- */
+/* click risposta */
 function handleAnswerClick(button, answerObj){
-  // disabilita tutti i bottoni per evitare doppio click
   const btns = Array.from(document.querySelectorAll('.ans-btn'));
   btns.forEach(b => b.disabled = true);
 
   const correct = answerObj.correct === true;
-  totalAnswered++;
-  if(correct) correctCount++;
+  totalAnswered++; if(correct) correctCount++;
 
   const fbEl = document.getElementById('feedback');
   if(correct){
     fbEl.className = 'small correct';
-    fbEl.textContent = 'CORRETTO ✓';
+    fbEl.innerText = 'CORRETTO ✓';
     debugLog('Risposta corretta', answerObj.label, answerObj.text);
   } else {
     fbEl.className = 'small wrong';
-    // mostra quali erano le risposte corrette
     const q = questions[order[idx]];
     const correctAnswers = q.answers.filter(a=>a.correct).map(a=>`${a.label}) ${a.text}`).join('  |  ');
-    fbEl.textContent = 'SBAGLIATO ✗  — Risposta corretta: ' + correctAnswers;
+    fbEl.innerText = 'SBAGLIATO ✗  — Risposta corretta: ' + correctAnswers;
     debugLog('Risposta sbagliata', answerObj.label, answerObj.text, 'corrette:', correctAnswers);
   }
 
-  document.getElementById('scoreBadge').textContent = `${correctCount}/${totalAnswered}`;
-
-  // mostra navigazione
-  if(idx < order.length - 1){
-    document.getElementById('nextBtn').classList.remove('hidden');
-    document.getElementById('endBtn').classList.remove('hidden');
-  } else {
-    document.getElementById('endBtn').classList.remove('hidden');
-  }
-  document.getElementById('lastAction').textContent = `Ultima azione: risposta ${answerObj.label} (${correct ? 'OK':'KO'})`;
+  document.getElementById('scoreBadge').innerText = `${correctCount}/${totalAnswered}`;
+  if(idx < order.length -1){ document.getElementById('nextBtn').classList.remove('hidden'); document.getElementById('endBtn').classList.remove('hidden'); }
+  else { document.getElementById('endBtn').classList.remove('hidden'); }
+  document.getElementById('lastAction').innerText = `Ultima azione: risposta ${answerObj.label} (${correct ? 'OK':'KO'})`;
 }
 
-/* -------- next / end handlers -------- */
-document.getElementById('nextBtn').addEventListener('click', () => {
-  idx++;
-  showQuestion();
-});
-document.getElementById('endBtn').addEventListener('click', () => {
-  endTest();
-});
+/* next / end */
+document.getElementById('nextBtn').addEventListener('click', () => { idx++; showQuestion(); });
+document.getElementById('endBtn').addEventListener('click', () => endTest());
 
-/* -------- fine test: riepilogo e download risultato -------- */
+/* end test */
 function endTest(){
   stopTimer();
   const tot = totalAnswered;
-  const perc = tot > 0 ? Math.round((correctCount / tot)*100) : 0;
+  const perc = tot>0 ? Math.round((correctCount/tot)*100) : 0;
   document.getElementById('quizCard').innerHTML = `
     <h1>Test completato</h1>
     <div class="small">Hai risposto a <strong>${tot}</strong> domande. Corrette: <strong>${correctCount}</strong> (${perc}%).</div>
@@ -437,55 +359,33 @@ function endTest(){
     </div>
   `;
   debugLog('Test terminato. Tot:', tot, 'Corrette:', correctCount, 'Perc:', perc + '%');
-
   document.getElementById('restart').addEventListener('click', () => location.reload());
   document.getElementById('download').addEventListener('click', () => {
     const data = { total: tot, correct: correctCount, perc, timestamp: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data,null,2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'risultato_test.json'; a.click();
-    URL.revokeObjectURL(url);
+    const a = document.createElement('a'); a.href = url; a.download = 'risultato_test.json'; a.click(); URL.revokeObjectURL(url);
   });
 }
 
-/* -------- timer ---------- */
-function startTimer(){
-  const el = document.getElementById('elapsed');
-  if(timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    const s = Math.floor((Date.now()-startTime)/1000);
-    el.textContent = `Tempo: ${s}s`;
-  }, 500);
-}
+/* timer */
+function startTimer(){ const el = document.getElementById('elapsed'); if(timerInterval) clearInterval(timerInterval); timerInterval = setInterval(()=>{ const s=Math.floor((Date.now()-startTime)/1000); el.innerText = `Tempo: ${s}s`; },500); }
 function stopTimer(){ if(timerInterval) clearInterval(timerInterval); }
 
-/* -------- fallback textarea handlers ---------- */
+/* fallback manual */
 document.getElementById('useManual').addEventListener('click', () => {
   const txt = document.getElementById('manualInput').value;
-  if(!txt || txt.trim().length < 10){
-    debugLog('manualInput vuoto o troppo corto');
-    alert('Incolla il contenuto prima di premere "Usa testo incollato".');
-    return;
-  }
+  if(!txt || txt.trim().length<10){ debugLog('manualInput vuoto o corto'); alert('Incolla il contenuto prima di premere "Usa testo incollato".'); return; }
   debugLog('Usando testo incollato come sorgente domande');
   parseQuestionsFromPlainText(txt);
-  if(questions.length === 0){
-    debugLog('testo incollato non contiene domande valide');
-    alert('Testo non valido: non sono state trovate domande con risposte A/B/C/D.');
-    return;
-  }
-  shuffleOrder();
-  idx = 0; correctCount = 0; totalAnswered = 0; startTime = Date.now(); startTimer();
+  if(questions.length === 0){ debugLog('Testo incollato non valido'); alert('Testo non valido: nessuna domanda trovata.'); return; }
+  shuffleOrder(); idx=0; correctCount=0; totalAnswered=0; startTime=Date.now(); startTimer();
   document.getElementById('fallbackCard').classList.add('hidden');
   document.getElementById('quizCard').classList.remove('hidden');
   showQuestion();
 });
-document.getElementById('clearManual').addEventListener('click', () => {
-  document.getElementById('manualInput').value = '';
-  debugLog('manualInput pulito');
-});
+document.getElementById('clearManual').addEventListener('click', () => { document.getElementById('manualInput').value=''; debugLog('manualInput pulito'); });
 
-/* -------- inizializzazione UI -------- */
 debugLog('Interfaccia pronta. Pronto a caricare', PDF_FILE);
 </script>
 </body>

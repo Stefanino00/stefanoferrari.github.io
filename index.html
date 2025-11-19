@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Test Distinte</title>
+<title>Test Distintev2</title>
 
 <!-- Stili migliorati per visibilità -->
 <style>
@@ -18,7 +18,7 @@
   button.secondary{ background:#f0f0f0; color:#111; }
   .hidden{ display:none; }
   #answers{ margin-top:12px; display:grid; gap:8px; grid-template-columns:1fr; min-height:80px; }
-  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:2px solid #cbd5e1; background:#17ad80; cursor:pointer; font-size:15px; min-height:48px; font-weight:600; }
+  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:2px solid #ffffff; background:#000000; cursor:pointer; font-size:15px; min-height:48px; font-weight:600; }
   .ans-btn[disabled]{ opacity:.6; cursor:not-allowed; }
   #feedback{ margin-top:12px; font-weight:700; }
   pre#debug{ background:#0b1220; color:#d1d5db; padding:12px; border-radius:8px; max-height:220px; overflow:auto; font-size:12px; white-space:pre-wrap; }
@@ -75,7 +75,7 @@
     <!-- Debug JSON visibile della domanda corrente (utile per capire perché UI appare vuota) -->
     <div id="currentQuestionJson" class="qjson hidden"></div>
   </div>
-
+  <!--
   <div id="fallbackCard" class="card hidden">
     <h1>Fallback: incolla il testo (se il PDF non viene caricato)</h1>
     <div class="small">Ogni domanda inizia con <code>-</code>, risposte A-D; la corretta con <code>*</code> davanti alla lettera.</div>
@@ -91,6 +91,7 @@
     <div class="small">Log visibile per capire cosa succede.</div>
     <pre id="debug">Pronto.</pre>
   </div>
+  -->
 </div>
 
 <script>

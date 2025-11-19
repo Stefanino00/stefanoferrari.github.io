@@ -1,152 +1,103 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>3D Controller Interface</title>
-
-  <!-- IMPORT GSAP PER ANIMAZIONI -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js" integrity="sha512-d+NqPtGmH4evgbh8Rb0bLHJqIjSDW7bWyS3CTT5qqoqfB7bZWx426oB6RjyWtRZIQ38DjS46YdzOOoXa1+T2ow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-  <!-- FONT GOOGLE PER TESTI -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-  <!-- Il file style.css ora contiene gli stili che erano inline -->
-  <link rel="stylesheet" href="css/style.css" />
+<meta charset="UTF-8">
+<title>Accesso Domande</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  #domande { margin-top: 20px; }
+  .domanda { margin-bottom: 15px; }
+</style>
 </head>
-<body class="home-page">
+<body>
 
-  <h1 id="fancy-title" class="fancy-title">
-    <!-- ogni lettera in uno span per muoverla singolarmente -->
-    <span>S</span><span>T</span><span>E</span><span>F</span><span>A</span><span>N</span><span>O</span> 
-    <span>F</span><span>E</span><span>R</span><span>R</span><span>A</span><span>R</span><span>I</span>
-  </h1>
-  
-  <div class="controller">
-    <div class="keys">
-      <!-- TASTO ABOUT ME -->
-      <a href="aboutme.html" class="key about" data-sound="about">
-        <span class="label">About Me</span>
-      </a>
-      <!-- TASTO PORTFOLIO -->
-      <div class="key" data-sound="portfolio">
-        <span class="label">Portfolio</span>
-      </div>
-      <!-- TASTO SKILLS -->
-      <div class="key" data-sound="skills">
-        <span class="label">Skills</span>
-      </div>
-      <!-- TASTO CONTACT -->
-      <div class="key" data-sound="contact">
-        <span class="label">Contact</span>
-      </div>
-    </div>
-  </div>
+<h2>Inserisci il codice per accedere:</h2>
+<input type="password" id="codice" placeholder="Codice segreto">
+<button onclick="verificaCodice()">Accedi</button>
 
-  <script>
-    // ##################################################
-    // MAPPATURA SUONI: per ogni tasto, lo stesso suono click
-    // Puoi cambiare i file audio se vuoi suoni diversi
-    // ##################################################
-    const soundMap = {
-      about: new Audio('sounds/click.mp3'),
-      portfolio: new Audio('sounds/click.mp3'),
-      skills: new Audio('sounds/click.mp3'),
-      contact: new Audio('sounds/click.mp3')
+<div id="upload" style="display:none;">
+  <h2>Carica il PDF delle domande:</h2>
+  <input type="file" id="fileInput" accept="application/pdf">
+  <button onclick="leggiPDF()">Leggi PDF</button>
+</div>
+
+<div id="domande"></div>
+
+<script>
+function verificaCodice() {
+    const codice = document.getElementById('codice').value;
+    if (codice === "13112005") {
+        alert("Accesso consentito!");
+        document.getElementById('upload').style.display = 'block';
+    } else {
+        alert("Codice errato. Accesso negato.");
+    }
+}
+
+function leggiPDF() {
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) {
+        alert("Seleziona un file PDF!");
+        return;
+    }
+
+    const fileReader = new FileReader();
+    fileReader.onload = function() {
+        const typedarray = new Uint8Array(this.result);
+
+        pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+            let domande = [];
+            let totalePagine = pdf.numPages;
+
+            for (let i = 1; i <= totalePagine; i++) {
+                pdf.getPage(i).then(page => {
+                    page.getTextContent().then(content => {
+                        let text = content.items.map(item => item.str).join("\n");
+                        let lines = text.split("\n");
+                        let domanda_corrente = null;
+                        let opzioni = [];
+
+                        lines.forEach(line => {
+                            if (/^\d+\./.test(line.trim())) {
+                                if (domanda_corrente) {
+                                    domanda_corrente.opzioni = opzioni;
+                                    domande.push(domanda_corrente);
+                                    opzioni = [];
+                                }
+                                domanda_corrente = { testo: line.trim(), corretta: null };
+                            } else if (/^[A-D]\s/.test(line.trim())) {
+                                let opzione = line.trim();
+                                if (opzione.includes("●") || opzione.includes("•")) {
+                                    domanda_corrente.corretta = opzione[0];
+                                    opzione = opzione.replace("●", "").replace("•", "").trim();
+                                }
+                                opzioni.push(opzione);
+                            }
+                        });
+
+                        if (domanda_corrente) {
+                            domanda_corrente.opzioni = opzioni;
+                            domande.push(domanda_corrente);
+                        }
+
+                        // Mostra le domande
+                        const container = document.getElementById("domande");
+                        container.innerHTML = "";
+                        domande.forEach((d, idx) => {
+                            let div = document.createElement("div");
+                            div.className = "domanda";
+                            div.innerHTML = `<b>${idx+1}. ${d.testo}</b><br>${d.opzioni.map((o,i)=> String.fromCharCode(65+i)+": "+o).join("<br>")}<br><i>Corretta: ${d.corretta || "?"}</i>`;
+                            container.appendChild(div);
+                        });
+                    });
+                });
+            }
+        });
     };
+    fileReader.readAsArrayBuffer(file);
+}
+</script>
 
-    // ##################################################
-    // SELEZIONO TUTTI I TASTI DEL CONTROLLER
-    // ##################################################
-    document.querySelectorAll('.key').forEach(key => {
-      // Ricavo il nome del suono dal data-attribute
-      const soundKey = key.dataset.sound;
-      const audio = soundMap[soundKey];
-
-      // GESTISCO EVENTO MOUSE DOWN (quando premi)
-      key.addEventListener('mousedown', (e) => {
-        // Aggiungo classe 'active' per effetto tasto premuto
-        key.classList.add('active');
-
-        // RIPRODUCO IL SUONO DI CLICK
-        if (audio) {
-          audio.currentTime = 0; // reset all'inizio
-          audio.play();
-        }
-
-        // ANIMAZIONE RIMBALZO col GSAP (scrolla verso il basso e torna)
-        gsap.to(key, { y: 5, duration: 0.4, yoyo: true, repeat: 1 });
-
-        // CREO RIPPLES (onda d'urto visiva)
-        const ripple = document.createElement('span');
-        ripple.classList.add('ripple');
-
-        // Calcolo posizione click relativa al tasto
-        const rect = key.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        // Posiziono il ripple dove hai cliccato
-        ripple.style.left = `${x}px`;
-        ripple.style.top = `${y}px`;
-
-        // Aggiungo ripple al DOM dentro il tasto
-        key.appendChild(ripple);
-
-        // Rimuovo ripple dopo che l'animazione finisce
-        ripple.addEventListener('animationend', () => ripple.remove());
-      });
-
-      // GESTISCO EVENTI MOUSE UP E LEAVE per togliere classe active
-      key.addEventListener('mouseup', () => key.classList.remove('active'));
-      key.addEventListener('mouseleave', () => key.classList.remove('active'));
-    });
-  </script>
-  <script>
-    const title = document.getElementById('fancy-title');
-
-    title.addEventListener('mousemove', e => {
-      const spans = title.querySelectorAll('span');
-      const rect = title.getBoundingClientRect();
-
-      spans.forEach(span => {
-        const spanRect = span.getBoundingClientRect();
-        const spanCenterX = spanRect.left + spanRect.width / 2; // Corretto: diviso 2, non 20
-        const spanCenterY = spanRect.top + spanRect.height / 2;
-
-        const deltaX = e.clientX - spanCenterX;
-        const deltaY = e.clientY - spanCenterY;
-
-        const maxOffset = 2;
-
-        const offsetX = -deltaX / 2; 
-        const offsetY = -deltaY / 2;
-
-        const moveX = Math.max(-maxOffset, Math.min(maxOffset, offsetX));
-        const moveY = Math.max(-maxOffset, Math.min(maxOffset, offsetY));
-
-        span.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
-
-        const dist = Math.hypot(deltaX, deltaY);
-        const maxDist = rect.width / 2;
-        const intensity = Math.min(1, 1 - dist / maxDist);
-
-        span.style.color = `rgba(0, 255, 255, ${intensity})`;
-      });
-    });
-
-    title.addEventListener('mouseleave', () => {
-      const spans = title.querySelectorAll('span');
-      spans.forEach(span => {
-        span.style.transform = '';
-        span.style.color = '#ccc';
-      });
-    });
-  </script>
-
-  <footer class="site-footer">
-    Stefano Ferrari - all rights reserved
-  </footer>
-  
 </body>
 </html>

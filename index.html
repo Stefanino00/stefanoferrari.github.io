@@ -238,7 +238,7 @@ function normalizeExtractedText(t){
   s = s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
   s = s.replace(/\s-\s/g, '\n- ');
   s = s.replace(/\s([A-D])\s+/g, '\n$1 ');
-  s = s.replace(/\*(?=[A-D]\s)/g, '\n*');
+  s = s.replace(/\s*\*(?=\s*[A-D]\s)/g, '\n* '); // Isola l'asterisco della risposta corretta su una nuova riga
   const lines = s.split('\n').map(l => l.replace(/\s+/g,' ').trim()).filter(l=>l.length>0);
   return lines.join('\n');
 }

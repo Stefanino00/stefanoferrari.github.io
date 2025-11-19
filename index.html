@@ -1,136 +1,418 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Test Distinte</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simulazione Test Distinte</title>
 <style>
-    body { font-family: Arial, sans-serif; background: #f0f0f0; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; }
-    #container { background: #fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); width:90%; max-width:700px; }
-    .hidden { display:none; }
-    button { padding:10px 15px; margin:5px 0; cursor:pointer; border:none; border-radius:5px; background:#007BFF; color:#fff; font-size:16px; }
-    button:hover { background:#0056b3; }
-    #feedback { margin-top:10px; font-weight:bold; }
-    #debug { margin-top:20px; font-size:12px; color:gray; white-space:pre-wrap; max-height:200px; overflow:auto; }
+  /* Stile semplice, pulito e leggibile */
+  :root{ --bg:#f6f8fb; --card:#fff; --accent:#0b77f4; --ok:#1e9e4a; --ko:#d32f2f; }
+  html,body{ height:100%; margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial; background:var(--bg); color:#111; }
+  .wrap{ max-width:980px; margin:28px auto; padding:20px; }
+  .card{ background:var(--card); border-radius:10px; box-shadow:0 6px 18px rgba(15,20,30,0.08); padding:18px; margin-bottom:14px; }
+  h1{ margin:0 0 6px 0; font-size:20px; }
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  input[type=password], textarea{ width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; font-size:15px; box-sizing:border-box; }
+  button{ background:var(--accent); color:#fff; border:0; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600; }
+  button.secondary{ background:#f0f0f0; color:#111; }
+  .hidden{ display:none; }
+  #answers{ margin-top:12px; display:grid; gap:8px; grid-template-columns:1fr; }
+  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-size:15px; }
+  .ans-btn[disabled]{ opacity:.6; cursor:not-allowed; }
+  #feedback{ margin-top:12px; font-weight:700; }
+  pre#debug{ background:#0f1724; color:#d1d5db; padding:12px; border-radius:8px; max-height:200px; overflow:auto; font-size:13px; }
+  .small { font-size:13px; color:#555; }
+  .correct { color:var(--ok); }
+  .wrong { color:var(--ko); }
+  .meta { display:flex; gap:8px; align-items:center; margin-top:8px; color:#666; font-size:13px; }
+  .badge{ background:#eef6ff; color:var(--accent); padding:4px 8px; border-radius:999px; font-weight:700; }
 </style>
 </head>
 <body>
-<div id="container">
-    <div id="login">
-        <h2>Accesso Distinte</h2>
-        <input type="password" id="accessCode" placeholder="Inserisci codice">
-        <button onclick="checkLogin()">Accedi</button>
-        <p id="loginFeedback" style="color:red;"></p>
+<div class="wrap">
+  <div class="card">
+    <h1>Accesso test</h1>
+    <div class="small">Inserisci il codice per avviare il test</div>
+    <div style="margin-top:12px;" class="row">
+      <input id="accessCode" type="password" placeholder="Codice di accesso (es. 13112005)" />
+      <button id="btnLogin">Accedi</button>
+      <button id="btnDemo" class="secondary">Demo (salta login)</button>
+    </div>
+    <div id="loginMsg" class="small" style="color:#b00; margin-top:8px;"></div>
+  </div>
+
+  <div id="quizCard" class="card hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h1 id="questionTitle">Domanda</h1>
+        <div class="small" id="qInfo">0 / 0</div>
+      </div>
+      <div>
+        <div class="badge" id="scoreBadge">0/0</div>
+      </div>
     </div>
 
-    <div id="quiz" class="hidden">
-        <h2 id="questionTitle"></h2>
-        <div id="answers"></div>
-        <p id="feedback"></p>
-        <button id="nextBtn" onclick="nextQuestion()" class="hidden">Prossima domanda</button>
+    <div id="answers" style="margin-top:12px;"></div>
+
+    <div id="feedback" class="small"></div>
+
+    <div style="margin-top:12px;" class="row">
+      <button id="nextBtn" class="hidden">Prossima domanda</button>
+      <button id="endBtn" class="secondary hidden">Termina test</button>
     </div>
 
-    <pre id="debug"></pre>
+    <div class="meta">
+      <div id="elapsed">Tempo: 0s</div>
+      <div id="lastAction">Ultima azione: -</div>
+    </div>
+  </div>
+
+  <div id="fallbackCard" class="card hidden">
+    <h1>Fallback: incolla le domande (se il file non viene caricato)</h1>
+    <div class="small">Se fetch da GitHub Pages non funziona, incolla qui il contenuto del file <code>domandetest2</code>.</div>
+    <textarea id="manualInput" rows="8" placeholder="Incolla qui le domande..."></textarea>
+    <div style="margin-top:10px;" class="row">
+      <button id="useManual">Usa testo incollato</button>
+      <button id="clearManual" class="secondary">Pulisci</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>Debug</h1>
+    <div class="small">Tutte le informazioni utili per capire cosa succede (utile se qualcosa non va).</div>
+    <pre id="debug">Pronto.</pre>
+  </div>
 </div>
 
 <script>
-let questions = []; // array delle domande
-let currentIndex = 0; // indice domanda corrente
-let currentQuestionOrder = []; // ordine casuale
-const ACCESS_CODE = "13112005";
+/*
+  Versione corretta e robusta del parser + UI.
+  - Prova a caricare 'domandetest2' e 'domandetest2.txt'
+  - Parsing: riconosce risposte che iniziano per A/B/C/D (con o senza ) o .)
+  - Qualsiasi altra riga è interpretata come testo domanda
+  - Filtra le domande senza risposte
+  - Mostra debug dettagliato in pagina
+  - Blocca i bottoni dopo la scelta
+  - Fornisce fallback con textarea
+*/
 
-// Funzione login
-function checkLogin() {
-    const code = document.getElementById('accessCode').value;
-    if(code === ACCESS_CODE){
-        document.getElementById('login').classList.add('hidden');
-        document.getElementById('quiz').classList.remove('hidden');
-        loadQuestions();
-    } else {
-        document.getElementById('loginFeedback').innerText = "Codice errato!";
-    }
+const ACCESS_CODE = "13112005";            // codice di accesso richiesto
+const POSSIBLE_FILES = ["domandetest2","domandetest2.txt"]; // file provati in ordine
+let questions = [];       // array di oggetti { text, answers: [{text,correct,label}], id }
+let order = [];           // ordine random delle domande (array di indici)
+let idx = 0;              // posizione corrente in `order`
+let correctCount = 0;
+let totalAnswered = 0;
+let startTime = null;
+let timerInterval = null;
+
+/* ---------- utility di debug sulla UI ---------- */
+function debugLog(...args){
+  const el = document.getElementById('debug');
+  const t = new Date().toISOString().slice(11,19);
+  el.textContent = `${t} › ${args.map(a=>typeof a === 'object' ? JSON.stringify(a,null,2) : a).join(' ')}\n` + el.textContent;
+  document.getElementById('lastAction').textContent = 'Ultima azione: ' + args[0];
 }
 
-// Legge il file domandetest2 e lo trasforma in array di oggetti
-async function loadQuestions() {
+/* ---------- login e avvio ---------- */
+document.getElementById('btnLogin').addEventListener('click', () => {
+  const code = document.getElementById('accessCode').value.trim();
+  if(code === ACCESS_CODE){
+    document.getElementById('loginMsg').textContent = '';
+    startApp();
+  } else {
+    document.getElementById('loginMsg').textContent = 'Codice errato.';
+    debugLog('Login fallito', code);
+  }
+});
+
+// bottone demo per sviluppo rapido
+document.getElementById('btnDemo').addEventListener('click', () => {
+  debugLog('Demo: salto login');
+  startApp();
+});
+
+/* ---------- funzione principale di avvio ----------
+   prova a caricare il file dalla repo; se fallisce mostra fallback */
+async function startApp(){
+  document.getElementById('quizCard').classList.remove('hidden');
+  document.getElementById('fallbackCard').classList.add('hidden');
+  document.getElementById('debug').textContent = ''; // reset debug
+  debugLog('Avvio applicazione, provo a caricare file...');
+  const txt = await tryLoadFile();
+  if(!txt){
+    debugLog('Nessun file caricato => fallback abilitato');
+    document.getElementById('fallbackCard').classList.remove('hidden');
+    return;
+  }
+  parseQuestions(txt);
+  if(questions.length === 0){
+    debugLog('Parsing non ha trovato domande valide -> fallback abilitato');
+    document.getElementById('fallbackCard').classList.remove('hidden');
+    return;
+  }
+  shuffleOrder();
+  idx = 0;
+  correctCount = 0;
+  totalAnswered = 0;
+  startTime = Date.now();
+  startTimer();
+  showQuestion();
+}
+
+/* ---------- prova a fare fetch dei possibili nomi file ----------
+   ritorna testo o null se non trovato */
+async function tryLoadFile(){
+  for(const name of POSSIBLE_FILES){
     try {
-        const res = await fetch('domandetest2.txt');
-        const text = await res.text();
-        parseQuestions(text);
-        shuffleQuestions();
-        showQuestion();
-    } catch (err) {
-        document.getElementById('debug').innerText = "Errore caricamento domande: " + err;
+      debugLog('Provo fetch(', name, ')');
+      const resp = await fetch(name);
+      if(!resp.ok) {
+        debugLog('File non trovato:', name, 'status', resp.status);
+        continue;
+      }
+      const text = await resp.text();
+      debugLog('File caricato:', name, 'bytes:', text.length);
+      return text;
+    } catch(err) {
+      debugLog('Errore fetch per', name, err.message || err);
+      // continua sul prossimo filename
     }
+  }
+  return null;
 }
 
-// Parsing del file di testo in domande e risposte
-function parseQuestions(text){
-    const lines = text.split(/\r?\n/);
-    let question = null;
-    lines.forEach(line => {
-        line = line.trim();
-        if(line === '') return;
-        if(line.endsWith('*')){ // domanda
-            if(question) questions.push(question);
-            question = { text: line.slice(0,-1).trim(), answers: [] };
-        } else if(line.match(/^[A-D]\s/)){ // risposta
-            let correct = line.endsWith('*');
-            let answerText = line.replace(/^\w\s/, '').replace(/\*$/, '').trim();
-            question.answers.push({ text: answerText, correct });
-        }
-    });
-    if(question) questions.push(question); // ultima domanda
-    document.getElementById('debug').innerText = `Domande caricate: ${questions.length}`;
-}
-
-// Mischia l'ordine delle domande
-function shuffleQuestions(){
-    currentQuestionOrder = questions.map((_,i)=>i);
-    for(let i=currentQuestionOrder.length-1; i>0; i--){
-        let j = Math.floor(Math.random()* (i+1));
-        [currentQuestionOrder[i], currentQuestionOrder[j]] = [currentQuestionOrder[j], currentQuestionOrder[i]];
+/* ---------- parsing robusto ----------
+   - le risposte devono iniziare con A/B/C/D (con spazio, punto o parentesi)
+   - tutto il resto è considerato testo domanda (potrebbe essere su più righe)
+   - rimuove trailing '*' usati come marcatori nel file originale
+   - filtra domande senza risposte
+*/
+function parseQuestions(rawText){
+  questions = [];
+  const lines = rawText.split(/\r?\n/).map(l=>l.replace(/\u00A0/g,' ').trim()); // normalizza NBSP
+  let current = null;
+  let lineno = 0;
+  for(const raw of lines){
+    lineno++;
+    const line = raw.trim();
+    if(line === '') continue; // skip righe vuote
+    // riconosciamo una risposta che inizia per A/B/C/D seguito da spazio, '.' o ')'
+    const answerMatch = line.match(/^([A-D])[\.\)\-\s]+\s*(.*)$/i);
+    if(answerMatch){
+      // è una risposta
+      const label = answerMatch[1].toUpperCase();
+      let rest = answerMatch[2].trim();
+      // se la risposta termina con *, è quella corretta (secondo il formato che hai dato)
+      const correct = /\*$/.test(rest);
+      rest = rest.replace(/\*$/,'').trim();
+      // se non c'è una domanda corrente, creane una "placeholder" (evita crash)
+      if(!current){
+        current = { text: "(Domanda non trovata — generata automaticamente)", answers: [], id: questions.length+1 };
+        questions.push(current);
+        debugLog(`Attenzione: trovata una risposta senza domanda precedente alla riga ${lineno}. Generata domanda placeholder.`);
+      }
+      current.answers.push({ label, text: rest, correct: !!correct });
+    } else {
+      // trattiamo la riga come inizio di nuova domanda
+      // se c'era una domanda corrente la lasciamo com'è e ne iniziamo una nuova
+      const qtext = line.replace(/\*$/,'').trim(); // rimuovi eventuale asterisco finale
+      current = { text: qtext, answers: [], id: questions.length+1 };
+      questions.push(current);
     }
+  }
+
+  // rimuoviamo le domande senza risposte valide (meno di 2 risposte non ha senso)
+  const before = questions.length;
+  questions = questions.filter(q => q.answers && q.answers.length >= 2);
+  const after = questions.length;
+  debugLog(`Parsing completato. Domande trovate: ${before} -> valide: ${after}`);
+  // log dettagliato delle prime 3 domande per verificare struttura
+  debugLog('Anteprima domande:', questions.slice(0,3));
 }
 
-// Mostra la domanda corrente
+/* ---------- misc helpers ---------- */
+function shuffleArray(a){
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+}
+
+/* ---------- mischia ordine delle domande ---------- */
+function shuffleOrder(){
+  order = questions.map((_,i)=>i);
+  shuffleArray(order);
+  debugLog('Ordine domande mescolato. Tot:', order.length);
+}
+
+/* ---------- mostra domanda corrente con guard checks ---------- */
 function showQuestion(){
-    const q = questions[currentQuestionOrder[currentIndex]];
-    document.getElementById('questionTitle').innerText = q.text;
-    const answersDiv = document.getElementById('answers');
-    answersDiv.innerHTML = '';
-    q.answers.forEach((ans,i)=>{
-        const btn = document.createElement('button');
-        btn.innerText = ans.text;
-        btn.onclick = ()=>checkAnswer(ans.correct);
-        answersDiv.appendChild(btn);
+  // sicurezza: se non ci sono domande
+  if(!questions || questions.length === 0){
+    document.getElementById('questionTitle').textContent = 'Nessuna domanda disponibile';
+    document.getElementById('answers').innerHTML = '';
+    debugLog('showQuestion: nessuna domanda');
+    return;
+  }
+  if(idx < 0) idx = 0;
+  if(idx >= order.length){
+    endTest();
+    return;
+  }
+  const qIndex = order[idx];
+  const q = questions[qIndex];
+  if(!q){
+    debugLog('Errore: indice domanda fuori range', qIndex, 'idx', idx, 'order', order);
+    endTest();
+    return;
+  }
+
+  // mostra testo e info
+  document.getElementById('questionTitle').textContent = q.text;
+  document.getElementById('qInfo').textContent = `${idx+1} / ${order.length}`;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('scoreBadge').textContent = `${correctCount}/${totalAnswered}`;
+  // costruiamo bottoni risposte (non mescoliamo l'ordine delle risposte per ora)
+  const answersDiv = document.getElementById('answers');
+  answersDiv.innerHTML = '';
+  q.answers.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.type = 'button';
+    btn.textContent = `${a.label}) ${a.text}`;
+    btn.dataset.correct = a.correct ? '1' : '0';
+    // quando cliccato, controlla e disabilita tutte le risposte
+    btn.addEventListener('click', () => {
+      handleAnswerClick(btn, a);
     });
-    document.getElementById('feedback').innerText = '';
-    document.getElementById('nextBtn').classList.add('hidden');
+    answersDiv.appendChild(btn);
+  });
+  // reset bottoni di navigazione
+  document.getElementById('nextBtn').classList.add('hidden');
+  document.getElementById('endBtn').classList.add('hidden');
+  debugLog('Mostrata domanda id', q.id || qIndex, 'testo', q.text.slice(0,80));
 }
 
-// Controllo risposta
-function checkAnswer(correct){
-    const feedback = document.getElementById('feedback');
-    if(correct){
-        feedback.style.color = 'green';
-        feedback.innerText = "Corretto!";
-    } else {
-        feedback.style.color = 'red';
-        feedback.innerText = "Sbagliato!";
-    }
+/* ---------- quando si sceglie una risposta ---------- */
+function handleAnswerClick(button, answerObj){
+  // disabilita tutti i bottoni per evitare doppio click
+  const btns = Array.from(document.querySelectorAll('.ans-btn'));
+  btns.forEach(b => b.disabled = true);
+
+  const correct = answerObj.correct === true;
+  totalAnswered++;
+  if(correct) correctCount++;
+
+  // mostra feedback visivo
+  const fbEl = document.getElementById('feedback');
+  if(correct){
+    fbEl.className = 'small correct';
+    fbEl.textContent = 'CORRETTO ✓';
+    debugLog('Risposta corretta', answerObj.label, answerObj.text);
+  } else {
+    fbEl.className = 'small wrong';
+    // mostra quale era la risposta corretta
+    const qIndex = order[idx];
+    const q = questions[qIndex];
+    const correctAnswers = q.answers.filter(a=>a.correct).map(a=>`${a.label}) ${a.text}`).join('  |  ');
+    fbEl.textContent = 'SBAGLIATO ✗  — Risposta corretta: ' + correctAnswers;
+    debugLog('Risposta sbagliata', answerObj.label, answerObj.text, 'corrette:', correctAnswers);
+  }
+
+  // aggiorna badge punteggio
+  document.getElementById('scoreBadge').textContent = `${correctCount}/${totalAnswered}`;
+
+  // mostra pulsante prossima domanda o termina
+  if(idx < order.length - 1){
     document.getElementById('nextBtn').classList.remove('hidden');
+    document.getElementById('endBtn').classList.remove('hidden');
+  } else {
+    document.getElementById('endBtn').classList.remove('hidden');
+  }
+  document.getElementById('lastAction').textContent = `Ultima azione: risposta ${answerObj.label} (${correct ? 'OK':'KO'})`;
 }
 
-// Passa alla prossima domanda
-function nextQuestion(){
-    currentIndex++;
-    if(currentIndex >= questions.length){
-        document.getElementById('quiz').innerHTML = "<h2>Hai completato il test!</h2>";
-    } else {
-        showQuestion();
-    }
+/* ---------- next / end ---------- */
+document.getElementById('nextBtn').addEventListener('click', () => {
+  idx++;
+  showQuestion();
+});
+
+document.getElementById('endBtn').addEventListener('click', () => {
+  endTest();
+});
+
+/* ---------- termina test: mostra riepilogo ---------- */
+function endTest(){
+  stopTimer();
+  const tot = totalAnswered;
+  const perc = tot > 0 ? Math.round((correctCount / tot)*100) : 0;
+  document.getElementById('quizCard').innerHTML = `
+    <h1>Test completato</h1>
+    <div class="small">Hai risposto a <strong>${tot}</strong> domande. Corrette: <strong>${correctCount}</strong> (${perc}%).</div>
+    <div style="margin-top:12px;" class="row">
+      <button id="restart">Riavvia test</button>
+      <button id="download" class="secondary">Scarica risultato (JSON)</button>
+    </div>
+  `;
+  // log risultato in debug
+  debugLog('Test terminato. Tot:', tot, 'Corrette:', correctCount, 'Perc:', perc + '%');
+  // click handlers per i nuovi bottoni
+  document.getElementById('restart').addEventListener('click', () => {
+    // reload della pagina semplifica tutto
+    location.reload();
+  });
+  document.getElementById('download').addEventListener('click', () => {
+    const data = { total: tot, correct: correctCount, perc, timestamp: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data,null,2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'risultato_test.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
+
+/* ---------- timer ---------- */
+function startTimer(){
+  const el = document.getElementById('elapsed');
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const s = Math.floor((Date.now()-startTime)/1000);
+    el.textContent = `Tempo: ${s}s`;
+  }, 500);
+}
+function stopTimer(){ if(timerInterval) clearInterval(timerInterval); }
+
+/* ---------- fallback textarea handlers ---------- */
+document.getElementById('useManual').addEventListener('click', () => {
+  const txt = document.getElementById('manualInput').value;
+  if(!txt || txt.trim().length < 10){
+    debugLog('manualInput vuoto o troppo corto');
+    alert('Incolla il contenuto del file prima di premere "Usa testo incollato".');
+    return;
+  }
+  debugLog('Usando testo incollato come sorgente domande');
+  parseQuestions(txt);
+  if(questions.length === 0){
+    debugLog('testo incollato non contiene domande valide');
+    alert('Testo non valido: non sono state trovate domande con risposte A/B/C/D.');
+    return;
+  }
+  shuffleOrder();
+  idx = 0; correctCount = 0; totalAnswered = 0; startTime = Date.now(); startTimer();
+  document.getElementById('fallbackCard').classList.add('hidden');
+  document.getElementById('quizCard').classList.remove('hidden');
+  showQuestion();
+});
+document.getElementById('clearManual').addEventListener('click', () => {
+  document.getElementById('manualInput').value = '';
+  debugLog('manualInput pulito');
+});
+
+debugLog('Interfaccia pronta.'); // messaggio iniziale
 </script>
 </body>
 </html>

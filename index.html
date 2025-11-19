@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Simulazione Test Soccorritore (PDF) - FIX</title>
+<title>Test Distinte</title>
 
 <!-- Stili migliorati per visibilità -->
 <style>
@@ -303,8 +303,8 @@ function showQuestion(){
       btn.type = 'button';
       
       // Pulizia testo per PDF
-      let cleanText = sanitizeStr(a.text).replace(/[^\x20-\x7EÀ-ÿ]/g,''); 
-      btn.textContent = `${a.label}) ${cleanText}`; 
+      let cleanText = sanitizeStr(a.text);
+      btn.textContent = `${a.label}) ${cleanText}`;
       
       btn.dataset.correct = a.correct ? '1' : '0';
       

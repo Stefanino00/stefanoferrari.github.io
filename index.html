@@ -2,120 +2,117 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Accesso Domande - Debug</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js"></script>
+<title>Esame CEFRA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.146/pdf.min.js"></script>
 <style>
-  body { font-family: Arial, sans-serif; padding: 20px; }
-  #debug { margin-top: 20px; white-space: pre-wrap; background:#f0f0f0; padding:10px; border:1px solid #ccc; }
-  #domande { margin-top: 20px; display:none; }
-  .domanda { margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  #loginDiv, #mainDiv { margin-bottom: 20px; }
+  #debug { background: #f0f0f0; padding: 10px; margin-top: 10px; max-height: 300px; overflow-y: scroll; font-size: 12px; }
+  .question { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
 </style>
 </head>
 <body>
 
-<h2>Inserisci il codice per accedere:</h2>
-<input type="password" id="codice" placeholder="Codice segreto">
-<button onclick="verificaCodice()">Accedi</button>
+<div id="loginDiv">
+  <h2>Accesso Esame.</h2>
+  <input type="password" id="codeInput" placeholder="Inserisci codice">
+  <button onclick="checkCode()">Accedi</button>
+</div>
 
+<div id="mainDiv" style="display:none;">
+  <h2>Domande Esame</h2>
+  <div id="questionsDiv"></div>
+</div>
+
+<h3>Debug</h3>
 <div id="debug"></div>
-<div id="domande"></div>
 
 <script>
+const correctCode = "13112005";
+const debugDiv = document.getElementById("debug");
+
 function logDebug(msg) {
-    const debugDiv = document.getElementById("debug");
-    debugDiv.textContent += msg + "\n";
-    console.log(msg);
+  debugDiv.innerHTML += msg + "<br>";
 }
 
-function verificaCodice() {
-    const codice = document.getElementById('codice').value;
-    if (codice === "13112005") {
-        logDebug("Accesso consentito!");
-        caricaPDF();
-    } else {
-        logDebug("Codice errato. Accesso negato.");
-    }
+function checkCode() {
+  const input = document.getElementById("codeInput").value;
+  if(input === correctCode){
+    logDebug("Accesso consentito!");
+    document.getElementById("loginDiv").style.display = "none";
+    document.getElementById("mainDiv").style.display = "block";
+    loadPDF();
+  } else {
+    alert("Codice errato!");
+  }
 }
 
-function caricaPDF() {
-    const pdfPath = "domandetest.pdf"; // PDF già presente nella stessa cartella
-    logDebug("Inizio caricamento PDF: " + pdfPath);
+async function loadPDF() {
+  const url = 'domandetest.pdf';
+  logDebug("Inizio caricamento PDF: " + url);
+  
+  const loadingTask = pdfjsLib.getDocument(url);
+  const pdf = await loadingTask.promise;
+  logDebug(`PDF caricato con successo. Numero pagine: ${pdf.numPages}`);
+  
+  let fullText = "";
+  for(let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items.map(item => item.str).join(" ");
+    logDebug(`Lettura pagina: ${i}`);
+    fullText += pageText + "\n";
+  }
 
-    pdfjsLib.getDocument(pdfPath).promise.then(pdf => {
-        logDebug("PDF caricato con successo. Numero pagine: " + pdf.numPages);
-        let domande = [];
-        let pagineLetto = 0;
+  logDebug("PDF letto completamente. Inizio estrazione domande...");
+  const questions = extractQuestions(fullText);
+  logDebug(`Numero domande totali: ${questions.length}`);
 
-        for (let i = 1; i <= pdf.numPages; i++) {
-            pdf.getPage(i).then(page => {
-                logDebug("Lettura pagina: " + i);
-                page.getTextContent().then(content => {
-                    let text = content.items.map(item => item.str).join("\n");
-                    logDebug("Testo pagina " + i + ":\n" + text.substring(0,200) + "..."); // mostra solo primi 200 caratteri
-
-                    let lines = text.split("\n");
-                    let domanda_corrente = null;
-                    let opzioni = [];
-
-                    lines.forEach(line => {
-                        line = line.trim();
-                        if (/^\d+\./.test(line)) {
-                            if (domanda_corrente) {
-                                domanda_corrente.opzioni = opzioni;
-                                domande.push(domanda_corrente);
-                                opzioni = [];
-                            }
-                            domanda_corrente = { testo: line, corretta: null };
-                            logDebug("Nuova domanda rilevata: " + line);
-                        } else if (/^[A-D]\s/.test(line)) {
-                            let opzione = line;
-                            if (opzione.includes("●") || opzione.includes("•")) {
-                                domanda_corrente.corretta = opzione[0];
-                                opzione = opzione.replace("●","").replace("•","").trim();
-                            }
-                            opzioni.push(opzione);
-                            logDebug("Opzione aggiunta: " + opzione + " (Corretta: " + domanda_corrente.corretta + ")");
-                        }
-                    });
-
-                    if (domanda_corrente) {
-                        domanda_corrente.opzioni = opzioni;
-                        domande.push(domanda_corrente);
-                    }
-
-                    pagineLetto++;
-                    logDebug("Pagine lette finora: " + pagineLetto);
-
-                    if (pagineLetto === pdf.numPages) {
-                        logDebug("Tutte le pagine lette. Numero domande totali: " + domande.length);
-                        mostraDomande(domande);
-                    }
-                }).catch(err => logDebug("Errore getTextContent pagina " + i + ": " + err));
-            }).catch(err => logDebug("Errore getPage " + i + ": " + err));
-        }
-
-    }).catch(err => logDebug("Errore nel caricare il PDF: " + err));
+  shuffleArray(questions);
+  displayQuestions(questions);
 }
 
-function mostraDomande(domande) {
-    // Mischia le domande in ordine casuale
-    for (let i = domande.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [domande[i], domande[j]] = [domande[j], domande[i]];
-    }
-    logDebug("Domande mischiate.");
-
-    const container = document.getElementById("domande");
-    container.style.display = "block";
-    container.innerHTML = "";
-    domande.forEach((d, idx) => {
-        let div = document.createElement("div");
-        div.className = "domanda";
-        div.innerHTML = `<b>${idx+1}. ${d.testo}</b><br>${d.opzioni.map((o,i)=> String.fromCharCode(65+i)+": "+o).join("<br>")}<br><i>Corretta: ${d.corretta || "?"}</i>`;
-        container.appendChild(div);
+// Estrazione domande ignorando i pallini
+function extractQuestions(text) {
+  const questions = [];
+  // Divido in blocchi basati su pattern maiuscolo + ?
+  const regex = /([A-ZÀ-Ü ,.'’\-\(\)]+?\?)([^A-Z]*)((?:A\s.*?B\s.*?C\s.*?D\s.*?)/gs;
+  let match;
+  while((match = regex.exec(text)) !== null) {
+    let questionText = match[1].trim();
+    let optionsText = match[3].trim();
+    const options = {};
+    optionsText.split(/[A-D]\s/).slice(1).forEach((o, i)=>{
+      options[String.fromCharCode(65+i)] = o.trim();
     });
+    questions.push({question: questionText, options: options});
+  }
+  return questions;
+}
 
-    logDebug("Domande mostrate sul sito.");
+// Mischio le domande
+function shuffleArray(array) {
+  for(let i = array.length -1; i >0; i--){
+    const j = Math.floor(Math.random() * (i +1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// Mostro le domande sul sito
+function displayQuestions(questions) {
+  const container = document.getElementById("questionsDiv");
+  container.innerHTML = "";
+  questions.forEach((q, idx) => {
+    const div = document.createElement("div");
+    div.className = "question";
+    let html = `<strong>Domanda ${idx+1}:</strong> ${q.question}<br>`;
+    for(const key in q.options){
+      html += `<strong>${key}:</strong> ${q.options[key]}<br>`;
+    }
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+  logDebug("Domande mostrate sul sito.");
 }
 </script>
 

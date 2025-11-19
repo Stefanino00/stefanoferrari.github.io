@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Allenamento test</title>
+<title>Allenamento test-v2</title>
 
 <!-- Stili migliorati per visibilità -->
 <style>
@@ -15,6 +15,7 @@
   .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   input[type=password], textarea{ width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; font-size:15px; box-sizing:border-box; }
   button{ background:var(--accent); color:#fff; border:0; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600; }
+  button:active{ transform:scale(0.98); opacity:0.9; }
   button.secondary{ background:#f0f0f0; color:#111; }
   .hidden{ display:none; }
   #answers{ margin-top:12px; display:grid; gap:8px; grid-template-columns:1fr; min-height:80px; }
@@ -29,6 +30,16 @@
   .badge{ background:#eef6ff; color:var(--accent); padding:4px 8px; border-radius:999px; font-weight:700; }
   code{ background:#f3f4f6; padding:2px 6px; border-radius:6px; }
   .qjson{ background:#f8fafc; border:1px dashed #cbd5e1; padding:8px; margin-top:10px; font-size:12px; color:#334155; border-radius:6px; white-space:pre-wrap; }
+
+  /* Stili per mobile */
+  @media (max-width: 600px) {
+    .wrap {
+      margin: 10px auto; /* Riduci margine verticale */
+      padding: 10px;     /* Riduci padding laterale */
+    }
+    html, body { font-size: 17px; } /* Aumenta leggermente il font base */
+    .small { font-size: 14px; }
+  }
 </style>
 
 <!-- pdf.js -->
@@ -228,42 +239,53 @@ function parseQuestionsFromPlainText(text){
   let current = null;
   let idCounter = 0;
 
-  for(let i=0;i<rawLines.length;i++){
+  for (let i = 0; i < rawLines.length; i++) {
     const line = rawLines[i];
-    if(line.startsWith('-')){
-      current = { text: sanitizeStr(line.replace(/^\-\s*/,'')), answers: [], id: ++idCounter };
+
+    if (line.startsWith('-')) {
+      current = { text: sanitizeStr(line.replace(/^\-\s*/, '')), answers: [], id: ++idCounter };
       questions.push(current);
       continue;
     }
-    // match risposta: accetta "*A" o "A" o "A)" ecc.
-    const answerMatch = line.match(/^\*?\s*([A-D])\s*[\)\.\-]?\s*(.*)$/i);
-    if(answerMatch){
-      const rawLabel = answerMatch[1].toUpperCase();
-      let rawText = sanitizeStr(answerMatch[2] || '');
-      const leadingStar = /^\*\s*/.test(line);
-      const trailingStar = /\*\s*$/.test(rawText);
-      if(trailingStar) rawText = rawText.replace(/\*\s*$/,'').trim();
-      if(/^\*\s*/.test(rawText)) rawText = rawText.replace(/^\*\s*/,'').trim();
-      const correct = leadingStar || trailingStar;
-      if(!current){
+
+    // risposta corretta SOLO se "* D testo..." (asterisco + spazio + lettera)
+    const correctFormat = line.match(/^\*\s+([A-D])\s+(.*)$/i);
+    const normalFormat  = line.match(/^([A-D])\s+(.*)$/i);
+
+    if (correctFormat || normalFormat) {
+      const isCorrect = !!correctFormat;
+
+      const match = correctFormat || normalFormat;
+      const rawLabel = match[1].toUpperCase();
+      const rawText = sanitizeStr(match[2] || '');
+
+      if (!current) {
         current = { text: "(Domanda non trovata — generata automaticamente)", answers: [], id: ++idCounter };
         questions.push(current);
-        debugLog('Risposta trovata senza domanda, riga', i+1);
+        debugLog('Risposta trovata senza domanda, riga', i + 1);
       }
-      current.answers.push({ label: rawLabel, text: sanitizeStr(rawText), correct: !!correct });
+
+      current.answers.push({
+        label: rawLabel,
+        text: rawText,
+        correct: isCorrect
+      });
+
       continue;
     }
-    // linea non match: potrebbe essere continuazione domanda oppure continuazione ultima risposta
-    if(current && current.answers.length === 0){
+
+    // Se non è risposta, è continuazione
+    if (current && current.answers.length === 0) {
       current.text = sanitizeStr(current.text + ' ' + line);
-    } else if(current && current.answers.length > 0){
-      const last = current.answers[current.answers.length-1];
-      if(last) last.text = sanitizeStr(last.text + ' ' + line);
+    } else if (current && current.answers.length > 0) {
+      const last = current.answers[current.answers.length - 1];
+      if (last) last.text = sanitizeStr(last.text + ' ' + line);
     } else {
       current = { text: sanitizeStr(line), answers: [], id: ++idCounter };
       questions.push(current);
     }
   }
+
 
   const before = questions.length;
   questions = questions.filter(q => q.answers && q.answers.length >= 2);

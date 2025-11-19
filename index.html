@@ -2,11 +2,12 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Accesso Domande</title>
+<title>Accesso Domande - Debug</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js"></script>
 <style>
   body { font-family: Arial, sans-serif; padding: 20px; }
-  #domande { margin-top: 20px; }
+  #debug { margin-top: 20px; white-space: pre-wrap; background:#f0f0f0; padding:10px; border:1px solid #ccc; }
+  #domande { margin-top: 20px; display:none; }
   .domanda { margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
 </style>
 </head>
@@ -16,50 +17,64 @@
 <input type="password" id="codice" placeholder="Codice segreto">
 <button onclick="verificaCodice()">Accedi</button>
 
-<div id="domande" style="display:none;"></div>
+<div id="debug"></div>
+<div id="domande"></div>
 
 <script>
+function logDebug(msg) {
+    const debugDiv = document.getElementById("debug");
+    debugDiv.textContent += msg + "\n";
+    console.log(msg);
+}
+
 function verificaCodice() {
     const codice = document.getElementById('codice').value;
     if (codice === "13112005") {
-        alert("Accesso consentito!");
+        logDebug("Accesso consentito!");
         caricaPDF();
     } else {
-        alert("Codice errato. Accesso negato.");
+        logDebug("Codice errato. Accesso negato.");
     }
 }
 
 function caricaPDF() {
     const pdfPath = "domandetest.pdf"; // PDF già presente nella stessa cartella
+    logDebug("Inizio caricamento PDF: " + pdfPath);
 
     pdfjsLib.getDocument(pdfPath).promise.then(pdf => {
+        logDebug("PDF caricato con successo. Numero pagine: " + pdf.numPages);
         let domande = [];
-        let totalePagine = pdf.numPages;
         let pagineLetto = 0;
 
-        for (let i = 1; i <= totalePagine; i++) {
+        for (let i = 1; i <= pdf.numPages; i++) {
             pdf.getPage(i).then(page => {
+                logDebug("Lettura pagina: " + i);
                 page.getTextContent().then(content => {
                     let text = content.items.map(item => item.str).join("\n");
+                    logDebug("Testo pagina " + i + ":\n" + text.substring(0,200) + "..."); // mostra solo primi 200 caratteri
+
                     let lines = text.split("\n");
                     let domanda_corrente = null;
                     let opzioni = [];
 
                     lines.forEach(line => {
-                        if (/^\d+\./.test(line.trim())) {
+                        line = line.trim();
+                        if (/^\d+\./.test(line)) {
                             if (domanda_corrente) {
                                 domanda_corrente.opzioni = opzioni;
                                 domande.push(domanda_corrente);
                                 opzioni = [];
                             }
-                            domanda_corrente = { testo: line.trim(), corretta: null };
-                        } else if (/^[A-D]\s/.test(line.trim())) {
-                            let opzione = line.trim();
+                            domanda_corrente = { testo: line, corretta: null };
+                            logDebug("Nuova domanda rilevata: " + line);
+                        } else if (/^[A-D]\s/.test(line)) {
+                            let opzione = line;
                             if (opzione.includes("●") || opzione.includes("•")) {
                                 domanda_corrente.corretta = opzione[0];
-                                opzione = opzione.replace("●", "").replace("•", "").trim();
+                                opzione = opzione.replace("●","").replace("•","").trim();
                             }
                             opzioni.push(opzione);
+                            logDebug("Opzione aggiunta: " + opzione + " (Corretta: " + domanda_corrente.corretta + ")");
                         }
                     });
 
@@ -69,13 +84,17 @@ function caricaPDF() {
                     }
 
                     pagineLetto++;
-                    if (pagineLetto === totalePagine) {
+                    logDebug("Pagine lette finora: " + pagineLetto);
+
+                    if (pagineLetto === pdf.numPages) {
+                        logDebug("Tutte le pagine lette. Numero domande totali: " + domande.length);
                         mostraDomande(domande);
                     }
-                });
-            });
+                }).catch(err => logDebug("Errore getTextContent pagina " + i + ": " + err));
+            }).catch(err => logDebug("Errore getPage " + i + ": " + err));
         }
-    }).catch(err => alert("Errore nel caricare il PDF: " + err));
+
+    }).catch(err => logDebug("Errore nel caricare il PDF: " + err));
 }
 
 function mostraDomande(domande) {
@@ -84,6 +103,7 @@ function mostraDomande(domande) {
         const j = Math.floor(Math.random() * (i + 1));
         [domande[i], domande[j]] = [domande[j], domande[i]];
     }
+    logDebug("Domande mischiate.");
 
     const container = document.getElementById("domande");
     container.style.display = "block";
@@ -94,6 +114,8 @@ function mostraDomande(domande) {
         div.innerHTML = `<b>${idx+1}. ${d.testo}</b><br>${d.opzioni.map((o,i)=> String.fromCharCode(65+i)+": "+o).join("<br>")}<br><i>Corretta: ${d.corretta || "?"}</i>`;
         container.appendChild(div);
     });
+
+    logDebug("Domande mostrate sul sito.");
 }
 </script>
 

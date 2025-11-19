@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Allenamento test-v2</title>
+<title>Allenamento test</title>
 
 <!-- Stili migliorati per visibilità -->
 <style>
@@ -238,7 +238,6 @@ function parseQuestionsFromPlainText(text){
 
   let current = null;
   let idCounter = 0;
-
   for (let i = 0; i < rawLines.length; i++) {
     const line = rawLines[i];
 
@@ -248,13 +247,25 @@ function parseQuestionsFromPlainText(text){
       continue;
     }
 
-    // risposta corretta SOLO se "* D testo..." (asterisco + spazio + lettera)
-    const correctFormat = line.match(/^\*\s+([A-D])\s+(.*)$/i);
-    const normalFormat  = line.match(/^([A-D])\s+(.*)$/i);
+    // NORMALIZZA LA RIGA: sostituisci vari simboli simili all'asterisco,
+    // normalizza spazi strani (NBSP ecc.) e rimuovi caratteri zero-width
+    let normalized = String(line);
+    // asterischi "strani" in Unicode -> standard '*'
+    normalized = normalized.replace(/[\u2217\u2731\u204E\u066D\u06DE]/g, '*');
+    // spazi non-standard -> spazio normale
+    normalized = normalized.replace(/[\u00A0\u2007\u202F]/g, ' ');
+    // rimuovi zero-width e BOM
+    normalized = normalized.replace(/[\u200B\u200C\u200D\uFEFF]/g, '');
+    // trim left/right
+    normalized = normalized.trim();
+
+    // Match rigoroso: SOLO formato "* <lettera> <testo>"
+    // richiede asterisco all'inizio, almeno uno spazio, lettera A-D, almeno uno spazio, poi testo
+    const correctFormat = normalized.match(/^\*\s+([A-D])\s+(.*)$/i);
+    const normalFormat  = normalized.match(/^([A-D])\s+(.*)$/i);
 
     if (correctFormat || normalFormat) {
       const isCorrect = !!correctFormat;
-
       const match = correctFormat || normalFormat;
       const rawLabel = match[1].toUpperCase();
       const rawText = sanitizeStr(match[2] || '');
@@ -285,6 +296,7 @@ function parseQuestionsFromPlainText(text){
       questions.push(current);
     }
   }
+
 
 
   const before = questions.length;

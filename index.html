@@ -279,26 +279,16 @@ function parseQuestionsFromPlainText(text){
     normalized = normalized.replace(/[\u200B\u200C\u200D\uFEFF]/g, '');
     normalized = normalized.replace(/\s+/g, ' ').trim();
 
-    let isCorrect = false;
-    let norm = normalized;
+    // additionally, collapse sequences like '*\u200B D' so asterisk is obvious
+    normalized = normalized.replace(/^\*\s*/,'* ');
 
-    // se inizia con asterisco → risposta corretta
-    if (norm.startsWith('*')) {
-        isCorrect = true;
-        norm = norm.replace(/^\*\s*/, '');
-    }
+    // Match rigoroso: SOLO formato "* <lettera> <testo>"
+    const correctFormat = normalized.match(/^\*\s+([A-D])\s+(.*)$/i);
+    const normalFormat  = normalized.match(/^([A-D])\s+(.*)$/i);
 
-    const match = norm.match(/^([A-D])\s+(.*)$/i);
-
-    if (match) {
-        const rawLabel = match[1].toUpperCase();
-        const rawText = sanitizeStr(match[2] || '');
-        current.answers.push({
-            label: rawLabel,
-            text: rawText,
-            correct: isCorrect
-        });
-        continue;
+    // Debug: se c'è un asterisco ma non entra nel correctFormat, logga dettagli
+    if (normalized.includes('*') && !correctFormat) {
+      appendParseDebug(`-- Asterisco presente ma NON match corretto. normalized="${normalized}"\n   chars: ${charCodesSummary(normalized, 12)}`);
     }
 
     if (correctFormat || normalFormat) {

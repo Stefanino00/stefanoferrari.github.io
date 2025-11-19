@@ -7,7 +7,7 @@
 
 <!-- Stili migliorati per visibilità -->
 <style>
-  :root{ --bg:#f6f8fb; --card:#fff; --accent:#0b77f4; --ok:#1e9e4a; --ko:#d32f2f; }
+  :root{ --bg:#001d49; --card:#fff; --accent:#0b77f4; --ok:#1e9e4a; --ko:#d32f2f; }
   html,body{ height:100%; margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial; background:var(--bg); color:#111; }
   .wrap{ max-width:980px; margin:20px auto; padding:16px; }
   .card{ background:var(--card); border-radius:10px; box-shadow:0 6px 18px rgba(15,20,30,0.08); padding:16px; margin-bottom:14px; }
@@ -107,6 +107,9 @@
   </div>
 </div>
 
+
+
+
 <script>
 /* ========== CONFIG ========== */
 const ACCESS_CODE = "2005";
@@ -127,6 +130,7 @@ function sanitizeStr(s){
   return String(s)
     .replace(/\u00A0/g,' ')   // nbsp
     .replace(/[\u200B\u200C\u200D\uFEFF]/g,'') // zero width & BOM
+    .replace(/\u2217|\u2731|\u204E|\u066D|\u06DE|\u2042|\u2729|\u2736/g, '*') // varie versioni di asterisco -> '*'
     .replace(/\s+/g,' ')      // collapse multiple spaces
     .trim();
 }
@@ -234,13 +238,20 @@ async function extractTextFromPDF(arrayBuffer){
 /* normalizza: reinserisce break utili e pulisce stringhe invisibili */
 function normalizeExtractedText(t){
   let s = String(t || '');
+  // normalizza caratteri strani
   s = s.replace(/\u00A0/g,' ').replace(/[\u200B\u200C\u200D\uFEFF]/g,'');
+  // trasforma varie versioni di "asterisco" in '*' per uniformità
+  s = s.replace(/\u2217|\u2731|\u204E|\u066D|\u06DE|\u2042|\u2729|\u2736/g, '*');
   s = s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-  s = s.replace(/\s-\s/g, '\n- ');
-  s = s.replace(/\s([A-D])\s+/g, '\n$1 ');
-  // Sposta l'asterisco della risposta corretta su una nuova riga per il parsing.
-  s = s.replace(/\s*\*(?=\s*[A-D]\s)/g, '\n* ');
 
+  // Metti un newline davanti a "- " (domande)
+  s = s.replace(/\s-\s/g, '\n- ');
+
+  // Inserisci newline prima di ogni etichetta di opzione (gestisce anche "*A", "A)", "A.", "A -", "A:")
+  // usiamo un lookahead che cattura anche un eventuale asterisco attaccato
+  s = s.replace(/(\s|^)(\*?\s*[A-D])\s*(?:\)|\.|\:|\-)?\s+/gi, '\n$2 ');
+
+  // Collassa spazi multipli in singoli spazi su ogni riga
   const lines = s.split('\n').map(l => l.replace(/\s+/g,' ').trim()).filter(l=>l.length>0);
   return lines.join('\n');
 }
@@ -248,54 +259,61 @@ function normalizeExtractedText(t){
 /* parsing robusto con debug dettagliato */
 function parseQuestionsFromPlainText(text){
   questions = [];
-  const rawLines = text.split(/\r?\n/).map(l => l).filter(l=>l.length>0);
-  appendParseDebug('Righe estratte: ' + rawLines.length);
+  // prima normalizziamo il testo (rimozione caratteri strani e split iniziale)
+  const normalizedAll = String(text || '');
+  appendParseDebug('Testo totale normalizzato (prime 300 ch):\n' + sanitizedPreview(normalizedAll, 300));
+
+  // split sulle righe già preparate da normalizeExtractedText
+  const rawLines = normalizeExtractedText(normalizedAll).split(/\r?\n/).map(l => l).filter(l=>l.length>0);
+  appendParseDebug('Righe estratte dopo normalizzazione: ' + rawLines.length);
 
   let current = null;
   let idCounter = 0;
+
   for (let i = 0; i < rawLines.length; i++) {
     const originalLine = rawLines[i];
     const line = sanitizeStr(originalLine);
 
-    // log le prime 80 righe o le righe che contengono asterisco/lettera
+    // debug primo blocco
     const interest = line.includes('*') || /^[A-Da-d]\s+/.test(line) || line.startsWith('-');
-    if (i < 80 && interest) {
-      appendParseDebug(`RIGA ${i+1}: "${originalLine}"\n - sanitized: "${line}"\n - chars: ${charCodesSummary(originalLine, 12)}`);
-    } else if (i < 12 && !interest) {
-      appendParseDebug(`RIGA ${i+1}: "${originalLine}" (short preview)`);
+    if (i < 120 && interest) {
+      appendParseDebug(`RIGA ${i+1}: "${originalLine}"\n - sanitized: "${line}"\n - chars: ${charCodesSummary(originalLine, 24)}`);
     }
 
+    // nuova domanda
     if (line.startsWith('-')) {
       current = { text: sanitizeStr(line.replace(/^\-\s*/, '')), answers: [], id: ++idCounter };
       questions.push(current);
       continue;
     }
 
-    // NORMALIZZA LA RIGA: sostituisci vari simboli simili all'asterisco,
-    // normalizza spazi strani (NBSP ecc.) e rimuovi caratteri zero-width
-    let normalized = String(originalLine);
-    normalized = normalized.replace(/[\u2217\u2731\u204E\u066D\u06DE\u2042\u204E\u2731\u2729\u2736\*]/g, '*'); // include normal '*' per semplificare
-    normalized = normalized.replace(/[\u00A0\u2007\u202F]/g, ' ');
-    normalized = normalized.replace(/[\u200B\u200C\u200D\uFEFF]/g, '');
-    normalized = normalized.replace(/\s+/g, ' ').trim();
+    // prova a matchare risposte: gestisce:
+    // 1) "* A testo"  (asterisco all'inizio)
+    // 2) "A testo *"  (asterisco alla fine)
+    // 3) "A) testo"  "A. testo" "A: testo"  "A testo"
+    let isCorrect = false;
+    let match = null;
 
-    // additionally, collapse sequences like '*\u200B D' so asterisk is obvious
-    normalized = normalized.replace(/^\*\s*/,'* ');
-
-    // Match rigoroso: SOLO formato "* <lettera> <testo>"
-    const correctFormat = normalized.match(/^\*\s+([A-D])\s+(.*)$/i);
-    const normalFormat  = normalized.match(/^([A-D])\s+(.*)$/i);
-
-    // Debug: se c'è un asterisco ma non entra nel correctFormat, logga dettagli
-    if (normalized.includes('*') && !correctFormat) {
-      appendParseDebug(`-- Asterisco presente ma NON match corretto. normalized="${normalized}"\n   chars: ${charCodesSummary(normalized, 12)}`);
+    // primo: asterisco in testa
+    match = line.match(/^\*\s*([A-D])\s*(?:\)|\.|\:|\-)?\s*(.*)$/i);
+    if (match) {
+      isCorrect = true;
+    } else {
+      // secondo: asterisco in coda
+      match = line.match(/^([A-D])\s*(?:\)|\.|\:|\-)?\s*(.*)\s*\*$/i);
+      if (match) {
+        isCorrect = true;
+        // rimuovi l'asterisco dal testo catturato
+        match[2] = match[2].replace(/\s*\*$/, '');
+      } else {
+        // terzo: normale
+        match = line.match(/^([A-D])\s*(?:\)|\.|\:|\-)?\s*(.*)$/i);
+      }
     }
 
-    if (correctFormat || normalFormat) {
-      const isCorrect = !!correctFormat;
-      const match = correctFormat || normalFormat;
+    if (match) {
       const rawLabel = match[1].toUpperCase();
-      const rawText = sanitizeStr(match[2] || '');
+      let rawText = sanitizeStr(match[2] || '');
 
       if (!current) {
         current = { text: "(Domanda non trovata — generata automaticamente)", answers: [], id: ++idCounter };
@@ -303,6 +321,7 @@ function parseQuestionsFromPlainText(text){
         appendParseDebug('Risposta trovata senza domanda, riga ' + (i+1));
       }
 
+      // se rawText è vuoto, può essere che la risposta sia su righe successive -> lasciamo comunque l'entry e poi concateniamo
       current.answers.push({
         label: rawLabel,
         text: rawText,
@@ -313,27 +332,69 @@ function parseQuestionsFromPlainText(text){
       continue;
     }
 
-    // Se non è risposta, è continuazione
+    // se non è risposta, è probabilmente continuazione della domanda o della ultima risposta
     if (current && current.answers.length === 0) {
       current.text = sanitizeStr(current.text + ' ' + line);
     } else if (current && current.answers.length > 0) {
+      // aggiungi come continuazione dell'ultima risposta
       const last = current.answers[current.answers.length - 1];
       if (last) last.text = sanitizeStr(last.text + ' ' + line);
     } else {
+      // fallback: crea nuova domanda
       current = { text: sanitizeStr(line), answers: [], id: ++idCounter };
       questions.push(current);
     }
   }
 
+  // post-process: alcune estrazioni possono segnare l'asterisco separatamente (es "*", su riga propria)
+  // quindi se una riga è solo "*" e la successiva è "A testo", possiamo segnare la successiva come corretta.
+  for (let q of questions) {
+    // se nessuna risposta è marcata corretta ma esiste una risposta che contiene un '*' residuo, puliscila e marcala
+    const anyCorrect = q.answers.some(a => a.correct);
+    if (!anyCorrect) {
+      for (let a of q.answers) {
+        if (/\*$/.test(a.text)) {
+          a.text = a.text.replace(/\s*\*$/, '');
+          a.correct = true;
+          appendParseDebug(`Post-process: marcata come corretta (asterisco in coda) ${a.label} per domanda id ${q.id}`);
+          break;
+        }
+        if (/^\*/.test(a.text)) {
+          a.text = a.text.replace(/^\*\s*/, '');
+          a.correct = true;
+          appendParseDebug(`Post-process: marcata come corretta (asterisco in testa) ${a.label} per domanda id ${q.id}`);
+          break;
+        }
+      }
+    }
+    // se ancora non c'è una corretta, prova a cercare se nel testo della domanda c'è un pattern "* A" inline
+    if (!q.answers.some(a => a.correct)) {
+      const inline = q.text.match(/\*\s*([A-D])/i);
+      if (inline) {
+        const lab = inline[1].toUpperCase();
+        const found = q.answers.find(a=>a.label===lab);
+        if (found) {
+          found.correct = true;
+          appendParseDebug(`Post-process: marcata come corretta (asterisco inline nella domanda) ${lab} per domanda id ${q.id}`);
+        }
+      }
+    }
+  }
+
   const before = questions.length;
   questions = questions.filter(q => q.answers && q.answers.length >= 2);
-  appendParseDebug(`Parsing completato. Domande: ${before} -> valide: ${questions.length}`);
+  appendParseDebug(`Parsing completato. Domande tot: ${before} -> valide: ${questions.length}`);
   appendParseDebug('Anteprima 5 domande: ' + JSON.stringify(questions.slice(0,5).map(q => ({id:q.id, text:q.text.slice(0,120), answers:q.answers})), null, 2));
 
   if(questions.length > 0){
     shuffleOrder();
     idx = 0; correctCount = 0; totalAnswered = 0;
   }
+}
+
+/* tiny helper per preview sanitizzata */
+function sanitizedPreview(s, n=200){
+  return sanitizeStr(String(s || '')).slice(0,n).replace(/\n/g,' ↵ ');
 }
 
 /* shuffle */
@@ -367,6 +428,7 @@ function showQuestion(){
       btn.type = 'button';
       let cleanText = sanitizeStr(a.text);
       btn.textContent = `${a.label}) ${cleanText}`;
+      // dataset corretto come stringa '1' o '0'
       btn.dataset.correct = a.correct ? '1' : '0';
       btn.style.whiteSpace = 'pre-wrap';
       btn.style.wordBreak = 'break-word';
@@ -397,8 +459,8 @@ function handleAnswerClick(button, answerObj){
     fbEl.className = 'small wrong';
     const q = questions[order[idx]];
     const correctAnswers = q.answers.filter(a=>a.correct).map(a=>`${a.label}) ${a.text}`).join('  |  ');
-    fbEl.innerText = 'SBAGLIATO ✗  — Risposta corretta: ' + correctAnswers;
-    appendParseDebug('Risposta sbagliata: ' + answerObj.label + ' — corrette: ' + correctAnswers);
+    fbEl.innerText = 'SBAGLIATO ✗  — Risposta corretta: ' + (correctAnswers || '(non trovata)');
+    appendParseDebug('Risposta sbagliata: ' + answerObj.label + ' — corrette: ' + (correctAnswers || '(none)'));
   }
 
   document.getElementById('scoreBadge').innerText = `${correctCount}/${totalAnswered}`;
@@ -461,5 +523,8 @@ document.getElementById('clearManual')?.addEventListener('click', () => { docume
 
 appendParseDebug('Interfaccia pronta. Pronto a caricare ' + PDF_FILE);
 </script>
+
+
+
 </body>
 </html>

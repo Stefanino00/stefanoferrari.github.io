@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Test Distinte</title>
+<title>Allenamento test</title>
 
 <!-- Stili migliorati per visibilità -->
 <style>
@@ -96,7 +96,7 @@
 
 <script>
 /* ========== CONFIG ========== */
-const ACCESS_CODE = "13112005";
+const ACCESS_CODE = "789456";
 const PDF_FILE = "domandetest3.pdf";
 
 /* stato */
@@ -289,8 +289,10 @@ function showQuestion(){
 
   // Visual debug: mostra l'oggetto JSON della domanda corrente per troubleshooting
   const jq = document.getElementById('currentQuestionJson');
-  jq.classList.remove('hidden');
-  jq.innerText = JSON.stringify(q, null, 2);
+  if (jq) {
+    jq.classList.remove('hidden');
+    jq.innerText = JSON.stringify(q, null, 2);
+  }
 
   document.getElementById('questionTitle').innerText = q.text || '(testo vuoto)';
   document.getElementById('qInfo').innerText = `${idx+1} / ${order.length}`;

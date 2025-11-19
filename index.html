@@ -100,7 +100,7 @@
   </div>
 
   <!-- PANEL: Parse debug visibile -->
-  <div id="parseDebugCard" class="card">
+  <div id="parseDebugCard" class="card hidden">
     <h1>Parse debug (visibile)</h1>
     <div class="muted">Vedi qui le righe normalizzate, i primi charcode e i match. Utile per problemi con caratteri non-ASCII.</div>
     <pre id="parseDebug"></pre>
@@ -137,9 +137,9 @@ function sanitizeStr(s){
 
 /* parse debug append (visibile) */
 function appendParseDebug(txt){
-  const el = document.getElementById('parseDebug');
-  if(!el) return;
-  el.textContent = txt + "\n\n" + el.textContent;
+  // const el = document.getElementById('parseDebug');
+  // if(!el) return;
+  // el.textContent = txt + "\n\n" + el.textContent;
 }
 
 /* helper per codepoint stringa (primi N caratteri) */
@@ -157,8 +157,8 @@ function charCodesSummary(s, n = 12){
 
 /* debug log su UI "lastAction" */
 function debugLog(...args){
-  const lastEl = document.getElementById('lastAction');
-  if (lastEl) lastEl.textContent = 'Ultima azione: ' + (args[0] || '-');
+  // const lastEl = document.getElementById('lastAction');
+  // if (lastEl) lastEl.textContent = 'Ultima azione: ' + (args[0] || '-');
 }
 
 /* login */
@@ -257,63 +257,40 @@ function normalizeExtractedText(t){
 }
 
 /* parsing robusto con debug dettagliato */
+/* parsing robusto con debug dettagliato - nuova versione */
 function parseQuestionsFromPlainText(text){
   questions = [];
-  // prima normalizziamo il testo (rimozione caratteri strani e split iniziale)
-  const normalizedAll = String(text || '');
-  appendParseDebug('Testo totale normalizzato (prime 300 ch):\n' + sanitizedPreview(normalizedAll, 300));
-
-  // split sulle righe già preparate da normalizeExtractedText
-  const rawLines = normalizeExtractedText(normalizedAll).split(/\r?\n/).map(l => l).filter(l=>l.length>0);
-  appendParseDebug('Righe estratte dopo normalizzazione: ' + rawLines.length);
+  const rawLines = text.split(/\r?\n/).map(l => sanitizeStr(l)).filter(l => l.length > 0);
+  appendParseDebug('Righe estratte: ' + rawLines.length);
 
   let current = null;
   let idCounter = 0;
 
   for (let i = 0; i < rawLines.length; i++) {
-    const originalLine = rawLines[i];
-    const line = sanitizeStr(originalLine);
+    const line = rawLines[i];
 
-    // debug primo blocco
-    const interest = line.includes('*') || /^[A-Da-d]\s+/.test(line) || line.startsWith('-');
-    if (i < 120 && interest) {
-      appendParseDebug(`RIGA ${i+1}: "${originalLine}"\n - sanitized: "${line}"\n - chars: ${charCodesSummary(originalLine, 24)}`);
-    }
-
-    // nuova domanda
+    // Inizia nuova domanda
     if (line.startsWith('-')) {
       current = { text: sanitizeStr(line.replace(/^\-\s*/, '')), answers: [], id: ++idCounter };
       questions.push(current);
       continue;
     }
 
-    // prova a matchare risposte: gestisce:
-    // 1) "* A testo"  (asterisco all'inizio)
-    // 2) "A testo *"  (asterisco alla fine)
-    // 3) "A) testo"  "A. testo" "A: testo"  "A testo"
+    // Riconosce risposta corretta con * all’inizio (* A Testo)
+    let match = line.match(/^\*\s*([A-D])\s+(.*)$/i);
     let isCorrect = false;
-    let match = null;
 
-    // primo: asterisco in testa
-    match = line.match(/^\*\s*([A-D])\s*(?:\)|\.|\:|\-)?\s*(.*)$/i);
     if (match) {
       isCorrect = true;
     } else {
-      // secondo: asterisco in coda
-      match = line.match(/^([A-D])\s*(?:\)|\.|\:|\-)?\s*(.*)\s*\*$/i);
-      if (match) {
-        isCorrect = true;
-        // rimuovi l'asterisco dal testo catturato
-        match[2] = match[2].replace(/\s*\*$/, '');
-      } else {
-        // terzo: normale
-        match = line.match(/^([A-D])\s*(?:\)|\.|\:|\-)?\s*(.*)$/i);
-      }
+      // Riconosce risposta normale A-D
+      match = line.match(/^([A-D])\s+(.*)$/i);
+      isCorrect = false;
     }
 
     if (match) {
-      const rawLabel = match[1].toUpperCase();
-      let rawText = sanitizeStr(match[2] || '');
+      const label = match[1].toUpperCase();
+      const textAnswer = sanitizeStr(match[2]);
 
       if (!current) {
         current = { text: "(Domanda non trovata — generata automaticamente)", answers: [], id: ++idCounter };
@@ -321,76 +298,37 @@ function parseQuestionsFromPlainText(text){
         appendParseDebug('Risposta trovata senza domanda, riga ' + (i+1));
       }
 
-      // se rawText è vuoto, può essere che la risposta sia su righe successive -> lasciamo comunque l'entry e poi concateniamo
-      current.answers.push({
-        label: rawLabel,
-        text: rawText,
-        correct: isCorrect
-      });
-
-      appendParseDebug(`Aggiunta risposta: label=${rawLabel} correct=${isCorrect} text="${rawText}"`);
+      current.answers.push({ label, text: textAnswer, correct: isCorrect });
+      appendParseDebug(`Aggiunta risposta: label=${label} correct=${isCorrect} text="${textAnswer}"`);
       continue;
     }
 
-    // se non è risposta, è probabilmente continuazione della domanda o della ultima risposta
-    if (current && current.answers.length === 0) {
-      current.text = sanitizeStr(current.text + ' ' + line);
-    } else if (current && current.answers.length > 0) {
-      // aggiungi come continuazione dell'ultima risposta
-      const last = current.answers[current.answers.length - 1];
-      if (last) last.text = sanitizeStr(last.text + ' ' + line);
-    } else {
-      // fallback: crea nuova domanda
-      current = { text: sanitizeStr(line), answers: [], id: ++idCounter };
-      questions.push(current);
-    }
-  }
-
-  // post-process: alcune estrazioni possono segnare l'asterisco separatamente (es "*", su riga propria)
-  // quindi se una riga è solo "*" e la successiva è "A testo", possiamo segnare la successiva come corretta.
-  for (let q of questions) {
-    // se nessuna risposta è marcata corretta ma esiste una risposta che contiene un '*' residuo, puliscila e marcala
-    const anyCorrect = q.answers.some(a => a.correct);
-    if (!anyCorrect) {
-      for (let a of q.answers) {
-        if (/\*$/.test(a.text)) {
-          a.text = a.text.replace(/\s*\*$/, '');
-          a.correct = true;
-          appendParseDebug(`Post-process: marcata come corretta (asterisco in coda) ${a.label} per domanda id ${q.id}`);
-          break;
-        }
-        if (/^\*/.test(a.text)) {
-          a.text = a.text.replace(/^\*\s*/, '');
-          a.correct = true;
-          appendParseDebug(`Post-process: marcata come corretta (asterisco in testa) ${a.label} per domanda id ${q.id}`);
-          break;
-        }
-      }
-    }
-    // se ancora non c'è una corretta, prova a cercare se nel testo della domanda c'è un pattern "* A" inline
-    if (!q.answers.some(a => a.correct)) {
-      const inline = q.text.match(/\*\s*([A-D])/i);
-      if (inline) {
-        const lab = inline[1].toUpperCase();
-        const found = q.answers.find(a=>a.label===lab);
-        if (found) {
-          found.correct = true;
-          appendParseDebug(`Post-process: marcata come corretta (asterisco inline nella domanda) ${lab} per domanda id ${q.id}`);
-        }
+    // Se non è risposta, è continuazione della domanda o della risposta
+    if (current) {
+      if (current.answers.length === 0) {
+        // continua testo domanda
+        current.text += ' ' + line;
+      } else {
+        // continua testo ultima risposta
+        const last = current.answers[current.answers.length - 1];
+        last.text += ' ' + line;
       }
     }
   }
 
+  // Filtra domande senza almeno 2 risposte
   const before = questions.length;
   questions = questions.filter(q => q.answers && q.answers.length >= 2);
-  appendParseDebug(`Parsing completato. Domande tot: ${before} -> valide: ${questions.length}`);
+  appendParseDebug(`Parsing completato. Domande: ${before} -> valide: ${questions.length}`);
   appendParseDebug('Anteprima 5 domande: ' + JSON.stringify(questions.slice(0,5).map(q => ({id:q.id, text:q.text.slice(0,120), answers:q.answers})), null, 2));
 
-  if(questions.length > 0){
+  // reset stato
+  if (questions.length > 0){
     shuffleOrder();
     idx = 0; correctCount = 0; totalAnswered = 0;
   }
 }
+
 
 /* tiny helper per preview sanitizzata */
 function sanitizedPreview(s, n=200){
@@ -410,10 +348,10 @@ function showQuestion(){
   if(!q){ appendParseDebug('Domanda non trovata indice ' + qIndex); endTest(); return; }
 
   const jq = document.getElementById('currentQuestionJson');
-  if (jq) {
-    jq.classList.remove('hidden');
-    jq.innerText = JSON.stringify(q, null, 2);
-  }
+  // if (jq) {
+  //   jq.classList.remove('hidden');
+  //   jq.innerText = JSON.stringify(q, null, 2);
+  // }
 
   document.getElementById('questionTitle').innerText = q.text || '(testo vuoto)';
   document.getElementById('qInfo').innerText = `${idx+1} / ${order.length}`;

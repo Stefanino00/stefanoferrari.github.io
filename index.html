@@ -2,13 +2,15 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Esame CEFRA</title>
+<title>Esame CEFRA Quiz</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 20px; }
-  #login, #quiz { margin-top: 20px; }
-  #debug { border: 1px solid #ccc; padding: 10px; margin-top: 20px; height: 200px; overflow-y: scroll; background: #f9f9f9; }
-  .domanda { margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; }
-  .risposta-corretta { background-color: #c8ffc8; }
+  body { font-family: Arial; margin: 20px; }
+  #login, #quiz, #risultato { margin-top: 20px; }
+  #debug { border: 1px solid #ccc; padding: 10px; margin-top: 20px; height: 150px; overflow-y: scroll; background: #f9f9f9; }
+  .risposta { margin: 5px 0; padding: 5px; cursor: pointer; border: 1px solid #ccc; border-radius: 5px; }
+  .risposta:hover { background-color: #eee; }
+  .corretta { background-color: #c8ffc8 !important; }
+  .sbagliata { background-color: #ffc8c8 !important; }
 </style>
 </head>
 <body>
@@ -21,8 +23,9 @@
 </div>
 
 <div id="quiz" style="display:none;">
-  <h2>Domande</h2>
-  <div id="domande"></div>
+  <div id="domandaAttuale"></div>
+  <div id="risposte"></div>
+  <button id="btnProssima" style="display:none;">Prossima</button>
 </div>
 
 <div id="debug">
@@ -37,7 +40,10 @@ function logDebug(msg) {
   debugDiv.scrollTop = debugDiv.scrollHeight;
 }
 
-// Login semplice
+let domande = [];
+let indiceDomanda = 0;
+
+// Login
 document.getElementById('btnLogin').addEventListener('click', () => {
   const codice = document.getElementById('codice').value;
   if (codice === '13112005') {
@@ -50,69 +56,77 @@ document.getElementById('btnLogin').addEventListener('click', () => {
   }
 });
 
-// Caricamento e parsing PDF
+// Caricamento PDF
 async function loadPDF() {
   const url = 'domandetest.pdf';
   logDebug(`Inizio caricamento PDF: ${url}`);
 
   const loadingTask = pdfjsLib.getDocument(url);
   const pdf = await loadingTask.promise;
-  logDebug(`PDF caricato con successo. Numero pagine: ${pdf.numPages}`);
+  logDebug(`PDF caricato. Pagine: ${pdf.numPages}`);
 
   let testoCompleto = '';
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
     const pageText = textContent.items.map(item => item.str).join(' ');
-    logDebug(`Testo pagina ${i}: ${pageText.substring(0, 50)}...`);
     testoCompleto += pageText + "\n";
+    logDebug(`Pagina ${i} letta.`);
   }
 
   parseDomande(testoCompleto);
 }
 
-// Parsing domande e risposte
+// Parsing domande
 function parseDomande(testo) {
-  logDebug("Parsing domande...");
-
-  // Split per domande basandoci sul fatto che iniziano con "●"
-  let rawDomande = testo.split('●').map(d => d.trim()).filter(d => d.length > 0);
-  logDebug(`Numero domande trovate: ${rawDomande.length}`);
-
-  // Creazione array di oggetti domanda/risposte
-  let domande = rawDomande.map(d => {
+  let raw = testo.split('●').map(d => d.trim()).filter(d => d.length > 0);
+  domande = raw.map(d => {
     const lines = d.split(/\r?\n/).map(l => l.trim()).filter(l => l);
-    const domanda = lines.shift(); // prima riga è la domanda
-    const risposte = lines.map(r => ({
+    const domanda = lines.shift();
+    const risposte = lines.slice(0,4).map(r => ({
       testo: r.replace(/^([A-D])\s*/, ''),
-      lettera: r.match(/^([A-D])/) ? r.match(/^([A-D])/)[1] : '',
+      lettera: r.match(/^([A-D])/)? r.match(/^([A-D])/)[1] : '',
       corretta: r.includes('●')
     }));
-    return { domanda, risposte };
+    return {domanda, risposte};
   });
 
-  // Mescola domande
   domande = domande.sort(() => Math.random() - 0.5);
-  logDebug("Domande mischiate.");
-
-  showDomande(domande);
+  logDebug(`Numero domande: ${domande.length}`);
+  mostraDomanda(indiceDomanda);
 }
 
-// Mostra domande sulla pagina
-function showDomande(domande) {
-  const container = document.getElementById('domande');
-  container.innerHTML = '';
-  domande.forEach((d, i) => {
+// Mostra domanda corrente
+function mostraDomanda(idx) {
+  if(idx >= domande.length){
+    document.getElementById('quiz').innerHTML = `<h2>Hai completato il quiz!</h2>`;
+    return;
+  }
+  const d = domande[idx];
+  document.getElementById('domandaAttuale').innerHTML = `<strong>${d.domanda}</strong>`;
+  const risposteDiv = document.getElementById('risposte');
+  risposteDiv.innerHTML = '';
+  d.risposte.forEach((r,i) => {
     const div = document.createElement('div');
-    div.className = 'domanda';
-    div.innerHTML = `<strong>${i+1}. ${d.domanda}</strong><br>` +
-      d.risposte.map(r => `<div class="${r.corretta ? 'risposta-corretta' : ''}">${r.lettera}. ${r.testo}</div>`).join('');
-    container.appendChild(div);
+    div.className = 'risposta';
+    div.textContent = `${r.lettera}. ${r.testo}`;
+    div.addEventListener('click', () => {
+      const tutte = risposteDiv.querySelectorAll('.risposta');
+      tutte.forEach(el => el.style.pointerEvents='none');
+      if(r.corretta) div.classList.add('corretta');
+      else div.classList.add('sbagliata');
+      document.getElementById('btnProssima').style.display='inline-block';
+    });
+    risposteDiv.appendChild(div);
   });
-
-  document.getElementById('quiz').style.display = 'block';
-  logDebug("Domande mostrate sul sito.");
+  document.getElementById('btnProssima').style.display='none';
 }
+
+// Prossima domanda
+document.getElementById('btnProssima').addEventListener('click', () => {
+  indiceDomanda++;
+  mostraDomanda(indiceDomanda);
+});
 </script>
 
 </body>

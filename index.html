@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Soccorritore</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #f0f0f0; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; }
+    #container { background: #fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); width:90%; max-width:700px; }
+    .hidden { display:none; }
+    button { padding:10px 15px; margin:5px 0; cursor:pointer; border:none; border-radius:5px; background:#007BFF; color:#fff; font-size:16px; }
+    button:hover { background:#0056b3; }
+    #feedback { margin-top:10px; font-weight:bold; }
+    #debug { margin-top:20px; font-size:12px; color:gray; white-space:pre-wrap; max-height:200px; overflow:auto; }
+</style>
+</head>
+<body>
+<div id="container">
+    <div id="login">
+        <h2>Accesso Test Soccorritore</h2>
+        <input type="password" id="accessCode" placeholder="Inserisci codice">
+        <button onclick="checkLogin()">Accedi</button>
+        <p id="loginFeedback" style="color:red;"></p>
+    </div>
+
+    <div id="quiz" class="hidden">
+        <h2 id="questionTitle"></h2>
+        <div id="answers"></div>
+        <p id="feedback"></p>
+        <button id="nextBtn" onclick="nextQuestion()" class="hidden">Prossima domanda</button>
+    </div>
+
+    <pre id="debug"></pre>
+</div>
+
+<script>
+let questions = []; // array delle domande
+let currentIndex = 0; // indice domanda corrente
+let currentQuestionOrder = []; // ordine casuale
+const ACCESS_CODE = "13112005";
+
+// Funzione login
+function checkLogin() {
+    const code = document.getElementById('accessCode').value;
+    if(code === ACCESS_CODE){
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('quiz').classList.remove('hidden');
+        loadQuestions();
+    } else {
+        document.getElementById('loginFeedback').innerText = "Codice errato!";
+    }
+}
+
+// Legge il file domandetest2 e lo trasforma in array di oggetti
+async function loadQuestions() {
+    try {
+        const res = await fetch('domandetest2.txt');
+        const text = await res.text();
+        parseQuestions(text);
+        shuffleQuestions();
+        showQuestion();
+    } catch (err) {
+        document.getElementById('debug').innerText = "Errore caricamento domande: " + err;
+    }
+}
+
+// Parsing del file di testo in domande e risposte
+function parseQuestions(text){
+    const lines = text.split(/\r?\n/);
+    let question = null;
+    lines.forEach(line => {
+        line = line.trim();
+        if(line === '') return;
+        if(line.endsWith('*')){ // domanda
+            if(question) questions.push(question);
+            question = { text: line.slice(0,-1).trim(), answers: [] };
+        } else if(line.match(/^[A-D]\s/)){ // risposta
+            let correct = line.endsWith('*');
+            let answerText = line.replace(/^\w\s/, '').replace(/\*$/, '').trim();
+            question.answers.push({ text: answerText, correct });
+        }
+    });
+    if(question) questions.push(question); // ultima domanda
+    document.getElementById('debug').innerText = `Domande caricate: ${questions.length}`;
+}
+
+// Mischia l'ordine delle domande
+function shuffleQuestions(){
+    currentQuestionOrder = questions.map((_,i)=>i);
+    for(let i=currentQuestionOrder.length-1; i>0; i--){
+        let j = Math.floor(Math.random()* (i+1));
+        [currentQuestionOrder[i], currentQuestionOrder[j]] = [currentQuestionOrder[j], currentQuestionOrder[i]];
+    }
+}
+
+// Mostra la domanda corrente
+function showQuestion(){
+    const q = questions[currentQuestionOrder[currentIndex]];
+    document.getElementById('questionTitle').innerText = q.text;
+    const answersDiv = document.getElementById('answers');
+    answersDiv.innerHTML = '';
+    q.answers.forEach((ans,i)=>{
+        const btn = document.createElement('button');
+        btn.innerText = ans.text;
+        btn.onclick = ()=>checkAnswer(ans.correct);
+        answersDiv.appendChild(btn);
+    });
+    document.getElementById('feedback').innerText = '';
+    document.getElementById('nextBtn').classList.add('hidden');
+}
+
+// Controllo risposta
+function checkAnswer(correct){
+    const feedback = document.getElementById('feedback');
+    if(correct){
+        feedback.style.color = 'green';
+        feedback.innerText = "Corretto!";
+    } else {
+        feedback.style.color = 'red';
+        feedback.innerText = "Sbagliato!";
+    }
+    document.getElementById('nextBtn').classList.remove('hidden');
+}
+
+// Passa alla prossima domanda
+function nextQuestion(){
+    currentIndex++;
+    if(currentIndex >= questions.length){
+        document.getElementById('quiz').innerHTML = "<h2>Hai completato il test!</h2>";
+    } else {
+        showQuestion();
+    }
+}
+</script>
+</body>
+</html>

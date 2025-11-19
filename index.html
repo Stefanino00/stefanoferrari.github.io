@@ -298,15 +298,24 @@ function showQuestion(){
   answersDiv.innerHTML = '';
   // render in ordine A,B,C,D (se presenti)
   q.answers.forEach(a => {
-    const btn = document.createElement('button');
-    btn.className = 'ans-btn';
-    btn.type = 'button';
-    // uso innerText per maggiore compatibilità
-    btn.innerText = `${a.label}) ${a.text}`;
-    btn.dataset.correct = a.correct ? '1' : '0';
-    btn.addEventListener('click', () => handleAnswerClick(btn, a));
-    answersDiv.appendChild(btn);
+      const btn = document.createElement('button');
+      btn.className = 'ans-btn';
+      btn.type = 'button';
+      
+      // Pulizia testo per PDF
+      let cleanText = sanitizeStr(a.text).replace(/[^\x20-\x7EÀ-ÿ]/g,''); 
+      btn.textContent = `${a.label}) ${cleanText}`; 
+      
+      btn.dataset.correct = a.correct ? '1' : '0';
+      
+      // Stile che forza il testo visibile anche se lungo
+      btn.style.whiteSpace = 'pre-wrap';
+      btn.style.wordBreak = 'break-word';
+      
+      btn.addEventListener('click', () => handleAnswerClick(btn, a));
+      answersDiv.appendChild(btn);
   });
+
 
   document.getElementById('nextBtn').classList.add('hidden');
   document.getElementById('endBtn').classList.add('hidden');

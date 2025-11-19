@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Allenamento test</title>
+<title>Allenamento test2</title>
 
 <!-- Stili migliorati per visibilità -->
 <style>
@@ -358,28 +358,35 @@ function handleAnswerClick(button, answerObj){
 /* next / end */
 document.getElementById('nextBtn').addEventListener('click', () => { idx++; showQuestion(); });
 document.getElementById('endBtn').addEventListener('click', () => endTest());
+document.getElementById('restartBtn').addEventListener('click', () => location.reload());
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  const tot = totalAnswered;
+  const perc = tot > 0 ? Math.round((correctCount / tot) * 100) : 0;
+  const data = { total: tot, correct: correctCount, perc, timestamp: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'risultato_test.json'; a.click(); URL.revokeObjectURL(url);
+});
 
 /* end test */
 function endTest(){
   stopTimer();
   const tot = totalAnswered;
   const perc = tot>0 ? Math.round((correctCount/tot)*100) : 0;
-  document.getElementById('quizCard').innerHTML = `
-    <h1>Test completato</h1>
-    <div class="small">Hai risposto a <strong>${tot}</strong> domande. Corrette: <strong>${correctCount}</strong> (${perc}%).</div>
-    <div style="margin-top:12px;" class="row">
-      <button id="restart">Riavvia test</button>
-      <button id="download" class="secondary">Scarica risultato (JSON)</button>
-    </div>
+
+  // Sostituisci solo il contenuto del quiz, non i pulsanti
+  document.getElementById('quizContent').innerHTML = `
+      <h1>Test completato</h1>
+      <div class="small">Hai risposto a <strong>${tot}</strong> domande. Corrette: <strong>${correctCount}</strong> (${perc}%).</div>
   `;
+
+  // Nascondi i pulsanti del quiz e mostra quelli finali
+  document.getElementById('nextBtn').classList.add('hidden');
+  document.getElementById('endBtn').classList.add('hidden');
+  document.getElementById('restartBtn').classList.remove('hidden');
+  document.getElementById('downloadBtn').classList.remove('hidden');
+
   debugLog('Test terminato. Tot:', tot, 'Corrette:', correctCount, 'Perc:', perc + '%');
-  document.getElementById('restart').addEventListener('click', () => location.reload());
-  document.getElementById('download').addEventListener('click', () => {
-    const data = { total: tot, correct: correctCount, perc, timestamp: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data,null,2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'risultato_test.json'; a.click(); URL.revokeObjectURL(url);
-  });
 }
 
 /* timer */

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Allenamento test2</title>
+<title>Allenamento test</title>
 
 <!-- Stili migliorati per visibilità -->
 <style>
@@ -18,7 +18,7 @@
   button.secondary{ background:#f0f0f0; color:#111; }
   .hidden{ display:none; }
   #answers{ margin-top:12px; display:grid; gap:8px; grid-template-columns:1fr; min-height:80px; }
-  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:2px solid #6b6b6b; background:#000000; cursor:pointer; font-size:15px; min-height:48px; font-weight:600; }
+  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:2px solid #6b6b6b; background:#000000; cursor:pointer; font-size:15px; min-height:48px; font-weight:600; color:#fff; }
   .ans-btn[disabled]{ opacity:.6; cursor:not-allowed; }
   #feedback{ margin-top:12px; font-weight:700; }
   pre#debug{ background:#0b1220; color:#d1d5db; padding:12px; border-radius:8px; max-height:220px; overflow:auto; font-size:12px; white-space:pre-wrap; }
@@ -42,29 +42,35 @@
     <div style="margin-top:10px;" class="row">
       <input id="accessCode" type="password" placeholder="Codice di accesso">
       <button id="btnLogin">Accedi</button>
-
+      <!-- Demo rapido (nascosto alla vista ma presente) -->
+      <button id="btnDemo" class="secondary" style="display:none">Demo</button>
     </div>
     <div id="loginMsg" class="small" style="color:#b00; margin-top:8px;"></div>
   </div>
 
   <div id="quizCard" class="card hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <h1 id="questionTitle">Domanda</h1>
-        <div class="small" id="qInfo">0 / 0</div>
+    <div id="quizContent">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h1 id="questionTitle">Domanda</h1>
+          <div class="small" id="qInfo">0 / 0</div>
+        </div>
+        <div>
+          <div class="badge" id="scoreBadge">0/0</div>
+        </div>
       </div>
-      <div>
-        <div class="badge" id="scoreBadge">0/0</div>
+
+      <div id="answers" style="margin-top:12px;"></div>
+
+      <div id="feedback" class="small"></div>
+
+      <div style="margin-top:12px;" class="row">
+        <button id="nextBtn" class="hidden">Prossima domanda</button>
+        <button id="endBtn" class="secondary hidden">Termina test</button>
+        <!-- bottoni finali che il JS mostra in endTest -->
+        <button id="restartBtn" class="hidden secondary">Ricomincia</button>
+        <button id="downloadBtn" class="hidden">Scarica risultato</button>
       </div>
-    </div>
-
-    <div id="answers" style="margin-top:12px;"></div>
-
-    <div id="feedback" class="small"></div>
-
-    <div style="margin-top:12px;" class="row">
-      <button id="nextBtn" class="hidden">Prossima domanda</button>
-      <button id="endBtn" class="secondary hidden">Termina test</button>
     </div>
 
     <div class="meta">
@@ -73,9 +79,9 @@
     </div>
 
     <!-- Debug JSON visibile della domanda corrente (utile per capire perché UI appare vuota) -->
-    <!-- <div id="currentQuestionJson" class="qjson hidden"></div>-->
+    <div id="currentQuestionJson" class="qjson hidden"></div>
   </div>
-  <!--
+
   <div id="fallbackCard" class="card hidden">
     <h1>Fallback: incolla il testo (se il PDF non viene caricato)</h1>
     <div class="small">Ogni domanda inizia con <code>-</code>, risposte A-D; la corretta con <code>*</code> davanti alla lettera.</div>
@@ -91,7 +97,6 @@
     <div class="small">Log visibile per capire cosa succede.</div>
     <pre id="debug">Pronto.</pre>
   </div>
-  -->
 </div>
 
 <script>
@@ -118,18 +123,19 @@ function sanitizeStr(s){
     .trim();
 }
 
-/* debug log su UI */
+/* debug log su UI (robusto: aggiorna lastAction anche se debug non esiste) */
 function debugLog(...args){
-  const el = document.getElementById('debug'); // Cerca l'elemento di debug
-  if (el) { // Esegui solo se l'elemento esiste
-    const t = new Date().toISOString().slice(11,19);
+  const el = document.getElementById('debug');
+  const t = new Date().toISOString().slice(11,19);
+  if (el) {
     el.textContent = `${t} › ${args.map(a=> (typeof a==='object'? JSON.stringify(a,null,2): a)).join(' ')}\n` + el.textContent;
-    document.getElementById('lastAction').textContent = 'Ultima azione: ' + (args[0] || '-');
   }
+  const lastEl = document.getElementById('lastAction');
+  if (lastEl) lastEl.textContent = 'Ultima azione: ' + (args[0] || '-');
 }
 
 /* login */
-document.getElementById('btnLogin').addEventListener('click', () => {
+document.getElementById('btnLogin')?.addEventListener('click', () => {
   const code = document.getElementById('accessCode').value.trim();
   if(code === ACCESS_CODE){
     document.getElementById('loginMsg').textContent = '';
@@ -139,7 +145,7 @@ document.getElementById('btnLogin').addEventListener('click', () => {
     debugLog('Login fallito', code);
   }
 });
-document.getElementById('btnDemo').addEventListener('click', () => { debugLog('Demo: salto login'); startApp(); });
+document.getElementById('btnDemo')?.addEventListener('click', () => { debugLog('Demo: salto login'); startApp(); });
 
 /* start: tenta PDF */
 async function startApp(){
@@ -356,10 +362,10 @@ function handleAnswerClick(button, answerObj){
 }
 
 /* next / end */
-document.getElementById('nextBtn').addEventListener('click', () => { idx++; showQuestion(); });
-document.getElementById('endBtn').addEventListener('click', () => endTest());
-document.getElementById('restartBtn').addEventListener('click', () => location.reload());
-document.getElementById('downloadBtn').addEventListener('click', () => {
+document.getElementById('nextBtn')?.addEventListener('click', () => { idx++; showQuestion(); });
+document.getElementById('endBtn')?.addEventListener('click', () => endTest());
+document.getElementById('restartBtn')?.addEventListener('click', () => location.reload());
+document.getElementById('downloadBtn')?.addEventListener('click', () => {
   const tot = totalAnswered;
   const perc = tot > 0 ? Math.round((correctCount / tot) * 100) : 0;
   const data = { total: tot, correct: correctCount, perc, timestamp: new Date().toISOString() };
@@ -374,17 +380,20 @@ function endTest(){
   const tot = totalAnswered;
   const perc = tot>0 ? Math.round((correctCount/tot)*100) : 0;
 
-  // Sostituisci solo il contenuto del quiz, non i pulsanti
-  document.getElementById('quizContent').innerHTML = `
+  // Sostituisci solo il contenuto del quiz, non i pulsanti (uso fallback se manca quizContent)
+  const container = document.getElementById('quizContent') || document.getElementById('quizCard');
+  if(container){
+    container.innerHTML = `
       <h1>Test completato</h1>
       <div class="small">Hai risposto a <strong>${tot}</strong> domande. Corrette: <strong>${correctCount}</strong> (${perc}%).</div>
-  `;
+    `;
+  }
 
-  // Nascondi i pulsanti del quiz e mostra quelli finali
-  document.getElementById('nextBtn').classList.add('hidden');
-  document.getElementById('endBtn').classList.add('hidden');
-  document.getElementById('restartBtn').classList.remove('hidden');
-  document.getElementById('downloadBtn').classList.remove('hidden');
+  // Nascondi i pulsanti del quiz e mostra quelli finali (se esistono)
+  document.getElementById('nextBtn')?.classList.add('hidden');
+  document.getElementById('endBtn')?.classList.add('hidden');
+  document.getElementById('restartBtn')?.classList.remove('hidden');
+  document.getElementById('downloadBtn')?.classList.remove('hidden');
 
   debugLog('Test terminato. Tot:', tot, 'Corrette:', correctCount, 'Perc:', perc + '%');
 }
@@ -394,7 +403,7 @@ function startTimer(){ const el = document.getElementById('elapsed'); if(timerIn
 function stopTimer(){ if(timerInterval) clearInterval(timerInterval); }
 
 /* fallback manual */
-document.getElementById('useManual').addEventListener('click', () => {
+document.getElementById('useManual')?.addEventListener('click', () => {
   const txt = document.getElementById('manualInput').value;
   if(!txt || txt.trim().length<10){ debugLog('manualInput vuoto o corto'); alert('Incolla il contenuto prima di premere "Usa testo incollato".'); return; }
   debugLog('Usando testo incollato come sorgente domande');

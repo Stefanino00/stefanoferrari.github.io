@@ -3,11 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Allenamento test - debug</title>
+<title>Allenamento test - TSS</title>
 
-<!-- Stili migliorati per visibilità -->
 <style>
-  :root{ --bg:#001d49; --card:#fff; --accent:#0b77f4; --ok:#1e9e4a; --ko:#d32f2f; }
+  :root{ --bg:#dddddd; --card:#fff; --accent:#0b77f4; --ok:#1e9e4a; --ko:#d32f2f; }
   html,body{ height:100%; margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial; background:var(--bg); color:#111; }
   .wrap{ max-width:980px; margin:20px auto; padding:16px; }
   .card{ background:var(--card); border-radius:10px; box-shadow:0 6px 18px rgba(15,20,30,0.08); padding:16px; margin-bottom:14px; }
@@ -22,18 +21,11 @@
   .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:2px solid #6b6b6b; background:#000000; cursor:pointer; font-size:15px; min-height:48px; font-weight:600; color:#fff; }
   .ans-btn[disabled]{ opacity:.6; cursor:not-allowed; }
   #feedback{ margin-top:12px; font-weight:700; }
-  pre#debug{ background:#0b1220; color:#d1d5db; padding:12px; border-radius:8px; max-height:220px; overflow:auto; font-size:12px; white-space:pre-wrap; }
   .small { font-size:13px; color:#555; }
   .correct { color:var(--ok); }
   .wrong { color:var(--ko); }
   .meta { display:flex; gap:8px; align-items:center; margin-top:8px; color:#666; font-size:13px; }
   .badge{ background:#eef6ff; color:var(--accent); padding:4px 8px; border-radius:999px; font-weight:700; }
-  code{ background:#f3f4f6; padding:2px 6px; border-radius:6px; }
-  .qjson{ background:#f8fafc; border:1px dashed #cbd5e1; padding:8px; margin-top:10px; font-size:12px; color:#334155; border-radius:6px; white-space:pre-wrap; }
-  /* parse debug */
-  #parseDebugCard { background:#fff9e6; border:1px solid #f2d488; }
-  #parseDebug { background:#fff; border-radius:6px; padding:10px; max-height:260px; overflow:auto; font-family:monospace; font-size:13px; color:#111; }
-  .muted { color:#666; font-size:12px; }
   @media (max-width: 600px) {
     .wrap { margin: 10px auto; padding: 10px; }
     html, body { font-size: 17px; }
@@ -41,8 +33,8 @@
   }
 </style>
 
-<!-- pdf.js -->
-<script src="https://unpkg.com/pdfjs-dist@3.8.162/build/pdf.min.js"></script>
+<script src="domande.js"></script>
+
 </head>
 <body>
 <div class="wrap">
@@ -85,38 +77,14 @@
       <div id="elapsed">Tempo: 0s</div>
       <div id="lastAction">Ultima azione: -</div>
     </div>
-
-    <div id="currentQuestionJson" class="qjson hidden"></div>
-  </div>
-
-  <div id="fallbackCard" class="card hidden">
-    <h1>Fallback: incolla il testo (se il PDF non viene caricato)</h1>
-    <div class="small">Ogni domanda inizia con <code>-</code>, risposte A-D; la corretta con <code>* D testo</code> (asterisco + spazio + lettera + spazio).</div>
-    <textarea id="manualInput" rows="8" placeholder="Incolla qui il testo..."></textarea>
-    <div style="margin-top:10px;" class="row">
-      <button id="useManual">Usa testo incollato</button>
-      <button id="clearManual" class="secondary">Pulisci</button>
-    </div>
-  </div>
-
-  <!-- PANEL: Parse debug visibile -->
-  <div id="parseDebugCard" class="card hidden">
-    <h1>Parse debug (visibile)</h1>
-    <div class="muted">Vedi qui le righe normalizzate, i primi charcode e i match. Utile per problemi con caratteri non-ASCII.</div>
-    <pre id="parseDebug"></pre>
   </div>
 </div>
-
-
-
 
 <script>
 /* ========== CONFIG ========== */
 const ACCESS_CODE = "2005";
-const PDF_FILE = "domandetest3.pdf";
 
-/* stato */
-let questions = [];
+/* stato applicazione */
 let order = [];
 let idx = 0;
 let correctCount = 0;
@@ -124,44 +92,7 @@ let totalAnswered = 0;
 let startTime = null;
 let timerInterval = null;
 
-/* util: rimuove caratteri invisibili e trim */
-function sanitizeStr(s){
-  if(!s && s!==0) return '';
-  return String(s)
-    .replace(/\u00A0/g,' ')   // nbsp
-    .replace(/[\u200B\u200C\u200D\uFEFF]/g,'') // zero width & BOM
-    .replace(/\u2217|\u2731|\u204E|\u066D|\u06DE|\u2042|\u2729|\u2736/g, '*') // varie versioni di asterisco -> '*'
-    .replace(/\s+/g,' ')      // collapse multiple spaces
-    .trim();
-}
-
-/* parse debug append (visibile) */
-function appendParseDebug(txt){
-  // const el = document.getElementById('parseDebug');
-  // if(!el) return;
-  // el.textContent = txt + "\n\n" + el.textContent;
-}
-
-/* helper per codepoint stringa (primi N caratteri) */
-function charCodesSummary(s, n = 12){
-  const out = [];
-  for(let i=0;i<Math.min(s.length,n);i++){
-    const c = s.charAt(i);
-    const code = s.codePointAt(i);
-    out.push(`${i}:${c} (U+${code.toString(16).toUpperCase()} ${code})`);
-    // if codepoint is surrogate pair, skip extra index
-    if(code > 0xFFFF) i++;
-  }
-  return out.join(' | ');
-}
-
-/* debug log su UI "lastAction" */
-function debugLog(...args){
-  // const lastEl = document.getElementById('lastAction');
-  // if (lastEl) lastEl.textContent = 'Ultima azione: ' + (args[0] || '-');
-}
-
-/* login */
+/* Login */
 document.getElementById('btnLogin')?.addEventListener('click', () => {
   const code = document.getElementById('accessCode').value.trim();
   if(code === ACCESS_CODE){
@@ -169,248 +100,116 @@ document.getElementById('btnLogin')?.addEventListener('click', () => {
     startApp();
   } else {
     document.getElementById('loginMsg').textContent = 'Codice errato.';
-    appendParseDebug(`LOGIN FALLITO: codice="${code}"`);
-    debugLog('Login fallito');
   }
 });
-document.getElementById('btnDemo')?.addEventListener('click', () => { appendParseDebug('Demo: salto login'); startApp(); });
+document.getElementById('btnDemo')?.addEventListener('click', startApp);
 
-/* start: tenta PDF */
-async function startApp(){
+/* Avvio */
+function startApp(){
+  // Verifica che il file esterno sia caricato
+  if(typeof domandeQuiz === 'undefined' || !domandeQuiz.length) {
+    alert("Errore: Impossibile caricare le domande dal file domande.js");
+    return;
+  }
+
+  document.querySelector('.card').classList.add('hidden'); // Nascondi login
   document.getElementById('quizCard').classList.remove('hidden');
-  document.getElementById('fallbackCard')?.classList.add('hidden');
-  document.getElementById('parseDebug').textContent = ''; // pulisci debug
-  appendParseDebug(`Avvio parsing PDF: ${PDF_FILE}`);
-
-  if(!window.pdfjsLib){
-    appendParseDebug('pdfjs non caricato');
-    document.getElementById('fallbackCard')?.classList.remove('hidden');
-    return;
-  }
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@3.8.162/build/pdf.worker.min.js";
-
-  try {
-    const resp = await fetch(PDF_FILE);
-    if(!resp.ok) throw new Error('PDF non trovato: ' + resp.status);
-    const arrayBuffer = await resp.arrayBuffer();
-    appendParseDebug('PDF scaricato bytes: ' + arrayBuffer.byteLength);
-    const text = await extractTextFromPDF(arrayBuffer);
-    appendParseDebug('Testo estratto (prime 300 ch):\n' + text.slice(0,300));
-    parseQuestionsFromPlainText(text);
-  } catch(err){
-    appendParseDebug('Errore caricamento PDF: ' + (err.message || err));
-    document.getElementById('fallbackCard')?.classList.remove('hidden');
-    return;
-  }
-
-  if(questions.length === 0){
-    appendParseDebug('Parsing non ha trovato domande valide -> mostra fallback');
-    document.getElementById('fallbackCard')?.classList.remove('hidden');
-    return;
-  }
-
+  
   shuffleOrder();
-  idx = 0; correctCount = 0; totalAnswered = 0;
-  startTime = Date.now(); startTimer();
+  idx = 0; 
+  correctCount = 0; 
+  totalAnswered = 0;
+  startTime = Date.now(); 
+  startTimer();
   showQuestion();
 }
 
-/* estrai testo con pdf.js */
-async function extractTextFromPDF(arrayBuffer){
-  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-  const pdf = await loadingTask.promise;
-  appendParseDebug('PDF caricato pagine: ' + pdf.numPages);
-  let fullText = "";
-  for(let p=1;p<=pdf.numPages;p++){
-    try {
-      const page = await pdf.getPage(p);
-      const content = await page.getTextContent();
-      const strings = content.items.map(i => i.str || '');
-      const pageText = strings.join(' ');
-      fullText += pageText + '\n\n';
-    } catch(e){
-      appendParseDebug('Errore estrazione pagina ' + p + ': ' + (e.message || e));
-    }
-  }
-  return normalizeExtractedText(fullText);
+/* Mescola ordine domande */
+function shuffleArray(a){ 
+    for(let i=a.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
+    } 
+}
+function shuffleOrder(){ 
+    order = domandeQuiz.map((_,i)=>i); 
+    shuffleArray(order); 
 }
 
-/* normalizza: reinserisce break utili e pulisce stringhe invisibili */
-function normalizeExtractedText(t){
-  let s = String(t || '');
-  // normalizza caratteri strani
-  s = s.replace(/\u00A0/g,' ').replace(/[\u200B\u200C\u200D\uFEFF]/g,'');
-  // trasforma varie versioni di "asterisco" in '*' per uniformità
-  s = s.replace(/\u2217|\u2731|\u204E|\u066D|\u06DE|\u2042|\u2729|\u2736/g, '*');
-  s = s.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-
-  // Metti un newline davanti a "- " (domande)
-  s = s.replace(/\s-\s/g, '\n- ');
-
-  // Inserisci newline prima di ogni etichetta di opzione (gestisce anche "*A", "A)", "A.", "A -", "A:")
-  // usiamo un lookahead che cattura anche un eventuale asterisco attaccato
-  s = s.replace(/(\s|^)(\*?\s*[A-D])\s*(?:\)|\.|\:|\-)?\s+/gi, '\n$2 ');
-
-  // Collassa spazi multipli in singoli spazi su ogni riga
-  const lines = s.split('\n').map(l => l.replace(/\s+/g,' ').trim()).filter(l=>l.length>0);
-  return lines.join('\n');
-}
-
-/* parsing robusto con debug dettagliato */
-/* parsing robusto con debug dettagliato - nuova versione */
-function parseQuestionsFromPlainText(text){
-  questions = [];
-  const rawLines = text.split(/\r?\n/).map(l => sanitizeStr(l)).filter(l => l.length > 0);
-  appendParseDebug('Righe estratte: ' + rawLines.length);
-
-  let current = null;
-  let idCounter = 0;
-
-  for (let i = 0; i < rawLines.length; i++) {
-    const line = rawLines[i];
-
-    // Inizia nuova domanda
-    if (line.startsWith('-')) {
-      current = { text: sanitizeStr(line.replace(/^\-\s*/, '')), answers: [], id: ++idCounter };
-      questions.push(current);
-      continue;
-    }
-
-    // Riconosce risposta corretta con * all’inizio (* A Testo)
-    let match = line.match(/^\*\s*([A-D])\s+(.*)$/i);
-    let isCorrect = false;
-
-    if (match) {
-      isCorrect = true;
-    } else {
-      // Riconosce risposta normale A-D
-      match = line.match(/^([A-D])\s+(.*)$/i);
-      isCorrect = false;
-    }
-
-    if (match) {
-      const label = match[1].toUpperCase();
-      const textAnswer = sanitizeStr(match[2]);
-
-      if (!current) {
-        current = { text: "(Domanda non trovata — generata automaticamente)", answers: [], id: ++idCounter };
-        questions.push(current);
-        appendParseDebug('Risposta trovata senza domanda, riga ' + (i+1));
-      }
-
-      current.answers.push({ label, text: textAnswer, correct: isCorrect });
-      appendParseDebug(`Aggiunta risposta: label=${label} correct=${isCorrect} text="${textAnswer}"`);
-      continue;
-    }
-
-    // Se non è risposta, è continuazione della domanda o della risposta
-    if (current) {
-      if (current.answers.length === 0) {
-        // continua testo domanda
-        current.text += ' ' + line;
-      } else {
-        // continua testo ultima risposta
-        const last = current.answers[current.answers.length - 1];
-        last.text += ' ' + line;
-      }
-    }
-  }
-
-  // Filtra domande senza almeno 2 risposte
-  const before = questions.length;
-  questions = questions.filter(q => q.answers && q.answers.length >= 2);
-  appendParseDebug(`Parsing completato. Domande: ${before} -> valide: ${questions.length}`);
-  appendParseDebug('Anteprima 5 domande: ' + JSON.stringify(questions.slice(0,5).map(q => ({id:q.id, text:q.text.slice(0,120), answers:q.answers})), null, 2));
-
-  // reset stato
-  if (questions.length > 0){
-    shuffleOrder();
-    idx = 0; correctCount = 0; totalAnswered = 0;
-  }
-}
-
-
-/* tiny helper per preview sanitizzata */
-function sanitizedPreview(s, n=200){
-  return sanitizeStr(String(s || '')).slice(0,n).replace(/\n/g,' ↵ ');
-}
-
-/* shuffle */
-function shuffleArray(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }
-function shuffleOrder(){ order = questions.map((_,i)=>i); shuffleArray(order); appendParseDebug('Ordine mescolato, tot: ' + order.length); }
-
-/* mostra domanda */
+/* Mostra domanda */
 function showQuestion(){
-  if(!questions || questions.length===0){ document.getElementById('questionTitle').innerText='Nessuna domanda disponibile'; document.getElementById('answers').innerHTML=''; appendParseDebug('showQuestion: nessuna'); return; }
   if(idx >= order.length){ endTest(); return; }
+  
   const qIndex = order[idx];
-  const q = questions[qIndex];
-  if(!q){ appendParseDebug('Domanda non trovata indice ' + qIndex); endTest(); return; }
+  const q = domandeQuiz[qIndex];
 
-  const jq = document.getElementById('currentQuestionJson');
-  // if (jq) {
-  //   jq.classList.remove('hidden');
-  //   jq.innerText = JSON.stringify(q, null, 2);
-  // }
-
-  document.getElementById('questionTitle').innerText = q.text || '(testo vuoto)';
+  // Aggiorna UI
+  document.getElementById('questionTitle').innerText = q.domanda;
   document.getElementById('qInfo').innerText = `${idx+1} / ${order.length}`;
   document.getElementById('feedback').innerText = '';
   document.getElementById('scoreBadge').innerText = `${correctCount}/${totalAnswered}`;
-
-  const answersDiv = document.getElementById('answers');
-  answersDiv.innerHTML = '';
-  q.answers.forEach(a => {
-      const btn = document.createElement('button');
-      btn.className = 'ans-btn';
-      btn.type = 'button';
-      let cleanText = sanitizeStr(a.text);
-      btn.textContent = `${a.label}) ${cleanText}`;
-      // dataset corretto come stringa '1' o '0'
-      btn.dataset.correct = a.correct ? '1' : '0';
-      btn.style.whiteSpace = 'pre-wrap';
-      btn.style.wordBreak = 'break-word';
-      btn.addEventListener('click', () => handleAnswerClick(btn, a));
-      answersDiv.appendChild(btn);
-  });
-
   document.getElementById('nextBtn').classList.add('hidden');
   document.getElementById('endBtn').classList.add('hidden');
 
-  appendParseDebug('Mostrata domanda id ' + q.id + ' (' + (q.text||'') .slice(0,80) + ')');
+  const answersDiv = document.getElementById('answers');
+  answersDiv.innerHTML = '';
+
+  // Genera pulsanti per le risposte A, B, C, D
+  ['A', 'B', 'C', 'D'].forEach(letter => {
+      if(q.risposte[letter]) {
+          const btn = document.createElement('button');
+          btn.className = 'ans-btn';
+          btn.type = 'button';
+          btn.textContent = `${letter}) ${q.risposte[letter]}`;
+          btn.style.whiteSpace = 'pre-wrap';
+          btn.style.wordBreak = 'break-word';
+          
+          // Click handler
+          btn.addEventListener('click', () => handleAnswerClick(btn, letter, q.corretta, q));
+          answersDiv.appendChild(btn);
+      }
+  });
 }
 
-/* click risposta */
-function handleAnswerClick(button, answerObj){
+/* Gestione click risposta */
+function handleAnswerClick(button, selectedLetter, correctLetter, questionData){
+  // Disabilita tutti i pulsanti
   const btns = Array.from(document.querySelectorAll('.ans-btn'));
   btns.forEach(b => b.disabled = true);
 
-  const correct = answerObj.correct === true;
-  totalAnswered++; if(correct) correctCount++;
+  const isCorrect = selectedLetter === correctLetter;
+  totalAnswered++; 
+  if(isCorrect) correctCount++;
 
   const fbEl = document.getElementById('feedback');
-  if(correct){
+  
+  if(isCorrect){
     fbEl.className = 'small correct';
     fbEl.innerText = 'CORRETTO ✓';
-    appendParseDebug('Risposta corretta: ' + answerObj.label + ' - ' + answerObj.text);
+    button.style.borderColor = 'var(--ok)';
   } else {
     fbEl.className = 'small wrong';
-    const q = questions[order[idx]];
-    const correctAnswers = q.answers.filter(a=>a.correct).map(a=>`${a.label}) ${a.text}`).join('  |  ');
-    fbEl.innerText = 'SBAGLIATO ✗  — Risposta corretta: ' + (correctAnswers || '(non trovata)');
-    appendParseDebug('Risposta sbagliata: ' + answerObj.label + ' — corrette: ' + (correctAnswers || '(none)'));
+    fbEl.innerText = `SBAGLIATO ✗ — La risposta corretta era la ${correctLetter}`;
+    button.style.borderColor = 'var(--ko)';
   }
 
   document.getElementById('scoreBadge').innerText = `${correctCount}/${totalAnswered}`;
-  if(idx < order.length -1){ document.getElementById('nextBtn').classList.remove('hidden'); document.getElementById('endBtn').classList.remove('hidden'); }
-  else { document.getElementById('endBtn').classList.remove('hidden'); }
-  document.getElementById('lastAction').innerText = `Ultima azione: risposta ${answerObj.label} (${correct ? 'OK':'KO'})`;
+  document.getElementById('lastAction').innerText = `Ultima: ${isCorrect ? 'Corretta' : 'Errata'}`;
+
+  // Mostra bottoni next/end
+  if(idx < order.length - 1){ 
+      document.getElementById('nextBtn').classList.remove('hidden'); 
+      document.getElementById('endBtn').classList.remove('hidden'); 
+  } else { 
+      document.getElementById('endBtn').classList.remove('hidden'); 
+  }
 }
 
-/* next / end */
+/* Navigazione */
 document.getElementById('nextBtn')?.addEventListener('click', () => { idx++; showQuestion(); });
-document.getElementById('endBtn')?.addEventListener('click', () => endTest());
+document.getElementById('endBtn')?.addEventListener('click', endTest);
 document.getElementById('restartBtn')?.addEventListener('click', () => location.reload());
+
 document.getElementById('downloadBtn')?.addEventListener('click', () => {
   const tot = totalAnswered;
   const perc = tot > 0 ? Math.round((correctCount / tot) * 100) : 0;
@@ -420,49 +219,38 @@ document.getElementById('downloadBtn')?.addEventListener('click', () => {
   const a = document.createElement('a'); a.href = url; a.download = 'risultato_test.json'; a.click(); URL.revokeObjectURL(url);
 });
 
-/* end test */
+/* Fine test */
 function endTest(){
   stopTimer();
   const tot = totalAnswered;
   const perc = tot>0 ? Math.round((correctCount/tot)*100) : 0;
-  const container = document.getElementById('quizContent') || document.getElementById('quizCard');
-  if(container){
-    container.innerHTML = `
-      <h1>Test completato</h1>
-      <div class="small">Hai risposto a <strong>${tot}</strong> domande. Corrette: <strong>${correctCount}</strong> (${perc}%).</div>
-    `;
-  }
-  document.getElementById('nextBtn')?.classList.add('hidden');
-  document.getElementById('endBtn')?.classList.add('hidden');
+  const container = document.getElementById('quizContent');
+  
+  container.innerHTML = `
+    <h1>Test completato</h1>
+    <div style="margin: 20px 0; font-size: 18px;">
+        Risposte totali: <strong>${tot}</strong><br>
+        Corrette: <strong style="color:var(--ok)">${correctCount}</strong><br>
+        Punteggio: <strong>${perc}%</strong>
+    </div>
+  `;
+  
   document.getElementById('restartBtn')?.classList.remove('hidden');
   document.getElementById('downloadBtn')?.classList.remove('hidden');
-  appendParseDebug('Test terminato. Tot: ' + tot + ' Corrette: ' + correctCount + ' (' + perc + '%)');
 }
 
-/* timer */
-function startTimer(){ const el = document.getElementById('elapsed'); if(timerInterval) clearInterval(timerInterval); timerInterval = setInterval(()=>{ const s=Math.floor((Date.now()-startTime)/1000); el.innerText = `Tempo: ${s}s`; },500); }
-function stopTimer(){ if(timerInterval) clearInterval(timerInterval); }
-
-/* fallback manual */
-document.getElementById('useManual')?.addEventListener('click', () => {
-  const txt = document.getElementById('manualInput').value;
-  if(!txt || txt.trim().length<10){ appendParseDebug('manualInput vuoto o corto'); alert('Incolla il contenuto prima di premere "Usa testo incollato".'); return; }
-  appendParseDebug('Usando testo incollato come sorgente domande');
-  const fallbackCard = document.getElementById('fallbackCard');
-
-  parseQuestionsFromPlainText(txt);
-  if(questions.length === 0){ appendParseDebug('Testo incollato non valido'); alert('Testo non valido: nessuna domanda trovata.'); return; }
-  shuffleOrder(); idx=0; correctCount=0; totalAnswered=0; startTime=Date.now(); startTimer();
-  if (fallbackCard) fallbackCard.classList.add('hidden');
-  document.getElementById('quizCard').classList.remove('hidden');
-  showQuestion();
-});
-document.getElementById('clearManual')?.addEventListener('click', () => { document.getElementById('manualInput').value=''; appendParseDebug('manualInput pulito'); });
-
-appendParseDebug('Interfaccia pronta. Pronto a caricare ' + PDF_FILE);
+/* Timer */
+function startTimer(){ 
+    const el = document.getElementById('elapsed'); 
+    if(timerInterval) clearInterval(timerInterval); 
+    timerInterval = setInterval(()=>{ 
+        const s = Math.floor((Date.now()-startTime)/1000); 
+        el.innerText = `Tempo: ${s}s`; 
+    }, 1000); 
+}
+function stopTimer(){ 
+    if(timerInterval) clearInterval(timerInterval); 
+}
 </script>
-
-
-
 </body>
 </html>

@@ -112,7 +112,7 @@
   .btn-option {
     background: var(--card-bg); border: 2px solid var(--border); color: var(--text);
     text-align: left; justify-content: flex-start; padding: 18px; margin-bottom: 12px;
-    font-weight: 500; line-height: 1.4;
+    font-weight: 500; line-height: 1.4; cursor: pointer;
   }
   .btn-option.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
   .btn-option.correct { border-color: var(--success); background: rgba(40, 167, 69, 0.1); color: var(--success); }
@@ -251,12 +251,13 @@ const ERROR_KEY = 'tss_errors_v1';
 let currentMode = ''; 
 let questionSet = [];
 let currentIndex = 0;
-let userAnswers = [];
+// userAnswers è un array semplice in Esame: [null, {selected:'A', isCorrect:true}, ...]
+// in Practice è un array di oggetti pushati
+let userAnswers = []; 
 let startTime;
 let timerInterval;
 
 /* ================= 1. GESTIONE LOGIN E AVVIO ================= */
-// Al caricamento della pagina, controlla se c'è una sessione attiva
 window.addEventListener('load', () => {
   if(sessionStorage.getItem('isLoggedIn') === 'true') {
     showMenu();
@@ -266,7 +267,7 @@ window.addEventListener('load', () => {
 document.getElementById('btnLogin').addEventListener('click', () => {
   const input = document.getElementById('accessCode').value;
   if(input === ACCESS_CODE) {
-    sessionStorage.setItem('isLoggedIn', 'true'); // Salva sessione
+    sessionStorage.setItem('isLoggedIn', 'true');
     showMenu();
   } else {
     document.getElementById('loginMsg').innerText = "Codice errato.";
@@ -282,10 +283,8 @@ function showMenu() {
   loadStats();
 }
 
-// Tasto "Torna al menu" o "Esci"
 function goToMenu() {
   clearInterval(timerInterval);
-  // Reset parziale stato
   userAnswers = [];
   currentIndex = 0;
   showMenu();
@@ -321,10 +320,8 @@ function saveStats(percentage, passed) {
   localStorage.setItem(STATS_KEY, JSON.stringify(stats));
 }
 
-// Funzione per salvare un errore nella "memoria errori"
 function trackError(questionId) {
   let errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
-  // Incrementa contatore errore per questo ID
   errors[questionId] = (errors[questionId] || 0) + 1;
   localStorage.setItem(ERROR_KEY, JSON.stringify(errors));
 }
@@ -341,6 +338,8 @@ function startSimulation() {
   let allQ = [...domandeQuiz];
   shuffleArray(allQ);
   questionSet = allQ.slice(0, 20);
+  // Prepara array vuoto per risposte
+  userAnswers = new Array(questionSet.length).fill(null);
   setupQuizUI();
 }
 
@@ -349,14 +348,14 @@ function startPractice() {
   currentMode = 'practice';
   questionSet = [...domandeQuiz];
   shuffleArray(questionSet);
+  userAnswers = [];
   setupQuizUI();
 }
 
 function startReview() {
   if(!checkDatabase()) return;
-  currentMode = 'practice'; // Il ripasso si comporta come esercitazione (feedback immediato)
+  currentMode = 'practice'; // Ripasso è tipo practice
   
-  // Carica errori
   const errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
   const errorIds = Object.keys(errors);
   
@@ -365,15 +364,12 @@ function startReview() {
     return;
   }
 
-  // Filtra domande e le ordina per frequenza di errore (più sbagliate prima)
   questionSet = domandeQuiz.filter(q => errorIds.includes(q.id.toString()));
-  questionSet.sort((a, b) => {
-    return (errors[b.id] || 0) - (errors[a.id] || 0);
-  });
+  questionSet.sort((a, b) => (errors[b.id] || 0) - (errors[a.id] || 0));
 
   if(questionSet.length === 0) { alert("Errore nel recupero domande."); return; }
-
-  // UI specifica per ripasso
+  
+  userAnswers = [];
   setupQuizUI();
   document.getElementById('modeLabel').innerText = "RIPASSO ERRORI";
   document.getElementById('modeLabel').className = "badge badge-warn";
@@ -392,7 +388,6 @@ function setupQuizUI() {
   }
   
   currentIndex = 0;
-  userAnswers = [];
   startTime = Date.now();
   startTimer();
   renderQuestion();
@@ -401,7 +396,6 @@ function setupQuizUI() {
 /* ================= 4. RENDER DOMANDA ================= */
 function renderQuestion() {
   const q = questionSet[currentIndex];
-  
   const perc = ((currentIndex) / questionSet.length) * 100;
   document.getElementById('progressBar').style.width = perc + "%";
   document.getElementById('questionText').innerText = `${currentIndex + 1}. ${q.domanda}`;
@@ -409,55 +403,102 @@ function renderQuestion() {
   const container = document.getElementById('answersContainer');
   container.innerHTML = '';
 
+  // Verifica se in Simulazione abbiamo già dato una risposta (per mantenerla selezionata visivamente se tornassimo indietro, ma qui non torniamo indietro, però serve per il rebuild della UI)
+  let savedSelection = null;
+  if(currentMode === 'simulation' && userAnswers[currentIndex]) {
+    savedSelection = userAnswers[currentIndex].selected;
+  }
+
   ['A', 'B', 'C', 'D'].forEach(letter => {
     if(q.risposte[letter]) {
       const btn = document.createElement('button');
       btn.className = 'btn btn-option';
       btn.innerHTML = `<b>${letter}.</b> ${q.risposte[letter]}`;
+      
+      // Se era già selezionata
+      if(savedSelection === letter) btn.classList.add('selected');
+
       btn.onclick = () => handleAnswer(btn, letter, q);
       container.appendChild(btn);
     }
   });
 
-  document.getElementById('nextBtn').classList.add('hidden');
-  document.getElementById('endBtn').classList.add('hidden');
+  // Gestione bottoni Next/End
+  const nextBtn = document.getElementById('nextBtn');
+  const endBtn = document.getElementById('endBtn');
+  
+  nextBtn.classList.add('hidden');
+  endBtn.classList.add('hidden');
+
+  // In simulazione, se c'è una risposta salvata, mostra il pulsante
+  if(currentMode === 'simulation' && savedSelection) {
+     if(currentIndex < questionSet.length - 1) nextBtn.classList.remove('hidden');
+     else endBtn.classList.remove('hidden');
+  }
 }
 
 function handleAnswer(btn, selected, qObj) {
-  const allBtns = document.querySelectorAll('.btn-option');
-  allBtns.forEach(b => { b.onclick = null; b.style.cursor = 'default'; });
+  // LOGICA SIMULAZIONE (Si può cambiare risposta)
+  if (currentMode === 'simulation') {
+    // 1. Rimuovi selected dagli altri
+    const allBtns = document.querySelectorAll('.btn-option');
+    allBtns.forEach(b => b.classList.remove('selected'));
+    
+    // 2. Aggiungi selected a questo
+    btn.classList.add('selected');
+    
+    // 3. Salva la scelta nell'array alla posizione corrente (sovrascrive se cambio idea)
+    userAnswers[currentIndex] = {
+      question: qObj,
+      selected: selected,
+      isCorrect: (selected === qObj.corretta)
+    };
 
-  btn.classList.add('selected');
-  const isCorrect = selected === qObj.corretta;
-  
-  userAnswers.push({ question: qObj, selected: selected, isCorrect: isCorrect });
+    // 4. Mostra bottone navigazione
+    if (currentIndex < questionSet.length - 1) {
+      const nextBtn = document.getElementById('nextBtn');
+      nextBtn.classList.remove('hidden');
+      nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
+    } else {
+      const endBtn = document.getElementById('endBtn');
+      endBtn.classList.remove('hidden');
+      endBtn.onclick = showResults;
+    }
+  } 
+  // LOGICA PRACTICE (Blocco immediato)
+  else {
+    // Blocca tutto
+    const allBtns = document.querySelectorAll('.btn-option');
+    allBtns.forEach(b => { b.onclick = null; b.style.cursor = 'default'; });
 
-  // Se sbagliata, traccia l'errore per il futuro
-  if(!isCorrect) {
-    trackError(qObj.id);
-  }
+    btn.classList.add('selected');
+    const isCorrect = selected === qObj.corretta;
+    
+    userAnswers.push({ question: qObj, selected: selected, isCorrect: isCorrect });
 
-  // Feedback immediato (tranne in simulazione)
-  if (currentMode === 'practice') {
+    if(!isCorrect) trackError(qObj.id);
+
     if(isCorrect) {
       btn.classList.add('correct');
     } else {
       btn.classList.add('wrong');
       vibrate(100);
+      // Evidenzia giusta
       allBtns.forEach(b => {
         if(b.innerHTML.includes(`<b>${qObj.corretta}.</b>`)) b.classList.add('correct');
       });
     }
-  }
 
-  if (currentIndex < questionSet.length - 1) {
-    const nextBtn = document.getElementById('nextBtn');
-    nextBtn.classList.remove('hidden');
-    nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
-  } else {
-    const endBtn = document.getElementById('endBtn');
-    endBtn.classList.remove('hidden');
-    endBtn.onclick = showResults;
+    // Navigazione
+    if (currentIndex < questionSet.length - 1) {
+      const nextBtn = document.getElementById('nextBtn');
+      nextBtn.classList.remove('hidden');
+      nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
+    } else {
+      const endBtn = document.getElementById('endBtn');
+      endBtn.classList.remove('hidden');
+      endBtn.onclick = showResults;
+    }
   }
 }
 
@@ -467,8 +508,10 @@ function showResults() {
   document.getElementById('quizCard').classList.add('hidden');
   document.getElementById('resultCard').classList.remove('hidden');
 
+  // Filtra nulli (in caso di bug strano in simulazione)
+  const validAnswers = userAnswers.filter(a => a !== null);
   const total = questionSet.length;
-  const correct = userAnswers.filter(a => a.isCorrect).length;
+  const correct = validAnswers.filter(a => a.isCorrect).length;
   const percentage = Math.round((correct / total) * 100);
   const isPassed = percentage >= 75;
 
@@ -478,20 +521,19 @@ function showResults() {
   const resBox = document.getElementById('resultBox');
   const title = document.getElementById('resultTitle');
   const msg = document.getElementById('resultMessage');
-  const errorList = document.getElementById('errorList');
   const reviewSec = document.getElementById('reviewSection');
+  const errorList = document.getElementById('errorList');
 
-  // Reset lista errori UI
+  // Reset UI
   errorList.innerHTML = '';
   reviewSec.classList.add('hidden');
 
   if(currentMode === 'simulation') {
-    // Logica Esame
     if(isPassed) {
       resBox.className = "result-box pass";
       title.innerText = "SUPERATO! 🎉";
       title.style.color = "var(--success)";
-      msg.innerText = "Ottimo lavoro! Hai superato la soglia del 75%.";
+      msg.innerText = "Ottimo lavoro! Soglia 75% raggiunta.";
       triggerConfetti();
     } else {
       resBox.className = "result-box fail";
@@ -501,26 +543,34 @@ function showResults() {
     }
     saveStats(percentage, isPassed);
   } else {
-    // Logica Allenamento/Ripasso
-    resBox.className = "result-box pass"; // Stile neutro/positivo
+    resBox.className = "result-box pass";
     resBox.style.background = "#eef6ff"; resBox.style.borderColor = "#ccddee";
     title.innerText = "COMPLETATO";
     title.style.color = "var(--primary)";
-    msg.innerText = "Esercitazione terminata.";
+    msg.innerText = "Sessione terminata.";
     if(percentage === 100) triggerConfetti();
   }
 
-  // Mostra errori sessione
-  const errors = userAnswers.filter(a => !a.isCorrect);
+  // Report Errori con TESTO COMPLETO
+  const errors = validAnswers.filter(a => !a.isCorrect);
   if(errors.length > 0) {
     reviewSec.classList.remove('hidden');
-    errorList.innerHTML = errors.map(err => `
-      <div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border); font-size:14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-        <div style="font-weight:700; color:var(--text); margin-bottom:6px;">${err.question.domanda}</div>
-        <div style="color:var(--danger); margin-bottom:2px;">❌ Tua: ${err.selected}</div>
-        <div style="color:var(--success); font-weight:600;">✅ Corretta: ${err.question.corretta}</div>
+    errorList.innerHTML = errors.map(err => {
+      const userText = err.question.risposte[err.selected] || "Non data";
+      const correctText = err.question.risposte[err.question.corretta];
+      
+      return `
+      <div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid var(--border); font-size:14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        <div style="font-weight:700; color:var(--text); margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">${err.question.domanda}</div>
+        
+        <div style="color:var(--danger); margin-bottom:5px; line-height:1.4;">
+          <strong>❌ Tua (${err.selected}):</strong> ${userText}
+        </div>
+        <div style="color:var(--success); line-height:1.4;">
+          <strong>✅ Corretta (${err.question.corretta}):</strong> ${correctText}
+        </div>
       </div>
-    `).join('');
+    `}).join('');
   }
 }
 

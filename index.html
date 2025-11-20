@@ -2,255 +2,462 @@
 <html lang="it">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Allenamento test - TSS</title>
-
-<style>
-  :root{ --bg:#dddddd; --card:#fff; --accent:#0b77f4; --ok:#1e9e4a; --ko:#d32f2f; }
-  html,body{ height:100%; margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial; background:var(--bg); color:#111; }
-  .wrap{ max-width:980px; margin:20px auto; padding:16px; }
-  .card{ background:var(--card); border-radius:10px; box-shadow:0 6px 18px rgba(15,20,30,0.08); padding:16px; margin-bottom:14px; }
-  h1{ margin:0 0 6px 0; font-size:18px; }
-  .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  input[type=password], textarea{ width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; font-size:15px; box-sizing:border-box; }
-  button{ background:var(--accent); color:#fff; border:0; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600; }
-  button:active{ transform:scale(0.98); opacity:0.9; }
-  button.secondary{ background:#f0f0f0; color:#111; }
-  .hidden{ display:none; }
-  #answers{ margin-top:12px; display:grid; gap:8px; grid-template-columns:1fr; min-height:80px; }
-  .ans-btn{ padding:12px; text-align:left; border-radius:8px; border:2px solid #6b6b6b; background:#000000; cursor:pointer; font-size:15px; min-height:48px; font-weight:600; color:#fff; }
-  .ans-btn[disabled]{ opacity:.6; cursor:not-allowed; }
-  #feedback{ margin-top:12px; font-weight:700; }
-  .small { font-size:13px; color:#555; }
-  .correct { color:var(--ok); }
-  .wrong { color:var(--ko); }
-  .meta { display:flex; gap:8px; align-items:center; margin-top:8px; color:#666; font-size:13px; }
-  .badge{ background:#eef6ff; color:var(--accent); padding:4px 8px; border-radius:999px; font-weight:700; }
-  @media (max-width: 600px) {
-    .wrap { margin: 10px auto; padding: 10px; }
-    html, body { font-size: 17px; }
-    .small { font-size: 14px; }
-  }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Simulazione Esame TSS</title>
 
 <script src="domande.js"></script>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --primary: #0056b3;      /* Blu istituzionale */
+    --primary-light: #eef6ff;
+    --accent: #00a8e8;       /* Azzurro medico */
+    --success: #28a745;      /* Verde approvato */
+    --danger: #dc3545;       /* Rosso errore */
+    --text: #212529;
+    --text-muted: #6c757d;
+    --bg: #f4f6f8;
+    --card-bg: #ffffff;
+    --radius: 12px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 600px;
+    margin: auto;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: transform 0.2s ease;
+    text-align: center;
+  }
+
+  h1 { margin: 0 0 10px 0; font-size: 22px; color: var(--primary); font-weight: 700; }
+  p { margin: 0 0 20px 0; color: var(--text-muted); font-size: 15px; line-height: 1.5; }
+
+  /* INPUT & BUTTONS */
+  input[type=password] {
+    width: 100%;
+    padding: 14px;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    font-size: 16px;
+    margin-bottom: 15px;
+    outline: none;
+    transition: border-color 0.3s;
+    text-align: center;
+  }
+  input:focus { border-color: var(--accent); }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 10px rgba(0,86,179,0.3); }
+  .btn-primary:active { transform: scale(0.98); }
+
+  .btn-secondary { background: #fff; border: 2px solid #e0e0e0; color: var(--text); margin-top: 10px; }
+  .btn-secondary:active { background: #f8f9fa; }
+
+  .btn-option {
+    background: #fff;
+    border: 2px solid #eef0f2;
+    color: var(--text);
+    text-align: left;
+    justify-content: flex-start;
+    padding: 16px;
+    margin-bottom: 10px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+  .btn-option.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+  }
+  
+  /* Solo in modalità revisione/immediata */
+  .btn-option.correct { border-color: var(--success); background: #e6f9ec; color: var(--success); }
+  .btn-option.wrong { border-color: var(--danger); background: #fbeaea; color: var(--danger); }
+
+  /* PROGRESS BAR */
+  .progress-container {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  /* BADGES */
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-info { background: var(--primary-light); color: var(--primary); }
+
+  /* RESULT BOX */
+  .result-box {
+    padding: 20px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+  }
+  .pass { background: #e6f9ec; color: var(--success); border: 1px solid #b7ebc9; }
+  .fail { background: #fbeaea; color: var(--danger); border: 1px solid #f5c6cb; }
+  .score-big { font-size: 42px; font-weight: 800; margin: 10px 0; }
+
+  /* UTILS */
+  .hidden { display: none !important; }
+  .fade-in { animation: fadeIn 0.4s ease-in-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+</style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>Accesso test</h1>
-    <div class="small">Inserisci il codice per avviare il test</div>
-    <div style="margin-top:10px;" class="row">
-      <input id="accessCode" type="password" placeholder="Codice di accesso">
-      <button id="btnLogin">Accedi</button>
-      <button id="btnDemo" class="secondary" style="display:none">Demo</button>
+
+<div class="container">
+
+  <div id="loginCard" class="card fade-in">
+    <div style="margin-bottom: 20px;">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle><line x1="8" y1="8" x2="8" y2="8"></line><line x1="4" y1="9" x2="12" y2="9"></line><line x1="8" y1="5" x2="8" y2="13"></line></svg>
     </div>
-    <div id="loginMsg" class="small" style="color:#b00; margin-top:8px;"></div>
+    <h1>Training TSS</h1>
+    <p>Inserisci il codice per accedere al portale di simulazione esame.</p>
+    <input id="accessCode" type="password" placeholder="Codice Accesso">
+    <button id="btnLogin" class="btn btn-primary">Accedi</button>
+    <div id="loginMsg" style="color:var(--danger); margin-top:10px; font-size:13px;"></div>
   </div>
 
-  <div id="quizCard" class="card hidden">
-    <div id="quizContent">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <h1 id="questionTitle">Domanda</h1>
-          <div class="small" id="qInfo">0 / 0</div>
-        </div>
-        <div>
-          <div class="badge" id="scoreBadge">0/0</div>
-        </div>
-      </div>
+  <div id="menuCard" class="card hidden fade-in">
+    <h1>Benvenuto</h1>
+    <p>Seleziona la modalità di esercitazione:</p>
+    
+    <button onclick="startSimulation()" class="btn btn-primary" style="background: var(--primary);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      Simulazione Esame
+    </button>
+    <p style="font-size:12px; margin-top:8px; margin-bottom:20px;">
+      20 Domande • Nessun aiuto • Risultato alla fine<br>
+      <strong style="color:var(--primary)">Superi con il 75% (15/20)</strong>
+    </p>
 
-      <div id="answers" style="margin-top:12px;"></div>
+    <button onclick="startPractice()" class="btn btn-secondary">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      Esercitazione Libera
+    </button>
+    <p style="font-size:12px; margin-top:8px;">Tutte le domande • Correzione immediata</p>
+  </div>
 
-      <div id="feedback" class="small"></div>
-
-      <div style="margin-top:12px;" class="row">
-        <button id="nextBtn" class="hidden">Prossima domanda</button>
-        <button id="endBtn" class="secondary hidden">Termina test</button>
-        <button id="restartBtn" class="hidden secondary">Ricomincia</button>
-        <button id="downloadBtn" class="hidden">Scarica risultato</button>
-      </div>
+  <div id="quizCard" class="card hidden" style="text-align: left;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+      <span id="modeLabel" class="badge badge-info">SIMULAZIONE</span>
+      <span id="timer" style="font-family:monospace; font-weight:600; color:var(--text-muted);">00:00</span>
     </div>
 
-    <div class="meta">
-      <div id="elapsed">Tempo: 0s</div>
-      <div id="lastAction">Ultima azione: -</div>
+    <div class="progress-container">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+
+    <h2 id="questionText" style="font-size:18px; line-height:1.4; margin-bottom:20px; color:#000;">
+      Caricamento...
+    </h2>
+
+    <div id="answersContainer"></div>
+
+    <div style="margin-top:20px;">
+      <button id="nextBtn" class="btn btn-primary hidden">Avanti</button>
+      <button id="endBtn" class="btn btn-primary hidden" style="background: var(--text-muted);">Consegna Test</button>
     </div>
   </div>
+
+  <div id="resultCard" class="card hidden fade-in">
+    <h1 id="resultTitle">Esito Esame</h1>
+    
+    <div id="resultBox" class="result-box">
+      <div style="font-size:14px; text-transform:uppercase; letter-spacing:1px;">Punteggio</div>
+      <div id="scoreBig" class="score-big">0%</div>
+      <div id="scoreText">0 su 20</div>
+    </div>
+
+    <p id="resultMessage">Messaggio esito</p>
+
+    <button onclick="location.reload()" class="btn btn-primary">Torna al Menu</button>
+    <div id="reviewSection" class="hidden" style="margin-top:20px; text-align:left;">
+      <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+      <h3 style="font-size:16px; color:var(--danger);">Riepilogo Errori:</h3>
+      <div id="errorList"></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-/* ========== CONFIG ========== */
+/* CONFIGURAZIONE */
 const ACCESS_CODE = "2005";
 
-/* stato applicazione */
-let order = [];
-let idx = 0;
-let correctCount = 0;
-let totalAnswered = 0;
-let startTime = null;
-let timerInterval = null;
+/* STATO APP */
+let currentMode = ''; // 'simulation' | 'practice'
+let questionSet = [];
+let currentIndex = 0;
+let userAnswers = []; // { questionId, selectedLetter, isCorrect }
+let startTime;
+let timerInterval;
 
-/* Login */
-document.getElementById('btnLogin')?.addEventListener('click', () => {
-  const code = document.getElementById('accessCode').value.trim();
-  if(code === ACCESS_CODE){
-    document.getElementById('loginMsg').textContent = '';
-    startApp();
+/* 1. GESTIONE LOGIN */
+document.getElementById('btnLogin').addEventListener('click', () => {
+  const input = document.getElementById('accessCode').value;
+  if(input === ACCESS_CODE) {
+    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('menuCard').classList.remove('hidden');
   } else {
-    document.getElementById('loginMsg').textContent = 'Codice errato.';
+    document.getElementById('loginMsg').innerText = "Codice errato. Riprova.";
   }
 });
-document.getElementById('btnDemo')?.addEventListener('click', startApp);
 
-/* Avvio */
-function startApp(){
-  // Verifica che il file esterno sia caricato
-  if(typeof domandeQuiz === 'undefined' || !domandeQuiz.length) {
-    alert("Errore: Impossibile caricare le domande dal file domande.js");
-    return;
+/* 2. AVVIO MODALITÀ */
+function startSimulation() {
+  if(!checkDatabase()) return;
+  currentMode = 'simulation';
+  // Mescola e prendi 20 domande
+  let allQ = [...domandeQuiz];
+  shuffleArray(allQ);
+  questionSet = allQ.slice(0, 20);
+  
+  setupQuizUI();
+}
+
+function startPractice() {
+  if(!checkDatabase()) return;
+  currentMode = 'practice';
+  // Usa tutte le domande
+  questionSet = [...domandeQuiz];
+  shuffleArray(questionSet);
+  
+  setupQuizUI();
+}
+
+function checkDatabase() {
+  if(typeof domandeQuiz === 'undefined') {
+    alert("Errore: File domande.js non trovato!");
+    return false;
   }
+  return true;
+}
 
-  document.querySelector('.card').classList.add('hidden'); // Nascondi login
+function setupQuizUI() {
+  document.getElementById('menuCard').classList.add('hidden');
   document.getElementById('quizCard').classList.remove('hidden');
   
-  shuffleOrder();
-  idx = 0; 
-  correctCount = 0; 
-  totalAnswered = 0;
-  startTime = Date.now(); 
-  startTimer();
-  showQuestion();
-}
-
-/* Mescola ordine domande */
-function shuffleArray(a){ 
-    for(let i=a.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [a[i],a[j]]=[a[j],a[i]];
-    } 
-}
-function shuffleOrder(){ 
-    order = domandeQuiz.map((_,i)=>i); 
-    shuffleArray(order); 
-}
-
-/* Mostra domanda */
-function showQuestion(){
-  if(idx >= order.length){ endTest(); return; }
+  document.getElementById('modeLabel').innerText = currentMode === 'simulation' ? 'ESAME (20 DOMANDE)' : 'ESERCITAZIONE';
   
-  const qIndex = order[idx];
-  const q = domandeQuiz[qIndex];
+  currentIndex = 0;
+  userAnswers = [];
+  startTime = Date.now();
+  startTimer();
+  
+  renderQuestion();
+}
 
-  // Aggiorna UI
-  document.getElementById('questionTitle').innerText = q.domanda;
-  document.getElementById('qInfo').innerText = `${idx+1} / ${order.length}`;
-  document.getElementById('feedback').innerText = '';
-  document.getElementById('scoreBadge').innerText = `${correctCount}/${totalAnswered}`;
+/* 3. MOTORE QUIZ */
+function renderQuestion() {
+  const q = questionSet[currentIndex];
+  
+  // Aggiorna Progress Bar
+  const perc = ((currentIndex) / questionSet.length) * 100;
+  document.getElementById('progressBar').style.width = perc + "%";
+
+  // Testo Domanda
+  document.getElementById('questionText').innerText = `${currentIndex + 1}. ${q.domanda}`;
+
+  // Opzioni
+  const container = document.getElementById('answersContainer');
+  container.innerHTML = '';
+
+  const letters = ['A', 'B', 'C', 'D'];
+  letters.forEach(letter => {
+    if(q.risposte[letter]) {
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-option';
+      btn.innerHTML = `<b>${letter}.</b> ${q.risposte[letter]}`;
+      btn.onclick = () => selectAnswer(btn, letter, q);
+      container.appendChild(btn);
+    }
+  });
+
+  // Nascondi bottoni navigazione finché non risponde
   document.getElementById('nextBtn').classList.add('hidden');
   document.getElementById('endBtn').classList.add('hidden');
+}
 
-  const answersDiv = document.getElementById('answers');
-  answersDiv.innerHTML = '';
-
-  // Genera pulsanti per le risposte A, B, C, D
-  ['A', 'B', 'C', 'D'].forEach(letter => {
-      if(q.risposte[letter]) {
-          const btn = document.createElement('button');
-          btn.className = 'ans-btn';
-          btn.type = 'button';
-          btn.textContent = `${letter}) ${q.risposte[letter]}`;
-          btn.style.whiteSpace = 'pre-wrap';
-          btn.style.wordBreak = 'break-word';
-          
-          // Click handler
-          btn.addEventListener('click', () => handleAnswerClick(btn, letter, q.corretta, q));
-          answersDiv.appendChild(btn);
-      }
+function selectAnswer(btn, selectedLetter, questionObj) {
+  // Disabilita click multipli
+  const allBtns = document.querySelectorAll('.btn-option');
+  allBtns.forEach(b => {
+    b.onclick = null; // Rimuovi listener
+    b.style.cursor = 'default';
   });
-}
 
-/* Gestione click risposta */
-function handleAnswerClick(button, selectedLetter, correctLetter, questionData){
-  // Disabilita tutti i pulsanti
-  const btns = Array.from(document.querySelectorAll('.ans-btn'));
-  btns.forEach(b => b.disabled = true);
-
-  const isCorrect = selectedLetter === correctLetter;
-  totalAnswered++; 
-  if(isCorrect) correctCount++;
-
-  const fbEl = document.getElementById('feedback');
+  btn.classList.add('selected');
   
-  if(isCorrect){
-    fbEl.className = 'small correct';
-    fbEl.innerText = 'CORRETTO ✓';
-    button.style.borderColor = 'var(--ok)';
+  const isCorrect = selectedLetter === questionObj.corretta;
+
+  // Salva la risposta
+  userAnswers.push({
+    question: questionObj,
+    selected: selectedLetter,
+    isCorrect: isCorrect
+  });
+
+  // LOGICA DIVERSA PER LE DUE MODALITÀ
+  if (currentMode === 'practice') {
+    // Esercitazione: Mostra subito verde/rosso
+    if(isCorrect) {
+      btn.classList.add('correct');
+    } else {
+      btn.classList.add('wrong');
+      // Evidenzia quella giusta
+      allBtns.forEach(b => {
+        if(b.innerHTML.includes(`<b>${questionObj.corretta}.</b>`)) {
+          b.classList.add('correct');
+        }
+      });
+    }
+  } 
+  // In 'simulation', non facciamo nulla visivamente a parte il 'selected' (blu)
+
+  // Mostra bottone Avanti o Fine
+  if (currentIndex < questionSet.length - 1) {
+    const nextBtn = document.getElementById('nextBtn');
+    nextBtn.classList.remove('hidden');
+    nextBtn.onclick = () => {
+      currentIndex++;
+      renderQuestion();
+    };
   } else {
-    fbEl.className = 'small wrong';
-    fbEl.innerText = `SBAGLIATO ✗ — La risposta corretta era la ${correctLetter}`;
-    button.style.borderColor = 'var(--ko)';
-  }
-
-  document.getElementById('scoreBadge').innerText = `${correctCount}/${totalAnswered}`;
-  document.getElementById('lastAction').innerText = `Ultima: ${isCorrect ? 'Corretta' : 'Errata'}`;
-
-  // Mostra bottoni next/end
-  if(idx < order.length - 1){ 
-      document.getElementById('nextBtn').classList.remove('hidden'); 
-      document.getElementById('endBtn').classList.remove('hidden'); 
-  } else { 
-      document.getElementById('endBtn').classList.remove('hidden'); 
+    const endBtn = document.getElementById('endBtn');
+    endBtn.classList.remove('hidden');
+    endBtn.onclick = showResults;
   }
 }
 
-/* Navigazione */
-document.getElementById('nextBtn')?.addEventListener('click', () => { idx++; showQuestion(); });
-document.getElementById('endBtn')?.addEventListener('click', endTest);
-document.getElementById('restartBtn')?.addEventListener('click', () => location.reload());
+/* 4. RISULTATI */
+function showResults() {
+  clearInterval(timerInterval);
+  document.getElementById('quizCard').classList.add('hidden');
+  document.getElementById('resultCard').classList.remove('hidden');
 
-document.getElementById('downloadBtn')?.addEventListener('click', () => {
-  const tot = totalAnswered;
-  const perc = tot > 0 ? Math.round((correctCount / tot) * 100) : 0;
-  const data = { total: tot, correct: correctCount, perc, timestamp: new Date().toISOString() };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'risultato_test.json'; a.click(); URL.revokeObjectURL(url);
-});
+  const total = questionSet.length;
+  const correct = userAnswers.filter(a => a.isCorrect).length;
+  const percentage = Math.round((correct / total) * 100);
 
-/* Fine test */
-function endTest(){
-  stopTimer();
-  const tot = totalAnswered;
-  const perc = tot>0 ? Math.round((correctCount/tot)*100) : 0;
-  const container = document.getElementById('quizContent');
+  const scoreBig = document.getElementById('scoreBig');
+  const resultBox = document.getElementById('resultBox');
+  const msg = document.getElementById('resultMessage');
+
+  document.getElementById('scoreText').innerText = `${correct} risposte esatte su ${total}`;
+  scoreBig.innerText = `${percentage}%`;
+
+  // Logica Promozione (solo per simulazione ha senso critico, ma la applichiamo sempre)
+  const PASS_THRESHOLD = 75;
   
-  container.innerHTML = `
-    <h1>Test completato</h1>
-    <div style="margin: 20px 0; font-size: 18px;">
-        Risposte totali: <strong>${tot}</strong><br>
-        Corrette: <strong style="color:var(--ok)">${correctCount}</strong><br>
-        Punteggio: <strong>${perc}%</strong>
-    </div>
-  `;
-  
-  document.getElementById('restartBtn')?.classList.remove('hidden');
-  document.getElementById('downloadBtn')?.classList.remove('hidden');
+  if(percentage >= PASS_THRESHOLD) {
+    resultBox.className = "result-box pass";
+    document.getElementById('resultTitle').innerText = "ESAME SUPERATO! 🎉";
+    msg.innerText = "Ottimo lavoro! Hai dimostrato una preparazione adeguata.";
+    triggerConfetti(); // Effetto festa (opzionale se implementi la libreria, qui placeholder)
+  } else {
+    resultBox.className = "result-box fail";
+    document.getElementById('resultTitle').innerText = "NON IDONEO";
+    msg.innerText = `Hai bisogno di almeno il ${PASS_THRESHOLD}% per superare il test. Ripassa gli argomenti e riprova.`;
+  }
+
+  // Genera Riepilogo Errori
+  const errors = userAnswers.filter(a => !a.isCorrect);
+  if(errors.length > 0) {
+    document.getElementById('reviewSection').classList.remove('hidden');
+    const list = document.getElementById('errorList');
+    list.innerHTML = errors.map(item => `
+      <div style="background:#fff; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #eee; font-size:14px;">
+        <div style="font-weight:bold; color:#333; margin-bottom:4px;">${item.question.domanda}</div>
+        <div style="color:var(--danger)">La tua risposta: ${item.selected}</div>
+        <div style="color:var(--success)">Risposta corretta: ${item.question.corretta}</div>
+      </div>
+    `).join('');
+  }
 }
 
-/* Timer */
-function startTimer(){ 
-    const el = document.getElementById('elapsed'); 
-    if(timerInterval) clearInterval(timerInterval); 
-    timerInterval = setInterval(()=>{ 
-        const s = Math.floor((Date.now()-startTime)/1000); 
-        el.innerText = `Tempo: ${s}s`; 
-    }, 1000); 
+/* UTILS */
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
 }
-function stopTimer(){ 
-    if(timerInterval) clearInterval(timerInterval); 
+
+function startTimer() {
+  const display = document.getElementById('timer');
+  timerInterval = setInterval(() => {
+    const delta = Math.floor((Date.now() - startTime) / 1000);
+    const m = Math.floor(delta / 60).toString().padStart(2, '0');
+    const s = (delta % 60).toString().padStart(2, '0');
+    display.innerText = `${m}:${s}`;
+  }, 1000);
 }
+
+/* Effetto coriandoli semplice (opzionale) */
+function triggerConfetti() {
+  // Qui potresti integrare canvas-confetti se vuoi
+  console.log("Coriandoli! 🎉");
+}
+
 </script>
 </body>
 </html>

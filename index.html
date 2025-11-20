@@ -7,21 +7,39 @@
 
 <script src="domande.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    --primary: #0056b3;      /* Blu istituzionale */
+    --primary: #0056b3;
     --primary-light: #eef6ff;
-    --accent: #00a8e8;       /* Azzurro medico */
-    --success: #28a745;      /* Verde approvato */
-    --danger: #dc3545;       /* Rosso errore */
+    --accent: #00a8e8;
+    --success: #28a745;
+    --danger: #dc3545;
     --text: #212529;
     --text-muted: #6c757d;
     --bg: #f4f6f8;
     --card-bg: #ffffff;
-    --radius: 12px;
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --radius: 16px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    --border: #eef0f2;
+  }
+
+  /* DARK MODE VARIABLES */
+  body.dark-mode {
+    --primary: #4dabf7;
+    --primary-light: #1a2636;
+    --accent: #3bc9db;
+    --success: #40c057;
+    --danger: #fa5252;
+    --text: #e9ecef;
+    --text-muted: #adb5bd;
+    --bg: #121212;
+    --card-bg: #1e1e1e;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --border: #2c2e33;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -36,185 +54,169 @@
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    transition: background 0.3s, color 0.3s;
   }
 
   .container {
     width: 100%;
     max-width: 600px;
     margin: auto;
+    position: relative;
   }
 
-  /* CARDS */
+  /* BUTTONS & UTILS */
+  .theme-toggle {
+    position: absolute; top: -50px; right: 0;
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 24px;
+  }
+
   .card {
-    background: var(--card-bg);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 24px;
-    margin-bottom: 20px;
-    transition: transform 0.2s ease;
-    text-align: center;
+    background: var(--card-bg); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 24px; margin-bottom: 20px;
+    text-align: center; transition: background 0.3s;
   }
 
-  h1 { margin: 0 0 10px 0; font-size: 22px; color: var(--primary); font-weight: 700; }
+  h1 { margin: 0 0 10px 0; font-size: 22px; color: var(--primary); font-weight: 800; }
   p { margin: 0 0 20px 0; color: var(--text-muted); font-size: 15px; line-height: 1.5; }
 
-  /* INPUT & BUTTONS */
+  /* STATS & MENU */
+  .stats-grid {
+    display: flex; justify-content: space-around;
+    background: var(--primary-light); padding: 15px;
+    border-radius: 12px; margin-bottom: 20px; margin-top: 10px;
+  }
+  .stat-item { display: flex; flex-direction: column; align-items: center; }
+  .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+  .stat-lbl { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
+
   input[type=password] {
-    width: 100%;
-    padding: 14px;
-    border-radius: 8px;
-    border: 2px solid #e0e0e0;
-    font-size: 16px;
-    margin-bottom: 15px;
-    outline: none;
-    transition: border-color 0.3s;
-    text-align: center;
+    width: 100%; padding: 14px; border-radius: 12px;
+    border: 2px solid var(--border); background: var(--bg); color: var(--text);
+    font-size: 16px; margin-bottom: 15px; outline: none; text-align: center;
   }
   input:focus { border-color: var(--accent); }
 
   .btn {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    width: 100%; padding: 16px; border: none; border-radius: 12px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: transform 0.1s;
   }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-secondary { background: transparent; border: 2px solid var(--border); color: var(--text); margin-top: 12px; }
+  .btn-warning { background: #fff3cd; color: #856404; margin-top: 12px; border: 1px solid #ffeeba; }
 
-  .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 10px rgba(0,86,179,0.3); }
-  .btn-primary:active { transform: scale(0.98); }
-
-  .btn-secondary { background: #fff; border: 2px solid #e0e0e0; color: var(--text); margin-top: 10px; }
-  .btn-secondary:active { background: #f8f9fa; }
-
+  /* QUIZ UI */
   .btn-option {
-    background: #fff;
-    border: 2px solid #eef0f2;
-    color: var(--text);
-    text-align: left;
-    justify-content: flex-start;
-    padding: 16px;
-    margin-bottom: 10px;
-    font-weight: 400;
-    line-height: 1.4;
+    background: var(--card-bg); border: 2px solid var(--border); color: var(--text);
+    text-align: left; justify-content: flex-start; padding: 18px; margin-bottom: 12px;
+    font-weight: 500; line-height: 1.4;
   }
-  .btn-option.selected {
-    border-color: var(--primary);
-    background: var(--primary-light);
-    color: var(--primary);
-    font-weight: 600;
+  .btn-option.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
+  .btn-option.correct { border-color: var(--success); background: rgba(40, 167, 69, 0.1); color: var(--success); }
+  .btn-option.wrong { border-color: var(--danger); background: rgba(220, 53, 69, 0.1); color: var(--danger); }
+
+  .exit-btn {
+    background: none; border: none; color: var(--text-muted);
+    font-size: 24px; cursor: pointer; padding: 0 10px;
   }
+
+  .progress-container { width: 100%; height: 8px; background: var(--border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
   
-  /* Solo in modalità revisione/immediata */
-  .btn-option.correct { border-color: var(--success); background: #e6f9ec; color: var(--success); }
-  .btn-option.wrong { border-color: var(--danger); background: #fbeaea; color: var(--danger); }
-
-  /* PROGRESS BAR */
-  .progress-container {
-    width: 100%;
-    height: 8px;
-    background: #e9ecef;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-  .progress-bar {
-    height: 100%;
-    background: var(--accent);
-    width: 0%;
-    transition: width 0.3s ease;
-  }
-
-  /* BADGES */
-  .badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
+  .badge { padding: 6px 12px; border-radius: 30px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; }
   .badge-info { background: var(--primary-light); color: var(--primary); }
+  .badge-warn { background: #fff3cd; color: #856404; }
 
-  /* RESULT BOX */
-  .result-box {
-    padding: 20px;
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-  }
-  .pass { background: #e6f9ec; color: var(--success); border: 1px solid #b7ebc9; }
-  .fail { background: #fbeaea; color: var(--danger); border: 1px solid #f5c6cb; }
-  .score-big { font-size: 42px; font-weight: 800; margin: 10px 0; }
+  .result-box { padding: 25px; border-radius: var(--radius); margin-bottom: 25px; }
+  .pass { background: rgba(40, 167, 69, 0.1); color: var(--success); border: 1px solid var(--success); }
+  .fail { background: rgba(220, 53, 69, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+  .score-big { font-size: 48px; font-weight: 900; margin: 10px 0; }
 
-  /* UTILS */
   .hidden { display: none !important; }
-  .fade-in { animation: fadeIn 0.4s ease-in-out; }
+  .fade-in { animation: fadeIn 0.4s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
 </style>
 </head>
 <body>
 
 <div class="container">
+  
+  <button class="theme-toggle" onclick="toggleTheme()">🌗</button>
 
   <div id="loginCard" class="card fade-in">
     <div style="margin-bottom: 20px;">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle><line x1="8" y1="8" x2="8" y2="8"></line><line x1="4" y1="9" x2="12" y2="9"></line><line x1="8" y1="5" x2="8" y2="13"></line></svg>
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
     </div>
     <h1>Training TSS</h1>
-    <p>Inserisci il codice per accedere al portale di simulazione esame.</p>
-    <input id="accessCode" type="password" placeholder="Codice Accesso">
+    <p>Inserisci il codice per accedere.</p>
+    <input id="accessCode" type="password" placeholder="Codice Accesso" inputmode="numeric">
     <button id="btnLogin" class="btn btn-primary">Accedi</button>
-    <div id="loginMsg" style="color:var(--danger); margin-top:10px; font-size:13px;"></div>
+    <div id="loginMsg" style="color:var(--danger); margin-top:15px; font-size:14px; font-weight:600;"></div>
   </div>
 
   <div id="menuCard" class="card hidden fade-in">
     <h1>Benvenuto</h1>
-    <p>Seleziona la modalità di esercitazione:</p>
     
-    <button onclick="startSimulation()" class="btn btn-primary" style="background: var(--primary);">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+    <div id="statsBox" class="hidden">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div id="statTotal" class="stat-val">0</div>
+          <div class="stat-lbl">Esami</div>
+        </div>
+        <div class="stat-item">
+          <div id="statPassed" class="stat-val" style="color:var(--success)">0</div>
+          <div class="stat-lbl">Superati</div>
+        </div>
+        <div class="stat-item">
+          <div id="statBest" class="stat-val" style="color:var(--accent)">0%</div>
+          <div class="stat-lbl">Record</div>
+        </div>
+      </div>
+    </div>
+
+    <p>Scegli una modalità:</p>
+    
+    <button onclick="startSimulation()" class="btn btn-primary">
       Simulazione Esame
     </button>
-    <p style="font-size:12px; margin-top:8px; margin-bottom:20px;">
-      20 Domande • Nessun aiuto • Risultato alla fine<br>
-      <strong style="color:var(--primary)">Superi con il 75% (15/20)</strong>
+    <p style="font-size:12px; margin-top:8px; color:var(--text-muted);">
+      20 Domande • No aiuti • Esito finale<br>
+      <strong>Superamento al 75%</strong>
     </p>
 
     <button onclick="startPractice()" class="btn btn-secondary">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
       Esercitazione Libera
     </button>
-    <p style="font-size:12px; margin-top:8px;">Tutte le domande • Correzione immediata</p>
+    <p style="font-size:12px; margin-top:8px; color:var(--text-muted);">Tutte le domande • Feedback immediato</p>
+
+    <button onclick="startReview()" class="btn btn-warning">
+      ⚠️ Ripasso Errori
+    </button>
+    <p style="font-size:12px; margin-top:8px; color:var(--text-muted);">Rifai solo le domande sbagliate in passato</p>
   </div>
 
   <div id="quizCard" class="card hidden" style="text-align: left;">
-    
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+      <button class="exit-btn" onclick="goToMenu()">✕</button>
+      
       <span id="modeLabel" class="badge badge-info">SIMULAZIONE</span>
-      <span id="timer" style="font-family:monospace; font-weight:600; color:var(--text-muted);">00:00</span>
+      <span id="timer" style="font-family:monospace; font-weight:700; font-size:16px; color:var(--text-muted);">00:00</span>
     </div>
 
     <div class="progress-container">
       <div id="progressBar" class="progress-bar"></div>
     </div>
 
-    <h2 id="questionText" style="font-size:18px; line-height:1.4; margin-bottom:20px; color:#000;">
-      Caricamento...
-    </h2>
+    <h2 id="questionText" style="font-size:19px; line-height:1.5; margin-bottom:25px; font-weight:700;">Caricamento...</h2>
 
     <div id="answersContainer"></div>
 
-    <div style="margin-top:20px;">
+    <div style="margin-top:25px; display:flex; gap:10px;">
       <button id="nextBtn" class="btn btn-primary hidden">Avanti</button>
-      <button id="endBtn" class="btn btn-primary hidden" style="background: var(--text-muted);">Consegna Test</button>
+      <button id="endBtn" class="btn btn-primary hidden" style="background:var(--text-muted);">Consegna</button>
     </div>
   </div>
 
@@ -222,17 +224,17 @@
     <h1 id="resultTitle">Esito Esame</h1>
     
     <div id="resultBox" class="result-box">
-      <div style="font-size:14px; text-transform:uppercase; letter-spacing:1px;">Punteggio</div>
+      <div style="font-size:13px; text-transform:uppercase; letter-spacing:1px; font-weight:700; opacity:0.8;">Punteggio Finale</div>
       <div id="scoreBig" class="score-big">0%</div>
-      <div id="scoreText">0 su 20</div>
+      <div id="scoreText" style="font-weight:600;">0 su 20</div>
     </div>
 
-    <p id="resultMessage">Messaggio esito</p>
+    <p id="resultMessage" style="font-weight:500;">Messaggio</p>
 
-    <button onclick="location.reload()" class="btn btn-primary">Torna al Menu</button>
-    <div id="reviewSection" class="hidden" style="margin-top:20px; text-align:left;">
-      <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
-      <h3 style="font-size:16px; color:var(--danger);">Riepilogo Errori:</h3>
+    <button onclick="goToMenu()" class="btn btn-primary">Torna al Menu</button>
+    
+    <div id="reviewSection" class="hidden" style="margin-top:30px; text-align:left;">
+      <h3 style="font-size:16px; color:var(--danger); margin-bottom:15px;">Riepilogo Errori Sessione:</h3>
       <div id="errorList"></div>
     </div>
   </div>
@@ -240,147 +242,218 @@
 </div>
 
 <script>
-/* CONFIGURAZIONE */
+/* ================= CONFIGURAZIONE ================= */
 const ACCESS_CODE = "2005";
+const STATS_KEY = 'tss_stats_v1';
+const ERROR_KEY = 'tss_errors_v1';
 
-/* STATO APP */
-let currentMode = ''; // 'simulation' | 'practice'
+/* ================= STATO APP ================= */
+let currentMode = ''; 
 let questionSet = [];
 let currentIndex = 0;
-let userAnswers = []; // { questionId, selectedLetter, isCorrect }
+let userAnswers = [];
 let startTime;
 let timerInterval;
 
-/* 1. GESTIONE LOGIN */
-document.getElementById('btnLogin').addEventListener('click', () => {
-  const input = document.getElementById('accessCode').value;
-  if(input === ACCESS_CODE) {
-    document.getElementById('loginCard').classList.add('hidden');
-    document.getElementById('menuCard').classList.remove('hidden');
-  } else {
-    document.getElementById('loginMsg').innerText = "Codice errato. Riprova.";
+/* ================= 1. GESTIONE LOGIN E AVVIO ================= */
+// Al caricamento della pagina, controlla se c'è una sessione attiva
+window.addEventListener('load', () => {
+  if(sessionStorage.getItem('isLoggedIn') === 'true') {
+    showMenu();
   }
 });
 
-/* 2. AVVIO MODALITÀ */
+document.getElementById('btnLogin').addEventListener('click', () => {
+  const input = document.getElementById('accessCode').value;
+  if(input === ACCESS_CODE) {
+    sessionStorage.setItem('isLoggedIn', 'true'); // Salva sessione
+    showMenu();
+  } else {
+    document.getElementById('loginMsg').innerText = "Codice errato.";
+    vibrate(200);
+  }
+});
+
+function showMenu() {
+  document.getElementById('loginCard').classList.add('hidden');
+  document.getElementById('resultCard').classList.add('hidden');
+  document.getElementById('quizCard').classList.add('hidden');
+  document.getElementById('menuCard').classList.remove('hidden');
+  loadStats();
+}
+
+// Tasto "Torna al menu" o "Esci"
+function goToMenu() {
+  clearInterval(timerInterval);
+  // Reset parziale stato
+  userAnswers = [];
+  currentIndex = 0;
+  showMenu();
+}
+
+function toggleTheme() {
+  document.body.classList.toggle('dark-mode');
+}
+
+/* ================= 2. STATISTICHE E ERRORI ================= */
+function loadStats() {
+  const data = localStorage.getItem(STATS_KEY);
+  if(data) {
+    const stats = JSON.parse(data);
+    if(stats.total > 0) {
+      document.getElementById('statsBox').classList.remove('hidden');
+      document.getElementById('statTotal').innerText = stats.total;
+      document.getElementById('statPassed').innerText = stats.passed;
+      document.getElementById('statBest').innerText = stats.best + "%";
+    }
+  }
+}
+
+function saveStats(percentage, passed) {
+  let stats = { total: 0, passed: 0, best: 0 };
+  const data = localStorage.getItem(STATS_KEY);
+  if(data) stats = JSON.parse(data);
+
+  stats.total++;
+  if(passed) stats.passed++;
+  if(percentage > stats.best) stats.best = percentage;
+
+  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+}
+
+// Funzione per salvare un errore nella "memoria errori"
+function trackError(questionId) {
+  let errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
+  // Incrementa contatore errore per questo ID
+  errors[questionId] = (errors[questionId] || 0) + 1;
+  localStorage.setItem(ERROR_KEY, JSON.stringify(errors));
+}
+
+/* ================= 3. LOGICA MODALITÀ ================= */
+function checkDatabase() {
+  if(typeof domandeQuiz === 'undefined') { alert("Errore: domande.js non trovato"); return false; }
+  return true;
+}
+
 function startSimulation() {
   if(!checkDatabase()) return;
   currentMode = 'simulation';
-  // Mescola e prendi 20 domande
   let allQ = [...domandeQuiz];
   shuffleArray(allQ);
   questionSet = allQ.slice(0, 20);
-  
   setupQuizUI();
 }
 
 function startPractice() {
   if(!checkDatabase()) return;
   currentMode = 'practice';
-  // Usa tutte le domande
   questionSet = [...domandeQuiz];
   shuffleArray(questionSet);
-  
   setupQuizUI();
 }
 
-function checkDatabase() {
-  if(typeof domandeQuiz === 'undefined') {
-    alert("Errore: File domande.js non trovato!");
-    return false;
+function startReview() {
+  if(!checkDatabase()) return;
+  currentMode = 'practice'; // Il ripasso si comporta come esercitazione (feedback immediato)
+  
+  // Carica errori
+  const errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
+  const errorIds = Object.keys(errors);
+  
+  if(errorIds.length === 0) {
+    alert("Nessun errore registrato finora! Bravo!");
+    return;
   }
-  return true;
+
+  // Filtra domande e le ordina per frequenza di errore (più sbagliate prima)
+  questionSet = domandeQuiz.filter(q => errorIds.includes(q.id.toString()));
+  questionSet.sort((a, b) => {
+    return (errors[b.id] || 0) - (errors[a.id] || 0);
+  });
+
+  if(questionSet.length === 0) { alert("Errore nel recupero domande."); return; }
+
+  // UI specifica per ripasso
+  setupQuizUI();
+  document.getElementById('modeLabel').innerText = "RIPASSO ERRORI";
+  document.getElementById('modeLabel').className = "badge badge-warn";
 }
 
 function setupQuizUI() {
   document.getElementById('menuCard').classList.add('hidden');
   document.getElementById('quizCard').classList.remove('hidden');
   
-  document.getElementById('modeLabel').innerText = currentMode === 'simulation' ? 'ESAME (20 DOMANDE)' : 'ESERCITAZIONE';
+  if(currentMode === 'simulation') {
+    document.getElementById('modeLabel').innerText = 'ESAME';
+    document.getElementById('modeLabel').className = 'badge badge-info';
+  } else if (currentMode === 'practice' && document.getElementById('modeLabel').innerText !== "RIPASSO ERRORI") {
+    document.getElementById('modeLabel').innerText = 'ALLENAMENTO';
+    document.getElementById('modeLabel').className = 'badge badge-info';
+  }
   
   currentIndex = 0;
   userAnswers = [];
   startTime = Date.now();
   startTimer();
-  
   renderQuestion();
 }
 
-/* 3. MOTORE QUIZ */
+/* ================= 4. RENDER DOMANDA ================= */
 function renderQuestion() {
   const q = questionSet[currentIndex];
   
-  // Aggiorna Progress Bar
   const perc = ((currentIndex) / questionSet.length) * 100;
   document.getElementById('progressBar').style.width = perc + "%";
-
-  // Testo Domanda
   document.getElementById('questionText').innerText = `${currentIndex + 1}. ${q.domanda}`;
 
-  // Opzioni
   const container = document.getElementById('answersContainer');
   container.innerHTML = '';
 
-  const letters = ['A', 'B', 'C', 'D'];
-  letters.forEach(letter => {
+  ['A', 'B', 'C', 'D'].forEach(letter => {
     if(q.risposte[letter]) {
       const btn = document.createElement('button');
       btn.className = 'btn btn-option';
       btn.innerHTML = `<b>${letter}.</b> ${q.risposte[letter]}`;
-      btn.onclick = () => selectAnswer(btn, letter, q);
+      btn.onclick = () => handleAnswer(btn, letter, q);
       container.appendChild(btn);
     }
   });
 
-  // Nascondi bottoni navigazione finché non risponde
   document.getElementById('nextBtn').classList.add('hidden');
   document.getElementById('endBtn').classList.add('hidden');
 }
 
-function selectAnswer(btn, selectedLetter, questionObj) {
-  // Disabilita click multipli
+function handleAnswer(btn, selected, qObj) {
   const allBtns = document.querySelectorAll('.btn-option');
-  allBtns.forEach(b => {
-    b.onclick = null; // Rimuovi listener
-    b.style.cursor = 'default';
-  });
+  allBtns.forEach(b => { b.onclick = null; b.style.cursor = 'default'; });
 
   btn.classList.add('selected');
+  const isCorrect = selected === qObj.corretta;
   
-  const isCorrect = selectedLetter === questionObj.corretta;
+  userAnswers.push({ question: qObj, selected: selected, isCorrect: isCorrect });
 
-  // Salva la risposta
-  userAnswers.push({
-    question: questionObj,
-    selected: selectedLetter,
-    isCorrect: isCorrect
-  });
+  // Se sbagliata, traccia l'errore per il futuro
+  if(!isCorrect) {
+    trackError(qObj.id);
+  }
 
-  // LOGICA DIVERSA PER LE DUE MODALITÀ
+  // Feedback immediato (tranne in simulazione)
   if (currentMode === 'practice') {
-    // Esercitazione: Mostra subito verde/rosso
     if(isCorrect) {
       btn.classList.add('correct');
     } else {
       btn.classList.add('wrong');
-      // Evidenzia quella giusta
+      vibrate(100);
       allBtns.forEach(b => {
-        if(b.innerHTML.includes(`<b>${questionObj.corretta}.</b>`)) {
-          b.classList.add('correct');
-        }
+        if(b.innerHTML.includes(`<b>${qObj.corretta}.</b>`)) b.classList.add('correct');
       });
     }
-  } 
-  // In 'simulation', non facciamo nulla visivamente a parte il 'selected' (blu)
+  }
 
-  // Mostra bottone Avanti o Fine
   if (currentIndex < questionSet.length - 1) {
     const nextBtn = document.getElementById('nextBtn');
     nextBtn.classList.remove('hidden');
-    nextBtn.onclick = () => {
-      currentIndex++;
-      renderQuestion();
-    };
+    nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
   } else {
     const endBtn = document.getElementById('endBtn');
     endBtn.classList.remove('hidden');
@@ -388,7 +461,7 @@ function selectAnswer(btn, selectedLetter, questionObj) {
   }
 }
 
-/* 4. RISULTATI */
+/* ================= 5. RISULTATI ================= */
 function showResults() {
   clearInterval(timerInterval);
   document.getElementById('quizCard').classList.add('hidden');
@@ -397,44 +470,61 @@ function showResults() {
   const total = questionSet.length;
   const correct = userAnswers.filter(a => a.isCorrect).length;
   const percentage = Math.round((correct / total) * 100);
+  const isPassed = percentage >= 75;
 
-  const scoreBig = document.getElementById('scoreBig');
-  const resultBox = document.getElementById('resultBox');
-  const msg = document.getElementById('resultMessage');
-
-  document.getElementById('scoreText').innerText = `${correct} risposte esatte su ${total}`;
-  scoreBig.innerText = `${percentage}%`;
-
-  // Logica Promozione (solo per simulazione ha senso critico, ma la applichiamo sempre)
-  const PASS_THRESHOLD = 75;
+  document.getElementById('scoreText').innerText = `${correct} su ${total}`;
+  document.getElementById('scoreBig').innerText = `${percentage}%`;
   
-  if(percentage >= PASS_THRESHOLD) {
-    resultBox.className = "result-box pass";
-    document.getElementById('resultTitle').innerText = "ESAME SUPERATO! 🎉";
-    msg.innerText = "Ottimo lavoro! Hai dimostrato una preparazione adeguata.";
-    triggerConfetti(); // Effetto festa (opzionale se implementi la libreria, qui placeholder)
+  const resBox = document.getElementById('resultBox');
+  const title = document.getElementById('resultTitle');
+  const msg = document.getElementById('resultMessage');
+  const errorList = document.getElementById('errorList');
+  const reviewSec = document.getElementById('reviewSection');
+
+  // Reset lista errori UI
+  errorList.innerHTML = '';
+  reviewSec.classList.add('hidden');
+
+  if(currentMode === 'simulation') {
+    // Logica Esame
+    if(isPassed) {
+      resBox.className = "result-box pass";
+      title.innerText = "SUPERATO! 🎉";
+      title.style.color = "var(--success)";
+      msg.innerText = "Ottimo lavoro! Hai superato la soglia del 75%.";
+      triggerConfetti();
+    } else {
+      resBox.className = "result-box fail";
+      title.innerText = "NON IDONEO";
+      title.style.color = "var(--danger)";
+      msg.innerText = "Non hai raggiunto il 75%.";
+    }
+    saveStats(percentage, isPassed);
   } else {
-    resultBox.className = "result-box fail";
-    document.getElementById('resultTitle').innerText = "NON IDONEO";
-    msg.innerText = `Hai bisogno di almeno il ${PASS_THRESHOLD}% per superare il test. Ripassa gli argomenti e riprova.`;
+    // Logica Allenamento/Ripasso
+    resBox.className = "result-box pass"; // Stile neutro/positivo
+    resBox.style.background = "#eef6ff"; resBox.style.borderColor = "#ccddee";
+    title.innerText = "COMPLETATO";
+    title.style.color = "var(--primary)";
+    msg.innerText = "Esercitazione terminata.";
+    if(percentage === 100) triggerConfetti();
   }
 
-  // Genera Riepilogo Errori
+  // Mostra errori sessione
   const errors = userAnswers.filter(a => !a.isCorrect);
   if(errors.length > 0) {
-    document.getElementById('reviewSection').classList.remove('hidden');
-    const list = document.getElementById('errorList');
-    list.innerHTML = errors.map(item => `
-      <div style="background:#fff; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #eee; font-size:14px;">
-        <div style="font-weight:bold; color:#333; margin-bottom:4px;">${item.question.domanda}</div>
-        <div style="color:var(--danger)">La tua risposta: ${item.selected}</div>
-        <div style="color:var(--success)">Risposta corretta: ${item.question.corretta}</div>
+    reviewSec.classList.remove('hidden');
+    errorList.innerHTML = errors.map(err => `
+      <div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border); font-size:14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        <div style="font-weight:700; color:var(--text); margin-bottom:6px;">${err.question.domanda}</div>
+        <div style="color:var(--danger); margin-bottom:2px;">❌ Tua: ${err.selected}</div>
+        <div style="color:var(--success); font-weight:600;">✅ Corretta: ${err.question.corretta}</div>
       </div>
     `).join('');
   }
 }
 
-/* UTILS */
+/* ================= UTILS ================= */
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -452,12 +542,16 @@ function startTimer() {
   }, 1000);
 }
 
-/* Effetto coriandoli semplice (opzionale) */
-function triggerConfetti() {
-  // Qui potresti integrare canvas-confetti se vuoi
-  console.log("Coriandoli! 🎉");
-}
+function vibrate(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
 
+function triggerConfetti() {
+  var duration = 3000; var end = Date.now() + duration;
+  (function frame() {
+    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  }());
+}
 </script>
 </body>
 </html>

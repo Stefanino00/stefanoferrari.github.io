@@ -9,7 +9,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   :root {
@@ -112,11 +112,21 @@
   .btn-option {
     background: var(--card-bg); border: 2px solid var(--border); color: var(--text);
     text-align: left; justify-content: flex-start; padding: 18px; margin-bottom: 12px;
-    font-weight: 500; line-height: 1.4; cursor: pointer;
+    font-weight: 500; line-height: 1.4; cursor: pointer; width: 100%; border-radius: 10px;
   }
   .btn-option.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
   .btn-option.correct { border-color: var(--success); background: rgba(40, 167, 69, 0.1); color: var(--success); }
   .btn-option.wrong { border-color: var(--danger); background: rgba(220, 53, 69, 0.1); color: var(--danger); }
+
+  /* REVIEW STYLES (Nuovi stili per il ripasso) */
+  .review-option {
+    padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px;
+    font-size: 14px; display: flex; justify-content: space-between; align-items: center;
+    background: var(--card-bg); color: var(--text-muted);
+  }
+  .review-correct { border-color: var(--success); background: rgba(40, 167, 69, 0.15); color: var(--success); font-weight: 600; }
+  .review-wrong { border-color: var(--danger); background: rgba(220, 53, 69, 0.15); color: var(--danger); font-weight: 600; }
+  .review-neutral { opacity: 0.7; }
 
   .exit-btn {
     background: none; border: none; color: var(--text-muted);
@@ -251,9 +261,7 @@ const ERROR_KEY = 'tss_errors_v1';
 let currentMode = ''; 
 let questionSet = [];
 let currentIndex = 0;
-// userAnswers è un array semplice in Esame: [null, {selected:'A', isCorrect:true}, ...]
-// in Practice è un array di oggetti pushati
-let userAnswers = []; 
+let userAnswers = []; // Array di oggetti risposta o null
 let startTime;
 let timerInterval;
 
@@ -338,7 +346,6 @@ function startSimulation() {
   let allQ = [...domandeQuiz];
   shuffleArray(allQ);
   questionSet = allQ.slice(0, 20);
-  // Prepara array vuoto per risposte
   userAnswers = new Array(questionSet.length).fill(null);
   setupQuizUI();
 }
@@ -354,7 +361,7 @@ function startPractice() {
 
 function startReview() {
   if(!checkDatabase()) return;
-  currentMode = 'practice'; // Ripasso è tipo practice
+  currentMode = 'practice'; 
   
   const errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
   const errorIds = Object.keys(errors);
@@ -403,7 +410,7 @@ function renderQuestion() {
   const container = document.getElementById('answersContainer');
   container.innerHTML = '';
 
-  // Verifica se in Simulazione abbiamo già dato una risposta (per mantenerla selezionata visivamente se tornassimo indietro, ma qui non torniamo indietro, però serve per il rebuild della UI)
+  // Recupera eventuale selezione salvata (in Simulazione)
   let savedSelection = null;
   if(currentMode === 'simulation' && userAnswers[currentIndex]) {
     savedSelection = userAnswers[currentIndex].selected;
@@ -415,7 +422,6 @@ function renderQuestion() {
       btn.className = 'btn btn-option';
       btn.innerHTML = `<b>${letter}.</b> ${q.risposte[letter]}`;
       
-      // Se era già selezionata
       if(savedSelection === letter) btn.classList.add('selected');
 
       btn.onclick = () => handleAnswer(btn, letter, q);
@@ -423,14 +429,12 @@ function renderQuestion() {
     }
   });
 
-  // Gestione bottoni Next/End
   const nextBtn = document.getElementById('nextBtn');
   const endBtn = document.getElementById('endBtn');
   
   nextBtn.classList.add('hidden');
   endBtn.classList.add('hidden');
 
-  // In simulazione, se c'è una risposta salvata, mostra il pulsante
   if(currentMode === 'simulation' && savedSelection) {
      if(currentIndex < questionSet.length - 1) nextBtn.classList.remove('hidden');
      else endBtn.classList.remove('hidden');
@@ -438,23 +442,18 @@ function renderQuestion() {
 }
 
 function handleAnswer(btn, selected, qObj) {
-  // LOGICA SIMULAZIONE (Si può cambiare risposta)
   if (currentMode === 'simulation') {
-    // 1. Rimuovi selected dagli altri
+    // In Esame puoi cambiare risposta finché non vai avanti
     const allBtns = document.querySelectorAll('.btn-option');
     allBtns.forEach(b => b.classList.remove('selected'));
-    
-    // 2. Aggiungi selected a questo
     btn.classList.add('selected');
     
-    // 3. Salva la scelta nell'array alla posizione corrente (sovrascrive se cambio idea)
     userAnswers[currentIndex] = {
       question: qObj,
       selected: selected,
       isCorrect: (selected === qObj.corretta)
     };
 
-    // 4. Mostra bottone navigazione
     if (currentIndex < questionSet.length - 1) {
       const nextBtn = document.getElementById('nextBtn');
       nextBtn.classList.remove('hidden');
@@ -465,9 +464,8 @@ function handleAnswer(btn, selected, qObj) {
       endBtn.onclick = showResults;
     }
   } 
-  // LOGICA PRACTICE (Blocco immediato)
   else {
-    // Blocca tutto
+    // In Allenamento blocchi subito
     const allBtns = document.querySelectorAll('.btn-option');
     allBtns.forEach(b => { b.onclick = null; b.style.cursor = 'default'; });
 
@@ -483,13 +481,11 @@ function handleAnswer(btn, selected, qObj) {
     } else {
       btn.classList.add('wrong');
       vibrate(100);
-      // Evidenzia giusta
       allBtns.forEach(b => {
         if(b.innerHTML.includes(`<b>${qObj.corretta}.</b>`)) b.classList.add('correct');
       });
     }
 
-    // Navigazione
     if (currentIndex < questionSet.length - 1) {
       const nextBtn = document.getElementById('nextBtn');
       nextBtn.classList.remove('hidden');
@@ -508,7 +504,6 @@ function showResults() {
   document.getElementById('quizCard').classList.add('hidden');
   document.getElementById('resultCard').classList.remove('hidden');
 
-  // Filtra nulli (in caso di bug strano in simulazione)
   const validAnswers = userAnswers.filter(a => a !== null);
   const total = questionSet.length;
   const correct = validAnswers.filter(a => a.isCorrect).length;
@@ -524,7 +519,6 @@ function showResults() {
   const reviewSec = document.getElementById('reviewSection');
   const errorList = document.getElementById('errorList');
 
-  // Reset UI
   errorList.innerHTML = '';
   reviewSec.classList.add('hidden');
 
@@ -551,24 +545,46 @@ function showResults() {
     if(percentage === 100) triggerConfetti();
   }
 
-  // Report Errori con TESTO COMPLETO
+  // REPORT ERRORI DETTAGLIATO (Tutte le 4 opzioni)
   const errors = validAnswers.filter(a => !a.isCorrect);
   if(errors.length > 0) {
     reviewSec.classList.remove('hidden');
+    
     errorList.innerHTML = errors.map(err => {
-      const userText = err.question.risposte[err.selected] || "Non data";
-      const correctText = err.question.risposte[err.question.corretta];
-      
-      return `
-      <div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid var(--border); font-size:14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-        <div style="font-weight:700; color:var(--text); margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">${err.question.domanda}</div>
+      // Genera l'HTML per le 4 opzioni (A, B, C, D)
+      const letters = ['A', 'B', 'C', 'D'];
+      let optionsHtml = letters.map(L => {
+        if(!err.question.risposte[L]) return ''; // se manca opzione
         
-        <div style="color:var(--danger); margin-bottom:5px; line-height:1.4;">
-          <strong>❌ Tua (${err.selected}):</strong> ${userText}
+        const text = err.question.risposte[L];
+        let styleClass = '';
+        let icon = '';
+        
+        // Logica colori
+        if(L === err.question.corretta) {
+          styleClass = 'review-correct';
+          icon = '✅';
+        } else if (L === err.selected) {
+          styleClass = 'review-wrong';
+          icon = '❌';
+        } else {
+          styleClass = 'review-neutral';
+        }
+
+        return `
+          <div class="review-option ${styleClass}">
+            <div style="flex:1"><b>${L}.</b> ${text}</div>
+            <div style="margin-left:10px">${icon}</div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+      <div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid var(--border); font-size:14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align:left;">
+        <div style="font-weight:700; color:var(--text); margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">
+          ${err.question.domanda}
         </div>
-        <div style="color:var(--success); line-height:1.4;">
-          <strong>✅ Corretta (${err.question.corretta}):</strong> ${correctText}
-        </div>
+        ${optionsHtml}
       </div>
     `}).join('');
   }

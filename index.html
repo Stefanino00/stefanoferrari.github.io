@@ -80,15 +80,17 @@
   h1 { margin: 0 0 10px 0; font-size: 22px; color: var(--primary); font-weight: 800; }
   p { margin: 0 0 20px 0; color: var(--text-muted); font-size: 15px; line-height: 1.5; }
 
-  /* STATS & MENU */
+  /* STATS GRID AGGIORNATA PER 4 ELEMENTI */
   .stats-grid {
-    display: flex; justify-content: space-around;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 colonne uguali */
+    gap: 5px;
     background: var(--primary-light); padding: 15px;
     border-radius: 12px; margin-bottom: 20px; margin-top: 10px;
   }
   .stat-item { display: flex; flex-direction: column; align-items: center; }
-  .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
-  .stat-lbl { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
+  .stat-val { font-size: 18px; font-weight: 800; color: var(--primary); white-space: nowrap;}
+  .stat-lbl { font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
 
   input[type=password] {
     width: 100%; padding: 14px; border-radius: 12px;
@@ -118,7 +120,7 @@
   .btn-option.correct { border-color: var(--success); background: rgba(40, 167, 69, 0.1); color: var(--success); }
   .btn-option.wrong { border-color: var(--danger); background: rgba(220, 53, 69, 0.1); color: var(--danger); }
 
-  /* REVIEW STYLES (Nuovi stili per il ripasso) */
+  /* REVIEW STYLES */
   .review-option {
     padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px;
     font-size: 14px; display: flex; justify-content: space-between; align-items: center;
@@ -135,7 +137,7 @@
 
   .progress-container { width: 100%; height: 8px; background: var(--border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
   .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
-  
+   
   .badge { padding: 6px 12px; border-radius: 30px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; }
   .badge-info { background: var(--primary-light); color: var(--primary); }
   .badge-warn { background: #fff3cd; color: #856404; }
@@ -153,7 +155,7 @@
 <body>
 
 <div class="container">
-  
+   
   <button class="theme-toggle" onclick="toggleTheme()">🌗</button>
 
   <div id="loginCard" class="card fade-in">
@@ -178,13 +180,18 @@
         </div>
         <div class="stat-item">
           <div id="statPassed" class="stat-val" style="color:var(--success)">0</div>
-          <div class="stat-lbl">Superati</div>
+          <div class="stat-lbl">Passati</div>
         </div>
         <div class="stat-item">
           <div id="statBest" class="stat-val" style="color:var(--accent)">0%</div>
           <div class="stat-lbl">Record</div>
         </div>
+        <div class="stat-item">
+          <div id="statSpeed" class="stat-val" style="color:#e83e8c; font-family:monospace; font-size:16px;">--:--</div>
+          <div class="stat-lbl">Best Time</div>
+        </div>
       </div>
+      <p style="font-size:11px; margin-top:-10px; margin-bottom:15px; color:var(--text-muted);">*Il "Best Time" si registra solo col 100%.</p>
     </div>
 
     <p>Scegli una modalità:</p>
@@ -237,6 +244,7 @@
       <div style="font-size:13px; text-transform:uppercase; letter-spacing:1px; font-weight:700; opacity:0.8;">Punteggio Finale</div>
       <div id="scoreBig" class="score-big">0%</div>
       <div id="scoreText" style="font-weight:600;">0 su 20</div>
+      <div id="timeTaken" style="font-size:14px; margin-top:5px; color:var(--text-muted); font-family:monospace;"></div>
     </div>
 
     <p id="resultMessage" style="font-weight:500;">Messaggio</p>
@@ -254,14 +262,14 @@
 <script>
 /* ================= CONFIGURAZIONE ================= */
 const ACCESS_CODE = "2005";
-const STATS_KEY = 'tss_stats_v1';
+const STATS_KEY = 'tss_stats_v2'; // Chiave aggiornata per resettare e pulire vecchi dati se necessario, o usa v1 se vuoi mantenere
 const ERROR_KEY = 'tss_errors_v1';
 
 /* ================= STATO APP ================= */
 let currentMode = ''; 
 let questionSet = [];
 let currentIndex = 0;
-let userAnswers = []; // Array di oggetti risposta o null
+let userAnswers = []; 
 let startTime;
 let timerInterval;
 
@@ -302,7 +310,7 @@ function toggleTheme() {
   document.body.classList.toggle('dark-mode');
 }
 
-/* ================= 2. STATISTICHE E ERRORI ================= */
+/* ================= 2. STATISTICHE E ERRORI (MODIFICATA) ================= */
 function loadStats() {
   const data = localStorage.getItem(STATS_KEY);
   if(data) {
@@ -312,18 +320,33 @@ function loadStats() {
       document.getElementById('statTotal').innerText = stats.total;
       document.getElementById('statPassed').innerText = stats.passed;
       document.getElementById('statBest').innerText = stats.best + "%";
+      
+      // Visualizza Speedrun Time
+      if(stats.bestTime && stats.bestTime > 0) {
+         document.getElementById('statSpeed').innerText = formatTime(stats.bestTime);
+      } else {
+         document.getElementById('statSpeed').innerText = "--:--";
+      }
     }
   }
 }
 
-function saveStats(percentage, passed) {
-  let stats = { total: 0, passed: 0, best: 0 };
+// Funzione modificata per accettare i secondi
+function saveStats(percentage, passed, timeInSeconds) {
+  let stats = { total: 0, passed: 0, best: 0, bestTime: 0 }; // bestTime in secondi
   const data = localStorage.getItem(STATS_KEY);
   if(data) stats = JSON.parse(data);
 
   stats.total++;
   if(passed) stats.passed++;
   if(percentage > stats.best) stats.best = percentage;
+
+  // LOGICA SPEEDRUN: Salva solo se 100% E (tempo migliore OPPURE nessun tempo precedente)
+  if(percentage === 100) {
+      if(stats.bestTime === 0 || timeInSeconds < stats.bestTime) {
+          stats.bestTime = timeInSeconds;
+      }
+  }
 
   localStorage.setItem(STATS_KEY, JSON.stringify(stats));
 }
@@ -410,7 +433,6 @@ function renderQuestion() {
   const container = document.getElementById('answersContainer');
   container.innerHTML = '';
 
-  // Recupera eventuale selezione salvata (in Simulazione)
   let savedSelection = null;
   if(currentMode === 'simulation' && userAnswers[currentIndex]) {
     savedSelection = userAnswers[currentIndex].selected;
@@ -443,7 +465,6 @@ function renderQuestion() {
 
 function handleAnswer(btn, selected, qObj) {
   if (currentMode === 'simulation') {
-    // In Esame puoi cambiare risposta finché non vai avanti
     const allBtns = document.querySelectorAll('.btn-option');
     allBtns.forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
@@ -465,7 +486,6 @@ function handleAnswer(btn, selected, qObj) {
     }
   } 
   else {
-    // In Allenamento blocchi subito
     const allBtns = document.querySelectorAll('.btn-option');
     allBtns.forEach(b => { b.onclick = null; b.style.cursor = 'default'; });
 
@@ -501,6 +521,12 @@ function handleAnswer(btn, selected, qObj) {
 /* ================= 5. RISULTATI ================= */
 function showResults() {
   clearInterval(timerInterval);
+  
+  // Calcolo tempo finale
+  const endTime = Date.now();
+  const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
+  const formattedTime = formatTime(elapsedSeconds);
+
   document.getElementById('quizCard').classList.add('hidden');
   document.getElementById('resultCard').classList.remove('hidden');
 
@@ -512,6 +538,7 @@ function showResults() {
 
   document.getElementById('scoreText').innerText = `${correct} su ${total}`;
   document.getElementById('scoreBig').innerText = `${percentage}%`;
+  document.getElementById('timeTaken').innerText = `Tempo: ${formattedTime}`;
   
   const resBox = document.getElementById('resultBox');
   const title = document.getElementById('resultTitle');
@@ -535,7 +562,8 @@ function showResults() {
       title.style.color = "var(--danger)";
       msg.innerText = "Non hai raggiunto il 75%.";
     }
-    saveStats(percentage, isPassed);
+    // Passiamo il tempo (elapsedSeconds) alla funzione di salvataggio
+    saveStats(percentage, isPassed, elapsedSeconds);
   } else {
     resBox.className = "result-box pass";
     resBox.style.background = "#eef6ff"; resBox.style.borderColor = "#ccddee";
@@ -545,22 +573,20 @@ function showResults() {
     if(percentage === 100) triggerConfetti();
   }
 
-  // REPORT ERRORI DETTAGLIATO (Tutte le 4 opzioni)
+  // REPORT ERRORI
   const errors = validAnswers.filter(a => !a.isCorrect);
   if(errors.length > 0) {
     reviewSec.classList.remove('hidden');
     
     errorList.innerHTML = errors.map(err => {
-      // Genera l'HTML per le 4 opzioni (A, B, C, D)
       const letters = ['A', 'B', 'C', 'D'];
       let optionsHtml = letters.map(L => {
-        if(!err.question.risposte[L]) return ''; // se manca opzione
+        if(!err.question.risposte[L]) return ''; 
         
         const text = err.question.risposte[L];
         let styleClass = '';
         let icon = '';
         
-        // Logica colori
         if(L === err.question.corretta) {
           styleClass = 'review-correct';
           icon = '✅';
@@ -602,10 +628,14 @@ function startTimer() {
   const display = document.getElementById('timer');
   timerInterval = setInterval(() => {
     const delta = Math.floor((Date.now() - startTime) / 1000);
-    const m = Math.floor(delta / 60).toString().padStart(2, '0');
-    const s = (delta % 60).toString().padStart(2, '0');
-    display.innerText = `${m}:${s}`;
+    display.innerText = formatTime(delta);
   }, 1000);
+}
+
+function formatTime(seconds) {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
 }
 
 function vibrate(ms) { if(navigator.vibrate) navigator.vibrate(ms); }

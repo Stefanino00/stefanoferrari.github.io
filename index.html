@@ -6,9 +6,7 @@
 <title>Simulazione Esame TSS</title>
 
 <script src="domande.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -27,7 +25,6 @@
     --border: #eef0f2;
   }
 
-  /* DARK MODE VARIABLES */
   body.dark-mode {
     --primary: #4dabf7;
     --primary-light: #1a2636;
@@ -45,70 +42,67 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
+    margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px;
     transition: background 0.3s, color 0.3s;
   }
 
-  .container {
-    width: 100%;
-    max-width: 600px;
-    margin: auto;
-    position: relative;
-  }
+  .container { width: 100%; max-width: 600px; margin: auto; position: relative; }
 
-  /* BUTTONS & UTILS */
   .theme-toggle {
-    position: absolute; top: -50px; right: 0;
-    background: none; border: none; color: var(--text-muted);
-    cursor: pointer; font-size: 24px;
+    position: absolute; top: -50px; right: 0; background: none; border: none;
+    color: var(--text-muted); cursor: pointer; font-size: 24px;
   }
 
   .card {
-    background: var(--card-bg); border-radius: var(--radius);
-    box-shadow: var(--shadow); padding: 24px; margin-bottom: 20px;
-    text-align: center; transition: background 0.3s;
+    background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 24px; margin-bottom: 20px; text-align: center; transition: background 0.3s;
   }
 
   h1 { margin: 0 0 10px 0; font-size: 22px; color: var(--primary); font-weight: 800; }
   p { margin: 0 0 20px 0; color: var(--text-muted); font-size: 15px; line-height: 1.5; }
 
-  /* STATS GRID AGGIORNATA PER 4 ELEMENTI */
+  /* NAVIGAZIONE PALLINI (Nuovo Stile) */
+  .nav-dots-container {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+    margin-bottom: 20px; padding: 10px; background: var(--bg); border-radius: 12px;
+  }
+  .nav-dot {
+    width: 12px; height: 12px; border-radius: 50%; background: var(--text-muted);
+    opacity: 0.3; cursor: pointer; transition: all 0.2s;
+  }
+  .nav-dot.active { transform: scale(1.4); opacity: 1; border: 2px solid var(--text); }
+  .nav-dot.filled { background: var(--primary); opacity: 1; }
+  .nav-dot.correct { background: var(--success); opacity: 1; }
+  .nav-dot.wrong { background: var(--danger); opacity: 1; }
+
+  /* STATS GRID */
   .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 colonne uguali */
-    gap: 5px;
-    background: var(--primary-light); padding: 15px;
-    border-radius: 12px; margin-bottom: 20px; margin-top: 10px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
+    background: var(--primary-light); padding: 15px; border-radius: 12px;
+    margin-bottom: 20px; margin-top: 10px;
   }
   .stat-item { display: flex; flex-direction: column; align-items: center; }
   .stat-val { font-size: 18px; font-weight: 800; color: var(--primary); white-space: nowrap;}
   .stat-lbl { font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
 
   input[type=password] {
-    width: 100%; padding: 14px; border-radius: 12px;
-    border: 2px solid var(--border); background: var(--bg); color: var(--text);
-    font-size: 16px; margin-bottom: 15px; outline: none; text-align: center;
+    width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--border);
+    background: var(--bg); color: var(--text); font-size: 16px; margin-bottom: 15px;
+    outline: none; text-align: center;
   }
   input:focus { border-color: var(--accent); }
 
   .btn {
-    width: 100%; padding: 16px; border: none; border-radius: 12px;
-    font-size: 16px; font-weight: 700; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    transition: transform 0.1s;
+    width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px;
+    font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    gap: 10px; transition: transform 0.1s;
   }
   .btn:active { transform: scale(0.98); }
   .btn-primary { background: var(--primary); color: #fff; }
   .btn-secondary { background: transparent; border: 2px solid var(--border); color: var(--text); margin-top: 12px; }
   .btn-warning { background: #fff3cd; color: #856404; margin-top: 12px; border: 1px solid #ffeeba; }
+  .btn-outline { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); }
 
   /* QUIZ UI */
   .btn-option {
@@ -130,14 +124,8 @@
   .review-wrong { border-color: var(--danger); background: rgba(220, 53, 69, 0.15); color: var(--danger); font-weight: 600; }
   .review-neutral { opacity: 0.7; }
 
-  .exit-btn {
-    background: none; border: none; color: var(--text-muted);
-    font-size: 24px; cursor: pointer; padding: 0 10px;
-  }
-
-  .progress-container { width: 100%; height: 8px; background: var(--border); border-radius: 4px; margin-bottom: 25px; overflow: hidden; }
-  .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
-   
+  .exit-btn { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; padding: 0 10px; }
+  
   .badge { padding: 6px 12px; border-radius: 30px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; }
   .badge-info { background: var(--primary-light); color: var(--primary); }
   .badge-warn { background: #fff3cd; color: #856404; }
@@ -191,7 +179,6 @@
           <div class="stat-lbl">Best Time</div>
         </div>
       </div>
-      <p style="font-size:11px; margin-top:-10px; margin-bottom:15px; color:var(--text-muted);">*Il "Best Time" si registra solo col 100%.</p>
     </div>
 
     <p>Scegli una modalità:</p>
@@ -200,7 +187,7 @@
       Simulazione Esame
     </button>
     <p style="font-size:12px; margin-top:8px; color:var(--text-muted);">
-      20 Domande • No aiuti • Esito finale<br>
+      20 Domande • Navigazione Libera • Esito finale<br>
       <strong>Superamento al 75%</strong>
     </p>
 
@@ -223,17 +210,16 @@
       <span id="timer" style="font-family:monospace; font-weight:700; font-size:16px; color:var(--text-muted);">00:00</span>
     </div>
 
-    <div class="progress-container">
-      <div id="progressBar" class="progress-bar"></div>
-    </div>
+    <div id="navDots" class="nav-dots-container"></div>
 
     <h2 id="questionText" style="font-size:19px; line-height:1.5; margin-bottom:25px; font-weight:700;">Caricamento...</h2>
 
     <div id="answersContainer"></div>
 
     <div style="margin-top:25px; display:flex; gap:10px;">
-      <button id="nextBtn" class="btn btn-primary hidden">Avanti</button>
-      <button id="endBtn" class="btn btn-primary hidden" style="background:var(--text-muted);">Consegna</button>
+        <button id="prevBtn" class="btn btn-secondary hidden" style="margin-top:0; flex:1;">Indietro</button>
+        <button id="nextBtn" class="btn btn-primary hidden" style="flex:2;">Avanti</button>
+        <button id="endBtn" class="btn btn-primary hidden" style="background:var(--text-muted); flex:2;">Consegna</button>
     </div>
   </div>
 
@@ -262,7 +248,7 @@
 <script>
 /* ================= CONFIGURAZIONE ================= */
 const ACCESS_CODE = "2005";
-const STATS_KEY = 'tss_stats_v2'; // Chiave aggiornata per resettare e pulire vecchi dati se necessario, o usa v1 se vuoi mantenere
+const STATS_KEY = 'tss_stats_v2'; 
 const ERROR_KEY = 'tss_errors_v1';
 
 /* ================= STATO APP ================= */
@@ -310,7 +296,7 @@ function toggleTheme() {
   document.body.classList.toggle('dark-mode');
 }
 
-/* ================= 2. STATISTICHE E ERRORI (MODIFICATA) ================= */
+/* ================= 2. STATISTICHE E ERRORI ================= */
 function loadStats() {
   const data = localStorage.getItem(STATS_KEY);
   if(data) {
@@ -321,7 +307,6 @@ function loadStats() {
       document.getElementById('statPassed').innerText = stats.passed;
       document.getElementById('statBest').innerText = stats.best + "%";
       
-      // Visualizza Speedrun Time
       if(stats.bestTime && stats.bestTime > 0) {
          document.getElementById('statSpeed').innerText = formatTime(stats.bestTime);
       } else {
@@ -331,9 +316,8 @@ function loadStats() {
   }
 }
 
-// Funzione modificata per accettare i secondi
 function saveStats(percentage, passed, timeInSeconds) {
-  let stats = { total: 0, passed: 0, best: 0, bestTime: 0 }; // bestTime in secondi
+  let stats = { total: 0, passed: 0, best: 0, bestTime: 0 };
   const data = localStorage.getItem(STATS_KEY);
   if(data) stats = JSON.parse(data);
 
@@ -341,7 +325,6 @@ function saveStats(percentage, passed, timeInSeconds) {
   if(passed) stats.passed++;
   if(percentage > stats.best) stats.best = percentage;
 
-  // LOGICA SPEEDRUN: Salva solo se 100% E (tempo migliore OPPURE nessun tempo precedente)
   if(percentage === 100) {
       if(stats.bestTime === 0 || timeInSeconds < stats.bestTime) {
           stats.bestTime = timeInSeconds;
@@ -394,6 +377,7 @@ function startReview() {
     return;
   }
 
+  // Conversione ID in stringhe per confronto sicuro
   questionSet = domandeQuiz.filter(q => errorIds.includes(q.id.toString()));
   questionSet.sort((a, b) => (errors[b.id] || 0) - (errors[a.id] || 0));
 
@@ -423,11 +407,46 @@ function setupQuizUI() {
   renderQuestion();
 }
 
-/* ================= 4. RENDER DOMANDA ================= */
+/* ================= 4. RENDER DOMANDA E NAVIGAZIONE ================= */
+function updateDots() {
+    const dotsContainer = document.getElementById('navDots');
+    dotsContainer.innerHTML = '';
+    
+    questionSet.forEach((q, idx) => {
+        const dot = document.createElement('div');
+        dot.className = 'nav-dot';
+        
+        // Evidenzia pallino corrente
+        if (idx === currentIndex) dot.classList.add('active');
+
+        if (currentMode === 'simulation') {
+            // In simulazione: Blu se risposto
+            if (userAnswers[idx] != null) dot.classList.add('filled');
+            
+            // Permetti click per navigare
+            dot.onclick = () => {
+                currentIndex = idx;
+                renderQuestion();
+            };
+        } else {
+            // In pratica: Verde/Rosso immediato
+            if (userAnswers[idx]) {
+                if (userAnswers[idx].isCorrect) dot.classList.add('correct');
+                else dot.classList.add('wrong');
+            }
+            // In pratica niente click per tornare indietro
+        }
+        
+        dotsContainer.appendChild(dot);
+    });
+}
+
 function renderQuestion() {
   const q = questionSet[currentIndex];
-  const perc = ((currentIndex) / questionSet.length) * 100;
-  document.getElementById('progressBar').style.width = perc + "%";
+  
+  // Aggiorna Pallini
+  updateDots();
+
   document.getElementById('questionText').innerText = `${currentIndex + 1}. ${q.domanda}`;
 
   const container = document.getElementById('answersContainer');
@@ -451,15 +470,45 @@ function renderQuestion() {
     }
   });
 
+  // Gestione Bottoni Navigazione
+  const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
   const endBtn = document.getElementById('endBtn');
   
+  prevBtn.classList.add('hidden');
   nextBtn.classList.add('hidden');
   endBtn.classList.add('hidden');
 
-  if(currentMode === 'simulation' && savedSelection) {
-     if(currentIndex < questionSet.length - 1) nextBtn.classList.remove('hidden');
-     else endBtn.classList.remove('hidden');
+  // Logica Bottoni Simulazione
+  if(currentMode === 'simulation') {
+      if(currentIndex > 0) {
+          prevBtn.classList.remove('hidden');
+          prevBtn.onclick = () => { currentIndex--; renderQuestion(); };
+      }
+      
+      if(currentIndex < questionSet.length - 1) {
+          // Mostra sempre il tasto avanti se c'è già una risposta data
+          if(savedSelection) {
+              nextBtn.classList.remove('hidden');
+              nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
+          }
+      } else {
+          // Ultima domanda
+          if(savedSelection) {
+              endBtn.classList.remove('hidden');
+              endBtn.onclick = showResults;
+          }
+      }
+  } 
+  // Logica Esercitazione (Solo avanti)
+  else {
+     if (currentIndex < questionSet.length - 1 && userAnswers[currentIndex]) { // Mostra avanti solo se risposto
+        nextBtn.classList.remove('hidden');
+        nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
+     } else if (currentIndex === questionSet.length - 1 && userAnswers[currentIndex]) {
+        endBtn.classList.remove('hidden');
+        endBtn.onclick = showResults;
+     }
   }
 }
 
@@ -474,6 +523,9 @@ function handleAnswer(btn, selected, qObj) {
       selected: selected,
       isCorrect: (selected === qObj.corretta)
     };
+    
+    // Aggiorna pallini subito dopo il click
+    updateDots();
 
     if (currentIndex < questionSet.length - 1) {
       const nextBtn = document.getElementById('nextBtn');
@@ -486,13 +538,19 @@ function handleAnswer(btn, selected, qObj) {
     }
   } 
   else {
+    // ESERCITAZIONE / RIPASSO
+    // Blocca i click multipli sulla stessa domanda
+    if(userAnswers[currentIndex]) return;
+
     const allBtns = document.querySelectorAll('.btn-option');
-    allBtns.forEach(b => { b.onclick = null; b.style.cursor = 'default'; });
+    allBtns.forEach(b => { b.style.cursor = 'default'; });
 
     btn.classList.add('selected');
     const isCorrect = selected === qObj.corretta;
     
-    userAnswers.push({ question: qObj, selected: selected, isCorrect: isCorrect });
+    // Salvataggio con indice in pratica (se vogliamo mantenere coerenza array, ma qui usiamo push di solito)
+    // Per semplicità nel render, usiamo currentIndex come chiave array anche qui
+    userAnswers[currentIndex] = { question: qObj, selected: selected, isCorrect: isCorrect };
 
     if(!isCorrect) trackError(qObj.id);
 
@@ -505,11 +563,12 @@ function handleAnswer(btn, selected, qObj) {
         if(b.innerHTML.includes(`<b>${qObj.corretta}.</b>`)) b.classList.add('correct');
       });
     }
+    
+    updateDots();
 
     if (currentIndex < questionSet.length - 1) {
       const nextBtn = document.getElementById('nextBtn');
       nextBtn.classList.remove('hidden');
-      nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
     } else {
       const endBtn = document.getElementById('endBtn');
       endBtn.classList.remove('hidden');
@@ -522,7 +581,6 @@ function handleAnswer(btn, selected, qObj) {
 function showResults() {
   clearInterval(timerInterval);
   
-  // Calcolo tempo finale
   const endTime = Date.now();
   const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
   const formattedTime = formatTime(elapsedSeconds);
@@ -530,7 +588,8 @@ function showResults() {
   document.getElementById('quizCard').classList.add('hidden');
   document.getElementById('resultCard').classList.remove('hidden');
 
-  const validAnswers = userAnswers.filter(a => a !== null);
+  // Filtra solo le risposte date (evita null)
+  const validAnswers = userAnswers.filter(a => a != null);
   const total = questionSet.length;
   const correct = validAnswers.filter(a => a.isCorrect).length;
   const percentage = Math.round((correct / total) * 100);
@@ -562,8 +621,13 @@ function showResults() {
       title.style.color = "var(--danger)";
       msg.innerText = "Non hai raggiunto il 75%.";
     }
-    // Passiamo il tempo (elapsedSeconds) alla funzione di salvataggio
     saveStats(percentage, isPassed, elapsedSeconds);
+
+    // FIX FONDAMENTALE: Salva gli errori nel DB Errori anche dalla simulazione!
+    validAnswers.forEach(ans => {
+        if(!ans.isCorrect) trackError(ans.question.id);
+    });
+
   } else {
     resBox.className = "result-box pass";
     resBox.style.background = "#eef6ff"; resBox.style.borderColor = "#ccddee";
@@ -573,7 +637,7 @@ function showResults() {
     if(percentage === 100) triggerConfetti();
   }
 
-  // REPORT ERRORI
+  // REPORT VISIVO ERRORI
   const errors = validAnswers.filter(a => !a.isCorrect);
   if(errors.length > 0) {
     reviewSec.classList.remove('hidden');

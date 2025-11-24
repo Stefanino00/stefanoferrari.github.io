@@ -62,11 +62,11 @@
   h1 { margin: 0 0 10px 0; font-size: 22px; color: var(--primary); font-weight: 800; }
   p { margin: 0 0 20px 0; color: var(--text-muted); font-size: 15px; line-height: 1.5; }
 
-  /* NAVIGAZIONE PALLINI SCORREVOLE (Fixed Layout) */
+  /* NAVIGAZIONE PALLINI SCORREVOLE */
   .nav-dots-wrapper {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     margin-bottom: 25px; padding: 10px; background: var(--bg); border-radius: 12px;
-    height: 70px; /* Altezza fissa per evitare salti */
+    height: 70px; 
   }
   
   .nav-dots-container {
@@ -79,30 +79,25 @@
     transform: scale(0.8);
   }
   
-  /* Stato Attivo (Corrente) */
   .nav-dot.active { 
     width: 14px; height: 14px; opacity: 1; 
     border: 2px solid var(--text); transform: scale(1.2); 
     z-index: 2;
   }
   
-  /* Stati Risposta */
   .nav-dot.filled { background: var(--primary); opacity: 0.7; }
   .nav-dot.correct { background: var(--success); opacity: 0.7; }
   .nav-dot.wrong { background: var(--danger); opacity: 0.7; }
 
-  /* Se è attivo E ha uno stato, aumenta opacità */
   .nav-dot.active.filled { background: var(--primary); opacity: 1; border-color: var(--primary); }
   .nav-dot.active.correct { background: var(--success); opacity: 1; border-color: var(--success); }
   .nav-dot.active.wrong { background: var(--danger); opacity: 1; border-color: var(--danger); }
 
-  /* Contatore testuale sotto i pallini */
   .nav-counter {
     font-size: 11px; font-weight: 700; color: var(--text-muted);
     margin-top: 8px; letter-spacing: 1px; font-family: monospace;
   }
 
-  /* STATS GRID */
   .stats-grid {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
     background: var(--primary-light); padding: 15px; border-radius: 12px;
@@ -369,344 +364,4 @@ function checkDatabase() {
 function startSimulation() {
   if(!checkDatabase()) return;
   currentMode = 'simulation';
-  let allQ = [...domandeQuiz];
-  shuffleArray(allQ);
-  questionSet = allQ.slice(0, 20);
-  userAnswers = new Array(questionSet.length).fill(null);
-  setupQuizUI();
-}
-
-function startPractice() {
-  if(!checkDatabase()) return;
-  currentMode = 'practice';
-  questionSet = [...domandeQuiz];
-  shuffleArray(questionSet);
-  userAnswers = [];
-  setupQuizUI();
-}
-
-function startReview() {
-  if(!checkDatabase()) return;
-  currentMode = 'practice'; 
-  const errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
-  const errorIds = Object.keys(errors);
-  
-  if(errorIds.length === 0) {
-    alert("Nessun errore registrato finora! Bravo!");
-    return;
-  }
-  questionSet = domandeQuiz.filter(q => errorIds.includes(q.id.toString()));
-  questionSet.sort((a, b) => (errors[b.id] || 0) - (errors[a.id] || 0));
-  
-  userAnswers = [];
-  setupQuizUI();
-  document.getElementById('modeLabel').innerText = "RIPASSO ERRORI";
-  document.getElementById('modeLabel').className = "badge badge-warn";
-}
-
-function setupQuizUI() {
-  document.getElementById('menuCard').classList.add('hidden');
-  document.getElementById('quizCard').classList.remove('hidden');
-  
-  if(currentMode === 'simulation') {
-    document.getElementById('modeLabel').innerText = 'ESAME';
-    document.getElementById('modeLabel').className = 'badge badge-info';
-  } else if (currentMode === 'practice' && document.getElementById('modeLabel').innerText !== "RIPASSO ERRORI") {
-    document.getElementById('modeLabel').innerText = 'ALLENAMENTO';
-    document.getElementById('modeLabel').className = 'badge badge-info';
-  }
-  
-  currentIndex = 0;
-  startTime = Date.now();
-  startTimer();
-  renderQuestion();
-}
-
-/* ================= NAVIGAZIONE INTELLIGENTE (SLIDING) ================= */
-function updateDots() {
-    const dotsContainer = document.getElementById('navDots');
-    const dotsCounter = document.getElementById('navCounter');
-    dotsContainer.innerHTML = '';
-    
-    const total = questionSet.length;
-    // Mostriamo un range intorno all'indice corrente
-    const range = 2; // 2 prima e 2 dopo (totale 5)
-    
-    let start = Math.max(0, currentIndex - range);
-    let end = Math.min(total, currentIndex + range + 1);
-    
-    // Adjust se siamo all'inizio o alla fine per mantenere sempre 5 pallini (se possibile)
-    if (end - start < 5 && total >= 5) {
-        if (start === 0) end = Math.min(total, start + 5);
-        else if (end === total) start = Math.max(0, end - 5);
-    }
-
-    // Render solo i pallini nel range visibile
-    for (let i = start; i < end; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'nav-dot';
-        
-        if (i === currentIndex) dot.classList.add('active');
-
-        // Colori basati sullo stato
-        if (currentMode === 'simulation') {
-            if (userAnswers[i] != null) dot.classList.add('filled');
-            // Click per navigare (solo in simulazione)
-            dot.onclick = () => {
-                currentIndex = i;
-                renderQuestion();
-            };
-            dot.style.cursor = 'pointer';
-        } else {
-            if (userAnswers[i]) {
-                if (userAnswers[i].isCorrect) dot.classList.add('correct');
-                else dot.classList.add('wrong');
-            }
-        }
-        dotsContainer.appendChild(dot);
-    }
-
-    // Aggiorna contatore testuale
-    dotsCounter.innerText = `${currentIndex + 1} / ${total}`;
-}
-
-function renderQuestion() {
-  const q = questionSet[currentIndex];
-  updateDots();
-
-  document.getElementById('questionText').innerText = q.domanda; // Tolto il numero qui perché c'è nel contatore
-
-  const container = document.getElementById('answersContainer');
-  container.innerHTML = '';
-
-  let savedSelection = null;
-  if(currentMode === 'simulation' && userAnswers[currentIndex]) {
-    savedSelection = userAnswers[currentIndex].selected;
-  } else if (currentMode === 'practice' && userAnswers[currentIndex]) {
-    savedSelection = userAnswers[currentIndex].selected;
-  }
-
-  ['A', 'B', 'C', 'D'].forEach(letter => {
-    if(q.risposte[letter]) {
-      const btn = document.createElement('button');
-      btn.className = 'btn btn-option';
-      btn.innerHTML = `<b>${letter}.</b> ${q.risposte[letter]}`;
-      
-      // Ripristino visuale selezione
-      if(savedSelection === letter) {
-          btn.classList.add('selected');
-          if(currentMode !== 'simulation') {
-             // In pratica mostra anche se è giusto/sbagliato subito se torni sulla domanda (opzionale)
-             if(userAnswers[currentIndex].isCorrect) btn.classList.add('correct');
-             else btn.classList.add('wrong');
-          }
-      }
-      
-      // In pratica, se la domanda è già risposta, mostra anche quella corretta se avevi sbagliato
-      if(currentMode !== 'simulation' && userAnswers[currentIndex] && letter === q.corretta) {
-          btn.classList.add('correct');
-      }
-
-      btn.onclick = () => handleAnswer(btn, letter, q);
-      container.appendChild(btn);
-    }
-  });
-
-  // Gestione Bottoni
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const endBtn = document.getElementById('endBtn');
-  
-  prevBtn.classList.add('hidden');
-  nextBtn.classList.add('hidden');
-  endBtn.classList.add('hidden');
-
-  if(currentIndex > 0) {
-      prevBtn.classList.remove('hidden');
-      prevBtn.onclick = () => { currentIndex--; renderQuestion(); };
-  }
-
-  if(currentMode === 'simulation') {
-      if(currentIndex < questionSet.length - 1) {
-          if(savedSelection) {
-              nextBtn.classList.remove('hidden');
-              nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
-          }
-      } else {
-          if(savedSelection) {
-              endBtn.classList.remove('hidden');
-              endBtn.onclick = showResults;
-          }
-      }
-  } else {
-     // Pratica
-     if (currentIndex < questionSet.length - 1 && userAnswers[currentIndex]) {
-        nextBtn.classList.remove('hidden');
-        nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
-     } else if (currentIndex === questionSet.length - 1 && userAnswers[currentIndex]) {
-        endBtn.classList.remove('hidden');
-        endBtn.onclick = showResults;
-     }
-  }
-}
-
-function handleAnswer(btn, selected, qObj) {
-  if (currentMode === 'simulation') {
-    const allBtns = document.querySelectorAll('.btn-option');
-    allBtns.forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    
-    userAnswers[currentIndex] = {
-      question: qObj, selected: selected, isCorrect: (selected === qObj.corretta)
-    };
-    updateDots();
-
-    if (currentIndex < questionSet.length - 1) {
-      const nextBtn = document.getElementById('nextBtn');
-      nextBtn.classList.remove('hidden');
-      nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
-    } else {
-      const endBtn = document.getElementById('endBtn');
-      endBtn.classList.remove('hidden');
-      endBtn.onclick = showResults;
-    }
-  } 
-  else {
-    // PRATICA
-    if(userAnswers[currentIndex]) return; // Già risposto
-
-    const allBtns = document.querySelectorAll('.btn-option');
-    allBtns.forEach(b => { b.style.cursor = 'default'; });
-
-    btn.classList.add('selected');
-    const isCorrect = selected === qObj.corretta;
-    userAnswers[currentIndex] = { question: qObj, selected: selected, isCorrect: isCorrect };
-
-    if(!isCorrect) trackError(qObj.id);
-
-    if(isCorrect) {
-      btn.classList.add('correct');
-    } else {
-      btn.classList.add('wrong');
-      vibrate(100);
-      allBtns.forEach(b => {
-        if(b.innerHTML.includes(`<b>${qObj.corretta}.</b>`)) b.classList.add('correct');
-      });
-    }
-    updateDots();
-
-    if (currentIndex < questionSet.length - 1) {
-      const nextBtn = document.getElementById('nextBtn');
-      nextBtn.classList.remove('hidden');
-    } else {
-      const endBtn = document.getElementById('endBtn');
-      endBtn.classList.remove('hidden');
-      endBtn.onclick = showResults;
-    }
-  }
-}
-
-function showResults() {
-  clearInterval(timerInterval);
-  const endTime = Date.now();
-  const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
-  const formattedTime = formatTime(elapsedSeconds);
-
-  document.getElementById('quizCard').classList.add('hidden');
-  document.getElementById('resultCard').classList.remove('hidden');
-
-  const validAnswers = userAnswers.filter(a => a != null);
-  const total = questionSet.length;
-  const correct = validAnswers.filter(a => a.isCorrect).length;
-  const percentage = Math.round((correct / total) * 100);
-  const isPassed = percentage >= 75;
-
-  document.getElementById('scoreText').innerText = `${correct} su ${total}`;
-  document.getElementById('scoreBig').innerText = `${percentage}%`;
-  document.getElementById('timeTaken').innerText = `Tempo: ${formattedTime}`;
-  
-  const resBox = document.getElementById('resultBox');
-  const title = document.getElementById('resultTitle');
-  const msg = document.getElementById('resultMessage');
-  const reviewSec = document.getElementById('reviewSection');
-  const errorList = document.getElementById('errorList');
-
-  errorList.innerHTML = '';
-  reviewSec.classList.add('hidden');
-
-  if(currentMode === 'simulation') {
-    if(isPassed) {
-      resBox.className = "result-box pass";
-      title.innerText = "SUPERATO! 🎉";
-      title.style.color = "var(--success)";
-      msg.innerText = "Ottimo lavoro! Soglia 75% raggiunta.";
-      triggerConfetti();
-    } else {
-      resBox.className = "result-box fail";
-      title.innerText = "NON IDONEO";
-      title.style.color = "var(--danger)";
-      msg.innerText = "Non hai raggiunto il 75%.";
-    }
-    saveStats(percentage, isPassed, elapsedSeconds);
-    validAnswers.forEach(ans => {
-        if(!ans.isCorrect) trackError(ans.question.id);
-    });
-  } else {
-    resBox.className = "result-box pass";
-    resBox.style.background = "#eef6ff"; resBox.style.borderColor = "#ccddee";
-    title.innerText = "COMPLETATO";
-    title.style.color = "var(--primary)";
-    msg.innerText = "Sessione terminata.";
-    if(percentage === 100) triggerConfetti();
-  }
-
-  const errors = validAnswers.filter(a => !a.isCorrect);
-  if(errors.length > 0) {
-    reviewSec.classList.remove('hidden');
-    errorList.innerHTML = errors.map(err => {
-      const letters = ['A', 'B', 'C', 'D'];
-      let optionsHtml = letters.map(L => {
-        if(!err.question.risposte[L]) return ''; 
-        const text = err.question.risposte[L];
-        let styleClass = '';
-        let icon = '';
-        if(L === err.question.corretta) { styleClass = 'review-correct'; icon = '✅'; }
-        else if (L === err.selected) { styleClass = 'review-wrong'; icon = '❌'; }
-        else { styleClass = 'review-neutral'; }
-        return `<div class="review-option ${styleClass}"><div style="flex:1"><b>${L}.</b> ${text}</div><div style="margin-left:10px">${icon}</div></div>`;
-      }).join('');
-      return `<div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid var(--border); font-size:14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align:left;"><div style="font-weight:700; color:var(--text); margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">${err.question.domanda}</div>${optionsHtml}</div>`;
-    }).join('');
-  }
-}
-
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-function startTimer() {
-  const display = document.getElementById('timer');
-  timerInterval = setInterval(() => {
-    const delta = Math.floor((Date.now() - startTime) / 1000);
-    display.innerText = formatTime(delta);
-  }, 1000);
-}
-function formatTime(seconds) {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const s = (seconds % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-}
-function vibrate(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
-function triggerConfetti() {
-  var duration = 3000; var end = Date.now() + duration;
-  (function frame() {
-    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
-    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
-    if (Date.now() < end) requestAnimationFrame(frame);
-  }());
-}
-</script>
-</body>
-</html>
+  let

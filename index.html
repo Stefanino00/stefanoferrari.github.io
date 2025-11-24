@@ -62,19 +62,45 @@
   h1 { margin: 0 0 10px 0; font-size: 22px; color: var(--primary); font-weight: 800; }
   p { margin: 0 0 20px 0; color: var(--text-muted); font-size: 15px; line-height: 1.5; }
 
-  /* NAVIGAZIONE PALLINI (Nuovo Stile) */
+  /* NAVIGAZIONE PALLINI SCORREVOLE (Fixed Layout) */
+  .nav-dots-wrapper {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin-bottom: 25px; padding: 10px; background: var(--bg); border-radius: 12px;
+    height: 70px; /* Altezza fissa per evitare salti */
+  }
+  
   .nav-dots-container {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
-    margin-bottom: 20px; padding: 10px; background: var(--bg); border-radius: 12px;
+    display: flex; gap: 8px; justify-content: center; align-items: center;
   }
+
   .nav-dot {
-    width: 12px; height: 12px; border-radius: 50%; background: var(--text-muted);
-    opacity: 0.3; cursor: pointer; transition: all 0.2s;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted);
+    opacity: 0.2; cursor: default; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transform: scale(0.8);
   }
-  .nav-dot.active { transform: scale(1.4); opacity: 1; border: 2px solid var(--text); }
-  .nav-dot.filled { background: var(--primary); opacity: 1; }
-  .nav-dot.correct { background: var(--success); opacity: 1; }
-  .nav-dot.wrong { background: var(--danger); opacity: 1; }
+  
+  /* Stato Attivo (Corrente) */
+  .nav-dot.active { 
+    width: 14px; height: 14px; opacity: 1; 
+    border: 2px solid var(--text); transform: scale(1.2); 
+    z-index: 2;
+  }
+  
+  /* Stati Risposta */
+  .nav-dot.filled { background: var(--primary); opacity: 0.7; }
+  .nav-dot.correct { background: var(--success); opacity: 0.7; }
+  .nav-dot.wrong { background: var(--danger); opacity: 0.7; }
+
+  /* Se è attivo E ha uno stato, aumenta opacità */
+  .nav-dot.active.filled { background: var(--primary); opacity: 1; border-color: var(--primary); }
+  .nav-dot.active.correct { background: var(--success); opacity: 1; border-color: var(--success); }
+  .nav-dot.active.wrong { background: var(--danger); opacity: 1; border-color: var(--danger); }
+
+  /* Contatore testuale sotto i pallini */
+  .nav-counter {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    margin-top: 8px; letter-spacing: 1px; font-family: monospace;
+  }
 
   /* STATS GRID */
   .stats-grid {
@@ -102,9 +128,7 @@
   .btn-primary { background: var(--primary); color: #fff; }
   .btn-secondary { background: transparent; border: 2px solid var(--border); color: var(--text); margin-top: 12px; }
   .btn-warning { background: #fff3cd; color: #856404; margin-top: 12px; border: 1px solid #ffeeba; }
-  .btn-outline { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); }
 
-  /* QUIZ UI */
   .btn-option {
     background: var(--card-bg); border: 2px solid var(--border); color: var(--text);
     text-align: left; justify-content: flex-start; padding: 18px; margin-bottom: 12px;
@@ -114,7 +138,6 @@
   .btn-option.correct { border-color: var(--success); background: rgba(40, 167, 69, 0.1); color: var(--success); }
   .btn-option.wrong { border-color: var(--danger); background: rgba(220, 53, 69, 0.1); color: var(--danger); }
 
-  /* REVIEW STYLES */
   .review-option {
     padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px;
     font-size: 14px; display: flex; justify-content: space-between; align-items: center;
@@ -210,7 +233,10 @@
       <span id="timer" style="font-family:monospace; font-weight:700; font-size:16px; color:var(--text-muted);">00:00</span>
     </div>
 
-    <div id="navDots" class="nav-dots-container"></div>
+    <div class="nav-dots-wrapper">
+        <div id="navDots" class="nav-dots-container"></div>
+        <div id="navCounter" class="nav-counter"></div>
+    </div>
 
     <h2 id="questionText" style="font-size:19px; line-height:1.5; margin-bottom:25px; font-weight:700;">Caricamento...</h2>
 
@@ -246,12 +272,10 @@
 </div>
 
 <script>
-/* ================= CONFIGURAZIONE ================= */
 const ACCESS_CODE = "2005";
 const STATS_KEY = 'tss_stats_v2'; 
 const ERROR_KEY = 'tss_errors_v1';
 
-/* ================= STATO APP ================= */
 let currentMode = ''; 
 let questionSet = [];
 let currentIndex = 0;
@@ -259,7 +283,6 @@ let userAnswers = [];
 let startTime;
 let timerInterval;
 
-/* ================= 1. GESTIONE LOGIN E AVVIO ================= */
 window.addEventListener('load', () => {
   if(sessionStorage.getItem('isLoggedIn') === 'true') {
     showMenu();
@@ -296,7 +319,6 @@ function toggleTheme() {
   document.body.classList.toggle('dark-mode');
 }
 
-/* ================= 2. STATISTICHE E ERRORI ================= */
 function loadStats() {
   const data = localStorage.getItem(STATS_KEY);
   if(data) {
@@ -306,7 +328,6 @@ function loadStats() {
       document.getElementById('statTotal').innerText = stats.total;
       document.getElementById('statPassed').innerText = stats.passed;
       document.getElementById('statBest').innerText = stats.best + "%";
-      
       if(stats.bestTime && stats.bestTime > 0) {
          document.getElementById('statSpeed').innerText = formatTime(stats.bestTime);
       } else {
@@ -340,7 +361,6 @@ function trackError(questionId) {
   localStorage.setItem(ERROR_KEY, JSON.stringify(errors));
 }
 
-/* ================= 3. LOGICA MODALITÀ ================= */
 function checkDatabase() {
   if(typeof domandeQuiz === 'undefined') { alert("Errore: domande.js non trovato"); return false; }
   return true;
@@ -368,7 +388,6 @@ function startPractice() {
 function startReview() {
   if(!checkDatabase()) return;
   currentMode = 'practice'; 
-  
   const errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
   const errorIds = Object.keys(errors);
   
@@ -376,12 +395,8 @@ function startReview() {
     alert("Nessun errore registrato finora! Bravo!");
     return;
   }
-
-  // Conversione ID in stringhe per confronto sicuro
   questionSet = domandeQuiz.filter(q => errorIds.includes(q.id.toString()));
   questionSet.sort((a, b) => (errors[b.id] || 0) - (errors[a.id] || 0));
-
-  if(questionSet.length === 0) { alert("Errore nel recupero domande."); return; }
   
   userAnswers = [];
   setupQuizUI();
@@ -407,53 +422,67 @@ function setupQuizUI() {
   renderQuestion();
 }
 
-/* ================= 4. RENDER DOMANDA E NAVIGAZIONE ================= */
+/* ================= NAVIGAZIONE INTELLIGENTE (SLIDING) ================= */
 function updateDots() {
     const dotsContainer = document.getElementById('navDots');
+    const dotsCounter = document.getElementById('navCounter');
     dotsContainer.innerHTML = '';
     
-    questionSet.forEach((q, idx) => {
+    const total = questionSet.length;
+    // Mostriamo un range intorno all'indice corrente
+    const range = 2; // 2 prima e 2 dopo (totale 5)
+    
+    let start = Math.max(0, currentIndex - range);
+    let end = Math.min(total, currentIndex + range + 1);
+    
+    // Adjust se siamo all'inizio o alla fine per mantenere sempre 5 pallini (se possibile)
+    if (end - start < 5 && total >= 5) {
+        if (start === 0) end = Math.min(total, start + 5);
+        else if (end === total) start = Math.max(0, end - 5);
+    }
+
+    // Render solo i pallini nel range visibile
+    for (let i = start; i < end; i++) {
         const dot = document.createElement('div');
         dot.className = 'nav-dot';
         
-        // Evidenzia pallino corrente
-        if (idx === currentIndex) dot.classList.add('active');
+        if (i === currentIndex) dot.classList.add('active');
 
+        // Colori basati sullo stato
         if (currentMode === 'simulation') {
-            // In simulazione: Blu se risposto
-            if (userAnswers[idx] != null) dot.classList.add('filled');
-            
-            // Permetti click per navigare
+            if (userAnswers[i] != null) dot.classList.add('filled');
+            // Click per navigare (solo in simulazione)
             dot.onclick = () => {
-                currentIndex = idx;
+                currentIndex = i;
                 renderQuestion();
             };
+            dot.style.cursor = 'pointer';
         } else {
-            // In pratica: Verde/Rosso immediato
-            if (userAnswers[idx]) {
-                if (userAnswers[idx].isCorrect) dot.classList.add('correct');
+            if (userAnswers[i]) {
+                if (userAnswers[i].isCorrect) dot.classList.add('correct');
                 else dot.classList.add('wrong');
             }
-            // In pratica niente click per tornare indietro
         }
-        
         dotsContainer.appendChild(dot);
-    });
+    }
+
+    // Aggiorna contatore testuale
+    dotsCounter.innerText = `${currentIndex + 1} / ${total}`;
 }
 
 function renderQuestion() {
   const q = questionSet[currentIndex];
-  
-  // Aggiorna Pallini
   updateDots();
 
-  document.getElementById('questionText').innerText = `${currentIndex + 1}. ${q.domanda}`;
+  document.getElementById('questionText').innerText = q.domanda; // Tolto il numero qui perché c'è nel contatore
 
   const container = document.getElementById('answersContainer');
   container.innerHTML = '';
 
   let savedSelection = null;
   if(currentMode === 'simulation' && userAnswers[currentIndex]) {
+    savedSelection = userAnswers[currentIndex].selected;
+  } else if (currentMode === 'practice' && userAnswers[currentIndex]) {
     savedSelection = userAnswers[currentIndex].selected;
   }
 
@@ -463,14 +492,27 @@ function renderQuestion() {
       btn.className = 'btn btn-option';
       btn.innerHTML = `<b>${letter}.</b> ${q.risposte[letter]}`;
       
-      if(savedSelection === letter) btn.classList.add('selected');
+      // Ripristino visuale selezione
+      if(savedSelection === letter) {
+          btn.classList.add('selected');
+          if(currentMode !== 'simulation') {
+             // In pratica mostra anche se è giusto/sbagliato subito se torni sulla domanda (opzionale)
+             if(userAnswers[currentIndex].isCorrect) btn.classList.add('correct');
+             else btn.classList.add('wrong');
+          }
+      }
+      
+      // In pratica, se la domanda è già risposta, mostra anche quella corretta se avevi sbagliato
+      if(currentMode !== 'simulation' && userAnswers[currentIndex] && letter === q.corretta) {
+          btn.classList.add('correct');
+      }
 
       btn.onclick = () => handleAnswer(btn, letter, q);
       container.appendChild(btn);
     }
   });
 
-  // Gestione Bottoni Navigazione
+  // Gestione Bottoni
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
   const endBtn = document.getElementById('endBtn');
@@ -479,30 +521,26 @@ function renderQuestion() {
   nextBtn.classList.add('hidden');
   endBtn.classList.add('hidden');
 
-  // Logica Bottoni Simulazione
+  if(currentIndex > 0) {
+      prevBtn.classList.remove('hidden');
+      prevBtn.onclick = () => { currentIndex--; renderQuestion(); };
+  }
+
   if(currentMode === 'simulation') {
-      if(currentIndex > 0) {
-          prevBtn.classList.remove('hidden');
-          prevBtn.onclick = () => { currentIndex--; renderQuestion(); };
-      }
-      
       if(currentIndex < questionSet.length - 1) {
-          // Mostra sempre il tasto avanti se c'è già una risposta data
           if(savedSelection) {
               nextBtn.classList.remove('hidden');
               nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
           }
       } else {
-          // Ultima domanda
           if(savedSelection) {
               endBtn.classList.remove('hidden');
               endBtn.onclick = showResults;
           }
       }
-  } 
-  // Logica Esercitazione (Solo avanti)
-  else {
-     if (currentIndex < questionSet.length - 1 && userAnswers[currentIndex]) { // Mostra avanti solo se risposto
+  } else {
+     // Pratica
+     if (currentIndex < questionSet.length - 1 && userAnswers[currentIndex]) {
         nextBtn.classList.remove('hidden');
         nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
      } else if (currentIndex === questionSet.length - 1 && userAnswers[currentIndex]) {
@@ -519,12 +557,8 @@ function handleAnswer(btn, selected, qObj) {
     btn.classList.add('selected');
     
     userAnswers[currentIndex] = {
-      question: qObj,
-      selected: selected,
-      isCorrect: (selected === qObj.corretta)
+      question: qObj, selected: selected, isCorrect: (selected === qObj.corretta)
     };
-    
-    // Aggiorna pallini subito dopo il click
     updateDots();
 
     if (currentIndex < questionSet.length - 1) {
@@ -538,18 +572,14 @@ function handleAnswer(btn, selected, qObj) {
     }
   } 
   else {
-    // ESERCITAZIONE / RIPASSO
-    // Blocca i click multipli sulla stessa domanda
-    if(userAnswers[currentIndex]) return;
+    // PRATICA
+    if(userAnswers[currentIndex]) return; // Già risposto
 
     const allBtns = document.querySelectorAll('.btn-option');
     allBtns.forEach(b => { b.style.cursor = 'default'; });
 
     btn.classList.add('selected');
     const isCorrect = selected === qObj.corretta;
-    
-    // Salvataggio con indice in pratica (se vogliamo mantenere coerenza array, ma qui usiamo push di solito)
-    // Per semplicità nel render, usiamo currentIndex come chiave array anche qui
     userAnswers[currentIndex] = { question: qObj, selected: selected, isCorrect: isCorrect };
 
     if(!isCorrect) trackError(qObj.id);
@@ -563,7 +593,6 @@ function handleAnswer(btn, selected, qObj) {
         if(b.innerHTML.includes(`<b>${qObj.corretta}.</b>`)) b.classList.add('correct');
       });
     }
-    
     updateDots();
 
     if (currentIndex < questionSet.length - 1) {
@@ -577,10 +606,8 @@ function handleAnswer(btn, selected, qObj) {
   }
 }
 
-/* ================= 5. RISULTATI ================= */
 function showResults() {
   clearInterval(timerInterval);
-  
   const endTime = Date.now();
   const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
   const formattedTime = formatTime(elapsedSeconds);
@@ -588,7 +615,6 @@ function showResults() {
   document.getElementById('quizCard').classList.add('hidden');
   document.getElementById('resultCard').classList.remove('hidden');
 
-  // Filtra solo le risposte date (evita null)
   const validAnswers = userAnswers.filter(a => a != null);
   const total = questionSet.length;
   const correct = validAnswers.filter(a => a.isCorrect).length;
@@ -622,12 +648,9 @@ function showResults() {
       msg.innerText = "Non hai raggiunto il 75%.";
     }
     saveStats(percentage, isPassed, elapsedSeconds);
-
-    // FIX FONDAMENTALE: Salva gli errori nel DB Errori anche dalla simulazione!
     validAnswers.forEach(ans => {
         if(!ans.isCorrect) trackError(ans.question.id);
     });
-
   } else {
     resBox.className = "result-box pass";
     resBox.style.background = "#eef6ff"; resBox.style.borderColor = "#ccddee";
@@ -637,57 +660,32 @@ function showResults() {
     if(percentage === 100) triggerConfetti();
   }
 
-  // REPORT VISIVO ERRORI
   const errors = validAnswers.filter(a => !a.isCorrect);
   if(errors.length > 0) {
     reviewSec.classList.remove('hidden');
-    
     errorList.innerHTML = errors.map(err => {
       const letters = ['A', 'B', 'C', 'D'];
       let optionsHtml = letters.map(L => {
         if(!err.question.risposte[L]) return ''; 
-        
         const text = err.question.risposte[L];
         let styleClass = '';
         let icon = '';
-        
-        if(L === err.question.corretta) {
-          styleClass = 'review-correct';
-          icon = '✅';
-        } else if (L === err.selected) {
-          styleClass = 'review-wrong';
-          icon = '❌';
-        } else {
-          styleClass = 'review-neutral';
-        }
-
-        return `
-          <div class="review-option ${styleClass}">
-            <div style="flex:1"><b>${L}.</b> ${text}</div>
-            <div style="margin-left:10px">${icon}</div>
-          </div>
-        `;
+        if(L === err.question.corretta) { styleClass = 'review-correct'; icon = '✅'; }
+        else if (L === err.selected) { styleClass = 'review-wrong'; icon = '❌'; }
+        else { styleClass = 'review-neutral'; }
+        return `<div class="review-option ${styleClass}"><div style="flex:1"><b>${L}.</b> ${text}</div><div style="margin-left:10px">${icon}</div></div>`;
       }).join('');
-
-      return `
-      <div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid var(--border); font-size:14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align:left;">
-        <div style="font-weight:700; color:var(--text); margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">
-          ${err.question.domanda}
-        </div>
-        ${optionsHtml}
-      </div>
-    `}).join('');
+      return `<div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid var(--border); font-size:14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align:left;"><div style="font-weight:700; color:var(--text); margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">${err.question.domanda}</div>${optionsHtml}</div>`;
+    }).join('');
   }
 }
 
-/* ================= UTILS ================= */
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
 }
-
 function startTimer() {
   const display = document.getElementById('timer');
   timerInterval = setInterval(() => {
@@ -695,15 +693,12 @@ function startTimer() {
     display.innerText = formatTime(delta);
   }, 1000);
 }
-
 function formatTime(seconds) {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
 }
-
 function vibrate(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
-
 function triggerConfetti() {
   var duration = 3000; var end = Date.now() + duration;
   (function frame() {

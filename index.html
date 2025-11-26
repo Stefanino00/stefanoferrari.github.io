@@ -4,137 +4,186 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stefano Ferrari</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            /* Palette colori - Modifica qui se vuoi cambiare mood */
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            /* STESSA PALETTE DEL QUIZ TSS PER COERENZA TOTALE */
+            --primary: #0056b3;
+            --primary-light: #eef6ff; /* Sfondo bottoni hover */
+            --accent: #00a8e8;
+            --text: #212529;
+            --text-muted: #6c757d;
+            --bg: #f4f6f8; /* Sfondo pagina identico al quiz */
             --card-bg: #ffffff;
-            --text-color: #333333;
-            --accent-color: #764ba2;
+            --radius: 16px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06); /* Ombra leggera elegante */
+            --border: #eef0f2;
+            --danger: #dc3545;
         }
 
         body {
             margin: 0;
             padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text-color);
-            overflow: hidden; /* Evita scrollbar inutili */
+            flex-direction: column;
         }
 
-        /* La Card centrale */
+        .container {
+            width: 100%;
+            max-width: 380px; /* Card compatta ed elegante */
+            padding: 20px;
+        }
+
         .card {
             background: var(--card-bg);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15); /* Ombra morbida e profonda */
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 40px 30px;
             text-align: center;
-            width: 100%;
-            max-width: 320px;
-            transition: transform 0.3s ease;
+            border: 1px solid white; /* Un tocco di luce sul bordo */
+            
+            /* Animazione Ingresso */
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
-        /* Titolo */
+        /* Icona SVG animata */
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+        }
+        
         h1 {
-            font-weight: 600;
+            margin: 0 0 10px 0;
             font-size: 24px;
-            margin-bottom: 10px;
-            color: #2c3e50;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
         }
 
-        p.subtitle {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-top: 0;
-            margin-bottom: 30px;
+        p {
+            margin: 0 0 30px 0;
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.5;
         }
 
-        /* Input stiloso */
-        .input-group {
-            position: relative;
-            margin-bottom: 25px;
-        }
-
+        /* Input identico allo stile quiz */
         input {
             width: 100%;
-            padding: 15px;
-            box-sizing: border-box; /* Importante per i padding */
-            border: 2px solid #ecf0f1;
+            padding: 16px;
             border-radius: 12px;
-            font-size: 18px;
-            text-align: center;
+            border: 2px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 18px; /* Un po' più grande per il codice */
             outline: none;
-            transition: all 0.3s ease;
-            color: #333;
+            text-align: center;
             font-family: 'Inter', sans-serif;
-            letter-spacing: 2px; /* Rende i pallini della password più eleganti */
-        }
-
-        input:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1); /* Alone colorato */
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            letter-spacing: 4px; /* Spazia i caratteri della password */
         }
 
         input::placeholder {
-            color: #bdc3c7;
+            font-weight: 400;
             letter-spacing: normal;
-            font-size: 16px;
+            font-size: 15px;
+            color: #bdc3c7;
         }
 
-        /* Bottone moderno */
+        input:focus {
+            border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(0, 168, 232, 0.1);
+        }
+
+        input.error-shake {
+            border-color: var(--danger);
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* Bottone identico allo stile quiz */
         button {
             width: 100%;
-            padding: 15px;
-            background: var(--accent-color);
-            color: white;
+            padding: 16px;
             border: none;
             border-radius: 12px;
+            background: var(--primary);
+            color: #fff;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+            transition: transform 0.1s, background 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 86, 179, 0.2);
         }
 
         button:hover {
+            background: #004494; /* Un po' più scuro all'hover */
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(118, 75, 162, 0.4);
-            filter: brightness(1.1);
         }
 
         button:active {
-            transform: translateY(1px);
+            transform: scale(0.98);
         }
 
-        /* Footer simpatico */
         .footer {
             margin-top: 30px;
             font-size: 12px;
             color: #b0b8bc;
+            font-weight: 500;
+        }
+
+        /* Keyframes Animazioni */
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
 
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>Ciao  👋</h1>
-        <p class="subtitle">Inserisci il codice per accedere</p>
+    <div class="container">
+        <div class="card">
+            
+            <div class="icon-box">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
 
-        <div class="input-group">
-            <input type="password" id="secretCode" placeholder="Inserisci il codice" autocomplete="off">
-        </div>
+            <h1>Bentornato</h1>
+            <p>Inserisci il codice di accesso.</p>
 
-        <button id="btnEnter" onclick="vaiAllaPagina()">Entra</button>
+            <input type="password" id="secretCode" placeholder="••••" autocomplete="off" maxlength="4">
+            
+            <button id="btnEnter" onclick="vaiAllaPagina()">Accedi</button>
 
-        <div class="footer">
-            Designed by Stefano Ferrari
+            
         </div>
     </div>
 
@@ -142,30 +191,43 @@
         function vaiAllaPagina() {
             const input = document.getElementById("secretCode");
             const btn = document.getElementById("btnEnter");
-            const code = input.value.trim(); // Rimuove spazi accidentali
+            const code = input.value.trim();
 
             if(code) {
-                // Piccolo effetto grafico: cambio testo bottone
-                btn.innerHTML = "Caricamento...";
-                btn.style.opacity = "0.7";
+                // Feedback visivo sul bottone
+                const originalText = btn.innerText;
+                btn.innerText = "Attendi...";
+                btn.style.opacity = "0.8";
                 
-                // Ritardo artificiale di 300ms per dare fluidità all'animazione (opzionale)
+                // Piccolo timeout per dare fluidità
                 setTimeout(() => {
+                    // Reindirizzamento
                     window.location.href = "./" + code + "/";
-                }, 300);
+                    
+                    // Se la cartella non esiste, Netlify mostrerà 404, 
+                    // ma l'utente vedrà l'azione partire.
+                }, 400);
+
             } else {
-                // Shake effect se il campo è vuoto (CSS inline veloce)
-                input.style.borderColor = "red";
-                setTimeout(() => { input.style.borderColor = "#ecf0f1"; }, 1000);
+                // Animazione di errore se vuoto
+                input.classList.add("error-shake");
+                setTimeout(() => {
+                    input.classList.remove("error-shake");
+                }, 400);
             }
         }
 
-        // Ascolto il tasto INVIO
+        // Tasto Invio
         document.getElementById("secretCode").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 vaiAllaPagina();
             }
         });
+        
+        // Focus automatico all'avvio
+        window.onload = function() {
+            document.getElementById("secretCode").focus();
+        };
     </script>
 
 </body>

@@ -68,7 +68,7 @@
     margin-bottom: 25px; padding: 10px; background: var(--bg); border-radius: 12px;
     height: 70px; 
   }
-  
+   
   .nav-dots-container {
     display: flex; gap: 8px; justify-content: center; align-items: center;
   }
@@ -78,13 +78,13 @@
     opacity: 0.2; cursor: default; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     transform: scale(0.8);
   }
-  
+   
   .nav-dot.active { 
     width: 14px; height: 14px; opacity: 1; 
     border: 2px solid var(--text); transform: scale(1.2); 
     z-index: 2;
   }
-  
+   
   .nav-dot.filled { background: var(--primary); opacity: 0.7; }
   .nav-dot.correct { background: var(--success); opacity: 0.7; }
   .nav-dot.wrong { background: var(--danger); opacity: 0.7; }
@@ -106,13 +106,6 @@
   .stat-item { display: flex; flex-direction: column; align-items: center; }
   .stat-val { font-size: 18px; font-weight: 800; color: var(--primary); white-space: nowrap;}
   .stat-lbl { font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
-
-  input[type=password] {
-    width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--border);
-    background: var(--bg); color: var(--text); font-size: 16px; margin-bottom: 15px;
-    outline: none; text-align: center;
-  }
-  input:focus { border-color: var(--accent); }
 
   .btn {
     width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px;
@@ -143,7 +136,7 @@
   .review-neutral { opacity: 0.7; }
 
   .exit-btn { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; padding: 0 10px; }
-  
+   
   .badge { padding: 6px 12px; border-radius: 30px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; }
   .badge-info { background: var(--primary-light); color: var(--primary); }
   .badge-warn { background: #fff3cd; color: #856404; }
@@ -161,21 +154,10 @@
 <body>
 
 <div class="container">
-   
+    
   <button class="theme-toggle" onclick="toggleTheme()">🌗</button>
 
-  <div id="loginCard" class="card fade-in">
-    <div style="margin-bottom: 20px;">
-      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-    </div>
-    <h1>Training TSS</h1>
-    <p>Inserisci il codice per accedere.</p>
-    <input id="accessCode" type="password" placeholder="Codice Accesso" inputmode="numeric">
-    <button id="btnLogin" class="btn btn-primary">Accedi</button>
-    <div id="loginMsg" style="color:var(--danger); margin-top:15px; font-size:14px; font-weight:600;"></div>
-  </div>
-
-  <div id="menuCard" class="card hidden fade-in">
+  <div id="menuCard" class="card fade-in">
     <h1>Benvenuto</h1>
     
     <div id="statsBox" class="hidden">
@@ -267,7 +249,7 @@
 </div>
 
 <script>
-const ACCESS_CODE = "2005";
+// --- CONFIGURAZIONE ---
 const STATS_KEY = 'tss_stats_v2'; 
 const ERROR_KEY = 'tss_errors_v1';
 
@@ -278,25 +260,12 @@ let userAnswers = [];
 let startTime;
 let timerInterval;
 
+// All'avvio, carichiamo subito le statistiche (non c'è più il login)
 window.addEventListener('load', () => {
-  if(sessionStorage.getItem('isLoggedIn') === 'true') {
-    showMenu();
-  }
-});
-
-document.getElementById('btnLogin').addEventListener('click', () => {
-  const input = document.getElementById('accessCode').value;
-  if(input === ACCESS_CODE) {
-    sessionStorage.setItem('isLoggedIn', 'true');
-    showMenu();
-  } else {
-    document.getElementById('loginMsg').innerText = "Codice errato.";
-    vibrate(200);
-  }
+    loadStats();
 });
 
 function showMenu() {
-  document.getElementById('loginCard').classList.add('hidden');
   document.getElementById('resultCard').classList.add('hidden');
   document.getElementById('quizCard').classList.add('hidden');
   document.getElementById('menuCard').classList.remove('hidden');
@@ -385,14 +354,14 @@ function startReview() {
   currentMode = 'practice'; 
   const errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
   const errorIds = Object.keys(errors);
-  
+   
   if(errorIds.length === 0) {
     alert("Nessun errore registrato finora! Bravo!");
     return;
   }
   questionSet = domandeQuiz.filter(q => errorIds.includes(q.id.toString()));
   questionSet.sort((a, b) => (errors[b.id] || 0) - (errors[a.id] || 0));
-  
+   
   userAnswers = [];
   setupQuizUI();
   document.getElementById('modeLabel').innerText = "RIPASSO ERRORI";
@@ -402,7 +371,7 @@ function startReview() {
 function setupQuizUI() {
   document.getElementById('menuCard').classList.add('hidden');
   document.getElementById('quizCard').classList.remove('hidden');
-  
+   
   if(currentMode === 'simulation') {
     document.getElementById('modeLabel').innerText = 'ESAME';
     document.getElementById('modeLabel').className = 'badge badge-info';
@@ -410,7 +379,7 @@ function setupQuizUI() {
     document.getElementById('modeLabel').innerText = 'ALLENAMENTO';
     document.getElementById('modeLabel').className = 'badge badge-info';
   }
-  
+   
   currentIndex = 0;
   startTime = Date.now();
   startTimer();
@@ -502,7 +471,7 @@ function renderQuestion() {
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
   const endBtn = document.getElementById('endBtn');
-  
+   
   prevBtn.classList.add('hidden');
   nextBtn.classList.add('hidden');
   endBtn.classList.add('hidden');
@@ -581,7 +550,6 @@ function handleAnswer(btn, selected, qObj) {
     }
     updateDots();
 
-    // *** FIX QUI SOTTO: Aggiunto l'evento onclick al bottone ***
     if (currentIndex < questionSet.length - 1) {
       const nextBtn = document.getElementById('nextBtn');
       nextBtn.classList.remove('hidden');
@@ -612,7 +580,7 @@ function showResults() {
   document.getElementById('scoreText').innerText = `${correct} su ${total}`;
   document.getElementById('scoreBig').innerText = `${percentage}%`;
   document.getElementById('timeTaken').innerText = `Tempo: ${formattedTime}`;
-  
+   
   const resBox = document.getElementById('resultBox');
   const title = document.getElementById('resultTitle');
   const msg = document.getElementById('resultMessage');

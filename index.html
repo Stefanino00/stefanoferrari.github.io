@@ -3,70 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Area Riservata Stefano</title>
+    <title>Stefano Ferrari</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <style>
-        /* Un po' di stile veloce dark mode, visto che sei grafico apprezzerai */
+        :root {
+            /* Palette colori - Modifica qui se vuoi cambiare mood */
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --accent-color: #764ba2;
+        }
+
         body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: 'Courier New', Courier, monospace; /* Font stile terminale/codice */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            flex-direction: column;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            overflow: hidden; /* Evita scrollbar inutili */
         }
+
+        /* La Card centrale */
+        .card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15); /* Ombra morbida e profonda */
+            text-align: center;
+            width: 100%;
+            max-width: 320px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Titolo */
+        h1 {
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        /* Input stiloso */
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
         input {
+            width: 100%;
             padding: 15px;
+            box-sizing: border-box; /* Importante per i padding */
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
             font-size: 18px;
-            border-radius: 5px;
-            border: 1px solid #333;
-            background: #1e1e1e;
-            color: white;
             text-align: center;
             outline: none;
-            width: 200px;
+            transition: all 0.3s ease;
+            color: #333;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 2px; /* Rende i pallini della password più eleganti */
         }
-        input:focus { border-color: #00ff00; }
-        button {
-            margin-top: 20px;
-            padding: 10px 30px;
-            background-color: #00ff00;
-            color: black;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+
+        input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1); /* Alone colorato */
+        }
+
+        input::placeholder {
+            color: #bdc3c7;
+            letter-spacing: normal;
             font-size: 16px;
         }
-        button:hover { background-color: #00cc00; }
-        .hint { margin-top: 20px; font-size: 12px; color: #555; }
+
+        /* Bottone moderno */
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(118, 75, 162, 0.4);
+            filter: brightness(1.1);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Footer simpatico */
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #b0b8bc;
+        }
+
     </style>
 </head>
 <body>
 
-    <div>
-        <h2>>> INSERIRE CODICE D'ACCESSO_</h2>
-    </div>
+    <div class="card">
+        <h1>Ciao  👋</h1>
+        <p class="subtitle">Inserisci il codice per accedere</p>
 
-    <input type="password" id="secretCode" placeholder="****" autocomplete="off">
-    <button onclick="vaiAllaPagina()">ENTER</button>
+        <div class="input-group">
+            <input type="password" id="secretCode" placeholder="Inserisci il codice" autocomplete="off">
+        </div>
+
+        <button id="btnEnter" onclick="vaiAllaPagina()">Entra</button>
+
+        <div class="footer">
+            Designed by Stefano Ferrari
+        </div>
+    </div>
 
     <script>
         function vaiAllaPagina() {
-            // 1. Prendo il valore scritto
-            var codice = document.getElementById("secretCode").value;
+            const input = document.getElementById("secretCode");
+            const btn = document.getElementById("btnEnter");
+            const code = input.value.trim(); // Rimuove spazi accidentali
 
-            // 2. Se non è vuoto, provo ad aprire la cartella
-            if (codice) {
-                // Il trucco: window.location.href reindirizza l'utente
-                // Aggiunge anche uno slash finale per sicurezza
-                window.location.href = "./" + codice + "/"; 
+            if(code) {
+                // Piccolo effetto grafico: cambio testo bottone
+                btn.innerHTML = "Caricamento...";
+                btn.style.opacity = "0.7";
+                
+                // Ritardo artificiale di 300ms per dare fluidità all'animazione (opzionale)
+                setTimeout(() => {
+                    window.location.href = "./" + code + "/";
+                }, 300);
+            } else {
+                // Shake effect se il campo è vuoto (CSS inline veloce)
+                input.style.borderColor = "red";
+                setTimeout(() => { input.style.borderColor = "#ecf0f1"; }, 1000);
             }
         }
 
-        // Permette di premere INVIO invece di cliccare il bottone
+        // Ascolto il tasto INVIO
         document.getElementById("secretCode").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 vaiAllaPagina();

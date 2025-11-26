@@ -1,700 +1,78 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Simulazione Esame TSS</title>
-
-<script src="domande.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<style>
-  :root {
-    --primary: #0056b3;
-    --primary-light: #eef6ff;
-    --accent: #00a8e8;
-    --success: #28a745;
-    --danger: #dc3545;
-    --text: #212529;
-    --text-muted: #6c757d;
-    --bg: #f4f6f8;
-    --card-bg: #ffffff;
-    --radius: 16px;
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    --border: #eef0f2;
-  }
-
-  body.dark-mode {
-    --primary: #4dabf7;
-    --primary-light: #1a2636;
-    --accent: #3bc9db;
-    --success: #40c057;
-    --danger: #fa5252;
-    --text: #e9ecef;
-    --text-muted: #adb5bd;
-    --bg: #121212;
-    --card-bg: #1e1e1e;
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    --border: #2c2e33;
-  }
-
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
-    min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px;
-    transition: background 0.3s, color 0.3s;
-  }
-
-  .container { width: 100%; max-width: 600px; margin: auto; position: relative; }
-
-  .theme-toggle {
-    position: absolute; top: -50px; right: 0; background: none; border: none;
-    color: var(--text-muted); cursor: pointer; font-size: 24px;
-  }
-
-  .card {
-    background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: 24px; margin-bottom: 20px; text-align: center; transition: background 0.3s;
-  }
-
-  h1 { margin: 0 0 10px 0; font-size: 22px; color: var(--primary); font-weight: 800; }
-  p { margin: 0 0 20px 0; color: var(--text-muted); font-size: 15px; line-height: 1.5; }
-
-  /* NAVIGAZIONE PALLINI SCORREVOLE */
-  .nav-dots-wrapper {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    margin-bottom: 25px; padding: 10px; background: var(--bg); border-radius: 12px;
-    height: 70px; 
-  }
-  
-  .nav-dots-container {
-    display: flex; gap: 8px; justify-content: center; align-items: center;
-  }
-
-  .nav-dot {
-    width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted);
-    opacity: 0.2; cursor: default; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    transform: scale(0.8);
-  }
-  
-  .nav-dot.active { 
-    width: 14px; height: 14px; opacity: 1; 
-    border: 2px solid var(--text); transform: scale(1.2); 
-    z-index: 2;
-  }
-  
-  .nav-dot.filled { background: var(--primary); opacity: 0.7; }
-  .nav-dot.correct { background: var(--success); opacity: 0.7; }
-  .nav-dot.wrong { background: var(--danger); opacity: 0.7; }
-
-  .nav-dot.active.filled { background: var(--primary); opacity: 1; border-color: var(--primary); }
-  .nav-dot.active.correct { background: var(--success); opacity: 1; border-color: var(--success); }
-  .nav-dot.active.wrong { background: var(--danger); opacity: 1; border-color: var(--danger); }
-
-  .nav-counter {
-    font-size: 11px; font-weight: 700; color: var(--text-muted);
-    margin-top: 8px; letter-spacing: 1px; font-family: monospace;
-  }
-
-  .stats-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
-    background: var(--primary-light); padding: 15px; border-radius: 12px;
-    margin-bottom: 20px; margin-top: 10px;
-  }
-  .stat-item { display: flex; flex-direction: column; align-items: center; }
-  .stat-val { font-size: 18px; font-weight: 800; color: var(--primary); white-space: nowrap;}
-  .stat-lbl { font-size: 10px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
-
-  input[type=password] {
-    width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--border);
-    background: var(--bg); color: var(--text); font-size: 16px; margin-bottom: 15px;
-    outline: none; text-align: center;
-  }
-  input:focus { border-color: var(--accent); }
-
-  .btn {
-    width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px;
-    font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    gap: 10px; transition: transform 0.1s;
-  }
-  .btn:active { transform: scale(0.98); }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-secondary { background: transparent; border: 2px solid var(--border); color: var(--text); margin-top: 12px; }
-  .btn-warning { background: #fff3cd; color: #856404; margin-top: 12px; border: 1px solid #ffeeba; }
-
-  .btn-option {
-    background: var(--card-bg); border: 2px solid var(--border); color: var(--text);
-    text-align: left; justify-content: flex-start; padding: 18px; margin-bottom: 12px;
-    font-weight: 500; line-height: 1.4; cursor: pointer; width: 100%; border-radius: 10px;
-  }
-  .btn-option.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
-  .btn-option.correct { border-color: var(--success); background: rgba(40, 167, 69, 0.1); color: var(--success); }
-  .btn-option.wrong { border-color: var(--danger); background: rgba(220, 53, 69, 0.1); color: var(--danger); }
-
-  .review-option {
-    padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px;
-    font-size: 14px; display: flex; justify-content: space-between; align-items: center;
-    background: var(--card-bg); color: var(--text-muted);
-  }
-  .review-correct { border-color: var(--success); background: rgba(40, 167, 69, 0.15); color: var(--success); font-weight: 600; }
-  .review-wrong { border-color: var(--danger); background: rgba(220, 53, 69, 0.15); color: var(--danger); font-weight: 600; }
-  .review-neutral { opacity: 0.7; }
-
-  .exit-btn { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; padding: 0 10px; }
-  
-  .badge { padding: 6px 12px; border-radius: 30px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; }
-  .badge-info { background: var(--primary-light); color: var(--primary); }
-  .badge-warn { background: #fff3cd; color: #856404; }
-
-  .result-box { padding: 25px; border-radius: var(--radius); margin-bottom: 25px; }
-  .pass { background: rgba(40, 167, 69, 0.1); color: var(--success); border: 1px solid var(--success); }
-  .fail { background: rgba(220, 53, 69, 0.1); color: var(--danger); border: 1px solid var(--danger); }
-  .score-big { font-size: 48px; font-weight: 900; margin: 10px 0; }
-
-  .hidden { display: none !important; }
-  .fade-in { animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Area Riservata Stefano</title>
+    <style>
+        /* Un po' di stile veloce dark mode, visto che sei grafico apprezzerai */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace; /* Font stile terminale/codice */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        input {
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background: #1e1e1e;
+            color: white;
+            text-align: center;
+            outline: none;
+            width: 200px;
+        }
+        input:focus { border-color: #00ff00; }
+        button {
+            margin-top: 20px;
+            padding: 10px 30px;
+            background-color: #00ff00;
+            color: black;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background-color: #00cc00; }
+        .hint { margin-top: 20px; font-size: 12px; color: #555; }
+    </style>
 </head>
 <body>
 
-<div class="container">
-   
-  <button class="theme-toggle" onclick="toggleTheme()">🌗</button>
-
-  <div id="loginCard" class="card fade-in">
-    <div style="margin-bottom: 20px;">
-      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-    </div>
-    <h1>Training TSS</h1>
-    <p>Inserisci il codice per accedere.</p>
-    <input id="accessCode" type="password" placeholder="Codice Accesso" inputmode="numeric">
-    <button id="btnLogin" class="btn btn-primary">Accedi</button>
-    <div id="loginMsg" style="color:var(--danger); margin-top:15px; font-size:14px; font-weight:600;"></div>
-  </div>
-
-  <div id="menuCard" class="card hidden fade-in">
-    <h1>Benvenuto</h1>
-    
-    <div id="statsBox" class="hidden">
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div id="statTotal" class="stat-val">0</div>
-          <div class="stat-lbl">Esami</div>
-        </div>
-        <div class="stat-item">
-          <div id="statPassed" class="stat-val" style="color:var(--success)">0</div>
-          <div class="stat-lbl">Passati</div>
-        </div>
-        <div class="stat-item">
-          <div id="statBest" class="stat-val" style="color:var(--accent)">0%</div>
-          <div class="stat-lbl">Record</div>
-        </div>
-        <div class="stat-item">
-          <div id="statSpeed" class="stat-val" style="color:#e83e8c; font-family:monospace; font-size:16px;">--:--</div>
-          <div class="stat-lbl">Best Time</div>
-        </div>
-      </div>
+    <div>
+        <h2>>> INSERIRE CODICE D'ACCESSO_</h2>
     </div>
 
-    <p>Scegli una modalità:</p>
-    
-    <button onclick="startSimulation()" class="btn btn-primary">
-      Simulazione Esame
-    </button>
-    <p style="font-size:12px; margin-top:8px; color:var(--text-muted);">
-      20 Domande • Navigazione Libera • Esito finale<br>
-      <strong>Superamento al 75%</strong>
-    </p>
+    <input type="password" id="secretCode" placeholder="****" autocomplete="off">
+    <button onclick="vaiAllaPagina()">ENTER</button>
 
-    <button onclick="startPractice()" class="btn btn-secondary">
-      Esercitazione Libera
-    </button>
-    <p style="font-size:12px; margin-top:8px; color:var(--text-muted);">Tutte le domande • Feedback immediato</p>
+    <script>
+        function vaiAllaPagina() {
+            // 1. Prendo il valore scritto
+            var codice = document.getElementById("secretCode").value;
 
-    <button onclick="startReview()" class="btn btn-warning">
-      ⚠️ Ripasso Errori
-    </button>
-    <p style="font-size:12px; margin-top:8px; color:var(--text-muted);">Rifai solo le domande sbagliate in passato</p>
-  </div>
-
-  <div id="quizCard" class="card hidden" style="text-align: left;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-      <button class="exit-btn" onclick="goToMenu()">✕</button>
-      
-      <span id="modeLabel" class="badge badge-info">SIMULAZIONE</span>
-      <span id="timer" style="font-family:monospace; font-weight:700; font-size:16px; color:var(--text-muted);">00:00</span>
-    </div>
-
-    <div class="nav-dots-wrapper">
-        <div id="navDots" class="nav-dots-container"></div>
-        <div id="navCounter" class="nav-counter"></div>
-    </div>
-
-    <h2 id="questionText" style="font-size:19px; line-height:1.5; margin-bottom:25px; font-weight:700;">Caricamento...</h2>
-
-    <div id="answersContainer"></div>
-
-    <div style="margin-top:25px; display:flex; gap:10px;">
-        <button id="prevBtn" class="btn btn-secondary hidden" style="margin-top:0; flex:1;">Indietro</button>
-        <button id="nextBtn" class="btn btn-primary hidden" style="flex:2;">Avanti</button>
-        <button id="endBtn" class="btn btn-primary hidden" style="background:var(--text-muted); flex:2;">Consegna</button>
-    </div>
-  </div>
-
-  <div id="resultCard" class="card hidden fade-in">
-    <h1 id="resultTitle">Esito Esame</h1>
-    
-    <div id="resultBox" class="result-box">
-      <div style="font-size:13px; text-transform:uppercase; letter-spacing:1px; font-weight:700; opacity:0.8;">Punteggio Finale</div>
-      <div id="scoreBig" class="score-big">0%</div>
-      <div id="scoreText" style="font-weight:600;">0 su 20</div>
-      <div id="timeTaken" style="font-size:14px; margin-top:5px; color:var(--text-muted); font-family:monospace;"></div>
-    </div>
-
-    <p id="resultMessage" style="font-weight:500;">Messaggio</p>
-
-    <button onclick="goToMenu()" class="btn btn-primary">Torna al Menu</button>
-    
-    <div id="reviewSection" class="hidden" style="margin-top:30px; text-align:left;">
-      <h3 style="font-size:16px; color:var(--danger); margin-bottom:15px;">Riepilogo Errori Sessione:</h3>
-      <div id="errorList"></div>
-    </div>
-  </div>
-
-</div>
-
-<script>
-const ACCESS_CODE = "2005";
-const STATS_KEY = 'tss_stats_v2'; 
-const ERROR_KEY = 'tss_errors_v1';
-
-let currentMode = ''; 
-let questionSet = [];
-let currentIndex = 0;
-let userAnswers = []; 
-let startTime;
-let timerInterval;
-
-window.addEventListener('load', () => {
-  if(sessionStorage.getItem('isLoggedIn') === 'true') {
-    showMenu();
-  }
-});
-
-document.getElementById('btnLogin').addEventListener('click', () => {
-  const input = document.getElementById('accessCode').value;
-  if(input === ACCESS_CODE) {
-    sessionStorage.setItem('isLoggedIn', 'true');
-    showMenu();
-  } else {
-    document.getElementById('loginMsg').innerText = "Codice errato.";
-    vibrate(200);
-  }
-});
-
-function showMenu() {
-  document.getElementById('loginCard').classList.add('hidden');
-  document.getElementById('resultCard').classList.add('hidden');
-  document.getElementById('quizCard').classList.add('hidden');
-  document.getElementById('menuCard').classList.remove('hidden');
-  loadStats();
-}
-
-function goToMenu() {
-  clearInterval(timerInterval);
-  userAnswers = [];
-  currentIndex = 0;
-  showMenu();
-}
-
-function toggleTheme() {
-  document.body.classList.toggle('dark-mode');
-}
-
-function loadStats() {
-  const data = localStorage.getItem(STATS_KEY);
-  if(data) {
-    const stats = JSON.parse(data);
-    if(stats.total > 0) {
-      document.getElementById('statsBox').classList.remove('hidden');
-      document.getElementById('statTotal').innerText = stats.total;
-      document.getElementById('statPassed').innerText = stats.passed;
-      document.getElementById('statBest').innerText = stats.best + "%";
-      if(stats.bestTime && stats.bestTime > 0) {
-         document.getElementById('statSpeed').innerText = formatTime(stats.bestTime);
-      } else {
-         document.getElementById('statSpeed').innerText = "--:--";
-      }
-    }
-  }
-}
-
-function saveStats(percentage, passed, timeInSeconds) {
-  let stats = { total: 0, passed: 0, best: 0, bestTime: 0 };
-  const data = localStorage.getItem(STATS_KEY);
-  if(data) stats = JSON.parse(data);
-
-  stats.total++;
-  if(passed) stats.passed++;
-  if(percentage > stats.best) stats.best = percentage;
-
-  if(percentage === 100) {
-      if(stats.bestTime === 0 || timeInSeconds < stats.bestTime) {
-          stats.bestTime = timeInSeconds;
-      }
-  }
-
-  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-}
-
-function trackError(questionId) {
-  let errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
-  errors[questionId] = (errors[questionId] || 0) + 1;
-  localStorage.setItem(ERROR_KEY, JSON.stringify(errors));
-}
-
-function checkDatabase() {
-  if(typeof domandeQuiz === 'undefined') { alert("Errore: domande.js non trovato"); return false; }
-  return true;
-}
-
-function startSimulation() {
-  if(!checkDatabase()) return;
-  currentMode = 'simulation';
-  let allQ = [...domandeQuiz];
-  shuffleArray(allQ);
-  questionSet = allQ.slice(0, 20);
-  userAnswers = new Array(questionSet.length).fill(null);
-  setupQuizUI();
-}
-
-function startPractice() {
-  if(!checkDatabase()) return;
-  currentMode = 'practice';
-  questionSet = [...domandeQuiz];
-  shuffleArray(questionSet);
-  userAnswers = [];
-  setupQuizUI();
-}
-
-function startReview() {
-  if(!checkDatabase()) return;
-  currentMode = 'practice'; 
-  const errors = JSON.parse(localStorage.getItem(ERROR_KEY)) || {};
-  const errorIds = Object.keys(errors);
-  
-  if(errorIds.length === 0) {
-    alert("Nessun errore registrato finora! Bravo!");
-    return;
-  }
-  questionSet = domandeQuiz.filter(q => errorIds.includes(q.id.toString()));
-  questionSet.sort((a, b) => (errors[b.id] || 0) - (errors[a.id] || 0));
-  
-  userAnswers = [];
-  setupQuizUI();
-  document.getElementById('modeLabel').innerText = "RIPASSO ERRORI";
-  document.getElementById('modeLabel').className = "badge badge-warn";
-}
-
-function setupQuizUI() {
-  document.getElementById('menuCard').classList.add('hidden');
-  document.getElementById('quizCard').classList.remove('hidden');
-  
-  if(currentMode === 'simulation') {
-    document.getElementById('modeLabel').innerText = 'ESAME';
-    document.getElementById('modeLabel').className = 'badge badge-info';
-  } else if (currentMode === 'practice' && document.getElementById('modeLabel').innerText !== "RIPASSO ERRORI") {
-    document.getElementById('modeLabel').innerText = 'ALLENAMENTO';
-    document.getElementById('modeLabel').className = 'badge badge-info';
-  }
-  
-  currentIndex = 0;
-  startTime = Date.now();
-  startTimer();
-  renderQuestion();
-}
-
-/* ================= NAVIGAZIONE INTELLIGENTE (SLIDING) ================= */
-function updateDots() {
-    const dotsContainer = document.getElementById('navDots');
-    const dotsCounter = document.getElementById('navCounter');
-    dotsContainer.innerHTML = '';
-    
-    const total = questionSet.length;
-    // Mostriamo un range intorno all'indice corrente
-    const range = 2; // 2 prima e 2 dopo (totale 5)
-    
-    let start = Math.max(0, currentIndex - range);
-    let end = Math.min(total, currentIndex + range + 1);
-    
-    if (end - start < 5 && total >= 5) {
-        if (start === 0) end = Math.min(total, start + 5);
-        else if (end === total) start = Math.max(0, end - 5);
-    }
-
-    for (let i = start; i < end; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'nav-dot';
-        
-        if (i === currentIndex) dot.classList.add('active');
-
-        if (currentMode === 'simulation') {
-            if (userAnswers[i] != null) dot.classList.add('filled');
-            dot.onclick = () => {
-                currentIndex = i;
-                renderQuestion();
-            };
-            dot.style.cursor = 'pointer';
-        } else {
-            if (userAnswers[i]) {
-                if (userAnswers[i].isCorrect) dot.classList.add('correct');
-                else dot.classList.add('wrong');
+            // 2. Se non è vuoto, provo ad aprire la cartella
+            if (codice) {
+                // Il trucco: window.location.href reindirizza l'utente
+                // Aggiunge anche uno slash finale per sicurezza
+                window.location.href = "./" + codice + "/"; 
             }
         }
-        dotsContainer.appendChild(dot);
-    }
 
-    dotsCounter.innerText = `${currentIndex + 1} / ${total}`;
-}
+        // Permette di premere INVIO invece di cliccare il bottone
+        document.getElementById("secretCode").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                vaiAllaPagina();
+            }
+        });
+    </script>
 
-function renderQuestion() {
-  const q = questionSet[currentIndex];
-  updateDots();
-
-  document.getElementById('questionText').innerText = q.domanda;
-
-  const container = document.getElementById('answersContainer');
-  container.innerHTML = '';
-
-  let savedSelection = null;
-  if(currentMode === 'simulation' && userAnswers[currentIndex]) {
-    savedSelection = userAnswers[currentIndex].selected;
-  } else if (currentMode === 'practice' && userAnswers[currentIndex]) {
-    savedSelection = userAnswers[currentIndex].selected;
-  }
-
-  ['A', 'B', 'C', 'D'].forEach(letter => {
-    if(q.risposte[letter]) {
-      const btn = document.createElement('button');
-      btn.className = 'btn btn-option';
-      btn.innerHTML = `<b>${letter}.</b> ${q.risposte[letter]}`;
-      
-      if(savedSelection === letter) {
-          btn.classList.add('selected');
-          if(currentMode !== 'simulation') {
-             if(userAnswers[currentIndex].isCorrect) btn.classList.add('correct');
-             else btn.classList.add('wrong');
-          }
-      }
-      
-      if(currentMode !== 'simulation' && userAnswers[currentIndex] && letter === q.corretta) {
-          btn.classList.add('correct');
-      }
-
-      btn.onclick = () => handleAnswer(btn, letter, q);
-      container.appendChild(btn);
-    }
-  });
-
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const endBtn = document.getElementById('endBtn');
-  
-  prevBtn.classList.add('hidden');
-  nextBtn.classList.add('hidden');
-  endBtn.classList.add('hidden');
-
-  if(currentIndex > 0) {
-      prevBtn.classList.remove('hidden');
-      prevBtn.onclick = () => { currentIndex--; renderQuestion(); };
-  }
-
-  if(currentMode === 'simulation') {
-      if(currentIndex < questionSet.length - 1) {
-          if(savedSelection) {
-              nextBtn.classList.remove('hidden');
-              nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
-          }
-      } else {
-          if(savedSelection) {
-              endBtn.classList.remove('hidden');
-              endBtn.onclick = showResults;
-          }
-      }
-  } else {
-     // Pratica/Ripasso
-     if (currentIndex < questionSet.length - 1 && userAnswers[currentIndex]) {
-        nextBtn.classList.remove('hidden');
-        nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
-     } else if (currentIndex === questionSet.length - 1 && userAnswers[currentIndex]) {
-        endBtn.classList.remove('hidden');
-        endBtn.onclick = showResults;
-     }
-  }
-}
-
-function handleAnswer(btn, selected, qObj) {
-  if (currentMode === 'simulation') {
-    const allBtns = document.querySelectorAll('.btn-option');
-    allBtns.forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    
-    userAnswers[currentIndex] = {
-      question: qObj, selected: selected, isCorrect: (selected === qObj.corretta)
-    };
-    updateDots();
-
-    if (currentIndex < questionSet.length - 1) {
-      const nextBtn = document.getElementById('nextBtn');
-      nextBtn.classList.remove('hidden');
-      nextBtn.onclick = () => { currentIndex++; renderQuestion(); };
-    } else {
-      const endBtn = document.getElementById('endBtn');
-      endBtn.classList.remove('hidden');
-      endBtn.onclick = showResults;
-    }
-  } 
-  else {
-    // PRATICA / RIPASSO
-    if(userAnswers[currentIndex]) return; 
-
-    const allBtns = document.querySelectorAll('.btn-option');
-    allBtns.forEach(b => { b.style.cursor = 'default'; });
-
-    btn.classList.add('selected');
-    const isCorrect = selected === qObj.corretta;
-    userAnswers[currentIndex] = { question: qObj, selected: selected, isCorrect: isCorrect };
-
-    if(!isCorrect) trackError(qObj.id);
-
-    if(isCorrect) {
-      btn.classList.add('correct');
-    } else {
-      btn.classList.add('wrong');
-      vibrate(100);
-      allBtns.forEach(b => {
-        if(b.innerHTML.includes(`<b>${qObj.corretta}.</b>`)) b.classList.add('correct');
-      });
-    }
-    updateDots();
-
-    // *** FIX QUI SOTTO: Aggiunto l'evento onclick al bottone ***
-    if (currentIndex < questionSet.length - 1) {
-      const nextBtn = document.getElementById('nextBtn');
-      nextBtn.classList.remove('hidden');
-      nextBtn.onclick = () => { currentIndex++; renderQuestion(); }; 
-    } else {
-      const endBtn = document.getElementById('endBtn');
-      endBtn.classList.remove('hidden');
-      endBtn.onclick = showResults;
-    }
-  }
-}
-
-function showResults() {
-  clearInterval(timerInterval);
-  const endTime = Date.now();
-  const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
-  const formattedTime = formatTime(elapsedSeconds);
-
-  document.getElementById('quizCard').classList.add('hidden');
-  document.getElementById('resultCard').classList.remove('hidden');
-
-  const validAnswers = userAnswers.filter(a => a != null);
-  const total = questionSet.length;
-  const correct = validAnswers.filter(a => a.isCorrect).length;
-  const percentage = Math.round((correct / total) * 100);
-  const isPassed = percentage >= 75;
-
-  document.getElementById('scoreText').innerText = `${correct} su ${total}`;
-  document.getElementById('scoreBig').innerText = `${percentage}%`;
-  document.getElementById('timeTaken').innerText = `Tempo: ${formattedTime}`;
-  
-  const resBox = document.getElementById('resultBox');
-  const title = document.getElementById('resultTitle');
-  const msg = document.getElementById('resultMessage');
-  const reviewSec = document.getElementById('reviewSection');
-  const errorList = document.getElementById('errorList');
-
-  errorList.innerHTML = '';
-  reviewSec.classList.add('hidden');
-
-  if(currentMode === 'simulation') {
-    if(isPassed) {
-      resBox.className = "result-box pass";
-      title.innerText = "SUPERATO! 🎉";
-      title.style.color = "var(--success)";
-      msg.innerText = "Ottimo lavoro! Soglia 75% raggiunta.";
-      triggerConfetti();
-    } else {
-      resBox.className = "result-box fail";
-      title.innerText = "NON IDONEO";
-      title.style.color = "var(--danger)";
-      msg.innerText = "Non hai raggiunto il 75%.";
-    }
-    saveStats(percentage, isPassed, elapsedSeconds);
-    validAnswers.forEach(ans => {
-        if(!ans.isCorrect) trackError(ans.question.id);
-    });
-  } else {
-    resBox.className = "result-box pass";
-    resBox.style.background = "#eef6ff"; resBox.style.borderColor = "#ccddee";
-    title.innerText = "COMPLETATO";
-    title.style.color = "var(--primary)";
-    msg.innerText = "Sessione terminata.";
-    if(percentage === 100) triggerConfetti();
-  }
-
-  const errors = validAnswers.filter(a => !a.isCorrect);
-  if(errors.length > 0) {
-    reviewSec.classList.remove('hidden');
-    errorList.innerHTML = errors.map(err => {
-      const letters = ['A', 'B', 'C', 'D'];
-      let optionsHtml = letters.map(L => {
-        if(!err.question.risposte[L]) return ''; 
-        const text = err.question.risposte[L];
-        let styleClass = '';
-        let icon = '';
-        if(L === err.question.corretta) { styleClass = 'review-correct'; icon = '✅'; }
-        else if (L === err.selected) { styleClass = 'review-wrong'; icon = '❌'; }
-        else { styleClass = 'review-neutral'; }
-        return `<div class="review-option ${styleClass}"><div style="flex:1"><b>${L}.</b> ${text}</div><div style="margin-left:10px">${icon}</div></div>`;
-      }).join('');
-      return `<div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid var(--border); font-size:14px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align:left;"><div style="font-weight:700; color:var(--text); margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">${err.question.domanda}</div>${optionsHtml}</div>`;
-    }).join('');
-  }
-}
-
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-function startTimer() {
-  const display = document.getElementById('timer');
-  timerInterval = setInterval(() => {
-    const delta = Math.floor((Date.now() - startTime) / 1000);
-    display.innerText = formatTime(delta);
-  }, 1000);
-}
-function formatTime(seconds) {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const s = (seconds % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-}
-function vibrate(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
-function triggerConfetti() {
-  var duration = 3000; var end = Date.now() + duration;
-  (function frame() {
-    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
-    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
-    if (Date.now() < end) requestAnimationFrame(frame);
-  }());
-}
-</script>
 </body>
 </html>

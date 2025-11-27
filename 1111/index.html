@@ -87,14 +87,12 @@
     <div class="editor-container">
         <textarea id="myNote" placeholder="Caricamento note dal cloud..."></textarea>
     </div>
-
     <script>
-        // --- CONFIGURAZIONE SUPABASE ---
-        // INCOLLA QUI I TUOI DATI PRESI DA SUPABASE
+        // --- CONFIGURAZIONE ---
+        // RIMETTI LE TUE CHIAVI QUI!
         const SUPABASE_URL = 'https://aibjrbhlrjqubxolaqsi.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpYmpyYmhscmpxdWJ4b2xhcXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNDg1MjgsImV4cCI6MjA3OTgyNDUyOH0.GNTtNcuosOR5UrXMXNJjGZ0zt0K_d5Tu18ONDy5ay1o';
 
-        // Inizializzo il client
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -105,9 +103,8 @@
         // 1. CARICAMENTO INIZIALE
         async function loadNotes() {
             setStatus('saving', 'Caricamento...');
-            noteArea.disabled = true; // Blocco finché non carica
+            noteArea.disabled = true;
 
-            // Seleziono la riga con ID 1
             const { data, error } = await _supabase
                 .from('notes')
                 .select('content')
@@ -116,55 +113,75 @@
 
             if (error) {
                 console.error('Errore:', error);
-                setStatus('error', 'Errore connessione');
-                noteArea.value = "Impossibile caricare le note. Controlla la console.";
+                setStatus('error', 'Offline');
+                noteArea.value = "Impossibile connettersi.";
             } else {
-                noteArea.value = data.content || ""; // Se vuoto metti stringa vuota
-                setStatus('saved', 'Sincronizzato');
+                noteArea.value = data.content || "";
+                setStatus('saved', 'Pronto');
                 noteArea.disabled = false;
-                noteArea.focus();
             }
         }
 
-        // 2. SALVATAGGIO (Logica Debounce)
+        // 2. ATTIVAZIONE REALTIME (La Magia)
+        function setupRealtime() {
+            _supabase
+                .channel('room1')
+                .on(
+                    'postgres_changes', 
+                    { event: 'UPDATE', schema: 'public', table: 'notes', filter: 'id=eq.1' }, 
+                    (payload) => {
+                        // Quando arriva una modifica dal server...
+                        const newText = payload.new.content;
+                        
+                        // Aggiorna SOLO se il testo è diverso da quello che vedo
+                        // (Per evitare che il cursore salti se sto scrivendo io)
+                        if (noteArea.value !== newText) {
+                            noteArea.value = newText;
+                            setStatus('saved', 'Aggiornato Live!');
+                            
+                            // Piccolo flash giallo per far notare il cambio
+                            noteArea.style.backgroundColor = '#333';
+                            setTimeout(() => { noteArea.style.backgroundColor = 'var(--card)'; }, 300);
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        // 3. SALVATAGGIO CON DEBOUNCE
         noteArea.addEventListener('input', () => {
             setStatus('saving', 'Scrivendo...');
-            
-            // Cancella il timer precedente se stai ancora scrivendo
             clearTimeout(saveTimeout);
-
-            // Imposta un nuovo timer: salva tra 1 secondo se ti fermi
             saveTimeout = setTimeout(async () => {
                 saveToCloud(noteArea.value);
-            }, 1000);
+            }, 1000); // Salva dopo 1 secondo di pausa
         });
 
         async function saveToCloud(text) {
-            setStatus('saving', 'Salvataggio...');
-            
             const { error } = await _supabase
                 .from('notes')
                 .update({ content: text })
                 .eq('id', 1);
 
             if (error) {
-                console.error('Errore salvataggio:', error);
+                console.error('Errore:', error);
                 setStatus('error', 'Errore salvataggio');
             } else {
-                setStatus('saved', 'Salvato nel Cloud');
+                setStatus('saved', 'Salvato');
             }
         }
 
-        // Funzione helper per cambiare lo stato visivo
         function setStatus(type, text) {
             statusBadge.className = 'status-badge ' + type;
             statusBadge.innerHTML = (type === 'saving' ? '⟳ ' : (type === 'saved' ? '✓ ' : '⚠ ')) + text;
         }
 
-        // Avvio
-        window.onload = loadNotes;
+        // Avvio tutto
+        window.onload = async function() {
+            await loadNotes(); // Prima scarico i dati vecchi
+            setupRealtime();   // Poi attivo l'ascolto per i nuovi
+        };
 
     </script>
-
 </body>
 </html>

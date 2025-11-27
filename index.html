@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        :root {
+       :root {
             /* STESSA PALETTE DEL QUIZ TSS PER COERENZA TOTALE */
             --primary: #0056b3;
             --primary-light: #eef6ff; /* Sfondo bottoni hover */
@@ -21,7 +21,12 @@
             --border: #eef0f2;
             --danger: #dc3545;
         }
-
+        
+        /* Centra TUTTO come Dio comanda */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
         body {
             margin: 0;
             padding: 0;
@@ -34,28 +39,27 @@
             align-items: center;
             flex-direction: column;
         }
-
+        
         .container {
             width: 100%;
-            max-width: 380px; /* Card compatta ed elegante */
+            max-width: 380px;
             padding: 20px;
         }
-
+        
         .card {
             background: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             padding: 40px 30px;
             text-align: center;
-            border: 1px solid white; /* Un tocco di luce sul bordo */
-            
-            /* Animazione Ingresso */
+            border: 1px solid white;
+        
             opacity: 0;
             transform: translateY(20px);
             animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
-
-        /* Icona SVG animata */
+        
+        /* Icona */
         .icon-box {
             width: 60px;
             height: 60px;
@@ -75,15 +79,15 @@
             color: var(--primary);
             letter-spacing: -0.5px;
         }
-
+        
         p {
             margin: 0 0 30px 0;
             color: var(--text-muted);
             font-size: 15px;
             line-height: 1.5;
         }
-
-        /* Input identico allo stile quiz */
+        
+        /* Input password centrato al millimetro */
         input {
             width: 100%;
             padding: 16px;
@@ -91,35 +95,35 @@
             border: 2px solid var(--border);
             background: var(--bg);
             color: var(--text);
-            font-size: 18px; /* Un po' più grande per il codice */
+            font-size: 18px;
             outline: none;
             text-align: center;
             font-family: 'Inter', sans-serif;
             font-weight: 600;
             margin-bottom: 20px;
             transition: all 0.3s ease;
-            letter-spacing: 4px; /* Spazia i caratteri della password */
+            letter-spacing: 4px; /* mantiene lo stile che volevi */
         }
-
+        
         input::placeholder {
             font-weight: 400;
             letter-spacing: normal;
             font-size: 15px;
             color: #bdc3c7;
         }
-
+        
         input:focus {
             border-color: var(--accent);
             background: #fff;
             box-shadow: 0 0 0 4px rgba(0, 168, 232, 0.1);
         }
-
+        
         input.error-shake {
             border-color: var(--danger);
             animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
         }
-
-        /* Bottone identico allo stile quiz */
+        
+        /* Bottone */
         button {
             width: 100%;
             padding: 16px;
@@ -133,34 +137,35 @@
             transition: transform 0.1s, background 0.3s;
             box-shadow: 0 4px 12px rgba(0, 86, 179, 0.2);
         }
-
+        
         button:hover {
-            background: #004494; /* Un po' più scuro all'hover */
+            background: #004494;
             transform: translateY(-2px);
         }
-
+        
         button:active {
             transform: scale(0.98);
         }
-
+        
         .footer {
             margin-top: 30px;
             font-size: 12px;
             color: #b0b8bc;
             font-weight: 500;
         }
-
-        /* Keyframes Animazioni */
+        
+        /* Animazioni */
         @keyframes fadeIn {
             to { opacity: 1; transform: translateY(0); }
         }
-
+        
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
             20%, 80% { transform: translate3d(2px, 0, 0); }
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
+
 
     </style>
 </head>

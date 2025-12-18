@@ -9,7 +9,8 @@ const domandeQuiz = [
       "D": "È il valore di coppia continuativa a rotore bloccato",
       "E": "È la massima coppia alla velocità massima"
     },
-    "corretta": "B"
+    "corretta": "B",
+    "spiegazione": "La coppia nominale rappresenta il carico meccanico che il motore può sopportare in modo continuativo senza surriscaldarsi eccessivamente, operando alla sua velocità di progetto (nominale)."
   },
   {
     "id": 2,
@@ -21,7 +22,8 @@ const domandeQuiz = [
       "D": "Al rischio di centrifugazione dei magneti permanenti",
       "E": "Alla massima pressione"
     },
-    "corretta": "C"
+    "corretta": "C",
+    "spiegazione": "Mentre la coppia è limitata termicamente, la velocità massima è spesso dettata da vincoli meccanici come la tenuta dei cuscinetti o la stabilità del collettore alle alte rotazioni."
   },
   {
     "id": 3,
@@ -32,7 +34,8 @@ const domandeQuiz = [
       "C": "Si riferisce alla possibilità di rispondere automaticamente alla variazione della domanda",
       "D": "È stato usato per la prima volta nel 1948"
     },
-    "corretta": "C"
+    "corretta": "C",
+    "spiegazione": "L'automazione riguarda l'esecuzione autonoma di compiti. Rispondere alla variazione della domanda è invece un concetto legato alla flessibilità produttiva e alla gestione aziendale, non alla definizione tecnica di automazione."
   },
   {
     "id": 4,
@@ -44,7 +47,8 @@ const domandeQuiz = [
       "D": "Considera un unico materiale",
       "E": "Si basa anche sull'ipotesi che la temperatura nel motore sia uguale in ogni punto"
     },
-    "corretta": "D"
+    "corretta": "D",
+    "spiegazione": "Nel modello termico semplificato (del primo ordine), il motore viene considerato come un corpo omogeneo costituito da un unico materiale con una capacità termica uniforme."
   },
   {
     "id": 5,
@@ -56,7 +60,8 @@ const domandeQuiz = [
       "D": "È uguale per tutti i motori",
       "E": "Non dipende dalla massa del motore"
     },
-    "corretta": "B"
+    "corretta": "B",
+    "spiegazione": "Analogamente ai circuiti elettrici RC, la costante di tempo termica $\tau$ è data dal prodotto della resistenza termica $R_{th}$ (capacità di dissipare) e la capacità termica $C_{th}$ (capacità di accumulare calore)."
   },
   {
     "id": 6,
@@ -68,7 +73,8 @@ const domandeQuiz = [
       "D": "La dissipazione nel ferro (correnti parassite di Foucault)",
       "E": "Lo scambio termico con l'esterno"
     },
-    "corretta": "B"
+    "corretta": "B",
+    "spiegazione": "Le perdite nel rame per effetto Joule ($P = R \cdot I^2$) sono solitamente le più significative e determinano il riscaldamento principale del motore durante il funzionamento."
   },
   {
     "id": 7,
@@ -80,7 +86,8 @@ const domandeQuiz = [
       "D": "Esprime la capacità del motore di dissipare calore",
       "E": "A pari taglia, in un brushless è inferiore rispetto ad un asincrono"
     },
-    "corretta": "C, D, E"
+    "corretta": "C, D, E",
+    "spiegazione": "La resistenza termica indica quanto il motore si oppone al passaggio di calore verso l'esterno. Motori come i brushless o gli asincroni dissipano meglio (resistenza minore) perché hanno gli avvolgimenti sullo statore, a contatto con la carcassa."
   },
   {
     "id": 8,
@@ -92,7 +99,8 @@ const domandeQuiz = [
       "D": "Diventa verticale",
       "E": "Trasla verso sinistra"
     },
-    "corretta": "C"
+    "corretta": "C",
+    "spiegazione": "Aumentando la tensione $V$, aumenta la velocità a vuoto del motore. La pendenza della retta (caratteristica meccanica) rimane invariata, quindi la curva trasla parallelamente verso velocità più alte (destra)."
   },
   {
     "id": 9,
@@ -104,7 +112,8 @@ const domandeQuiz = [
       "D": "Riduzione dei tempi di produzione",
       "E": "Sostituzione dell'uomo in operazioni ripetitive e/o disagevoli"
     },
-    "corretta": "B"
+    "corretta": "B",
+    "spiegazione": "L'automazione rigida è progettata per produrre grandi volumi di un singolo prodotto. La varietà (vasti assortimenti) è l'opposto della rigidità e richiede automazione flessibile."
   },
   {
     "id": 10,
@@ -116,7 +125,8 @@ const domandeQuiz = [
       "D": "La regolazione di frequenza",
       "E": "La regolazione di corrente"
     },
-    "corretta": "E"
+    "corretta": "E",
+    "spiegazione": "Poiché la coppia è direttamente proporzionale alla corrente ($\tau = K_t \cdot I$), controllare direttamente la corrente permette di gestire istantaneamente la coppia e quindi ottenere accelerazioni molto rapide."
   },
   {
     "id": 11,
@@ -128,7 +138,8 @@ const domandeQuiz = [
       "D": "Rappresenta il valore massimo di sovratemperatura oltre il quale si perde l'isolamento elettrico degli avvolgimenti del motore",
       "E": "Varia con la massa del motore"
     },
-    "corretta": "D"
+    "corretta": "D",
+    "spiegazione": "La classe di isolamento indica la temperatura massima che i materiali isolanti degli avvolgimenti possono sopportare prima di degradarsi e causare un corto circuito."
   },
   {
     "id": 12,
@@ -140,7 +151,8 @@ const domandeQuiz = [
       "D": "Necessità di produrre con cadenza produttive molto elevate",
       "E": "Aumentare i volumi produttivi"
     },
-    "corretta": "A"
+    "corretta": "A",
+    "spiegazione": "In mercati incerti dove la domanda cambia velocemente, le aziende hanno bisogno di sistemi produttivi capaci di riconfigurarsi rapidamente per non restare con scorte invendute."
   },
   {
     "id": 13,
@@ -152,7 +164,8 @@ const domandeQuiz = [
       "D": "Un motore corrente continua necessita di un trasduttore di posizione",
       "E": "In un motore corrente continua sullo statore ci possono essere magneti"
     },
-    "corretta": "D"
+    "corretta": "D",
+    "spiegazione": "A differenza dei motori brushless (che necessitano di sensori per sapere quando commutare le fasi), il motore CC a spazzole commuta meccanicamente grazie al collettore, quindi può girare anche senza sensori di posizione."
   },
   {
     "id": 14,
@@ -164,7 +177,8 @@ const domandeQuiz = [
       "D": "Riducendo la tensione",
       "E": "Aumentando la tensione"
     },
-    "corretta": "B"
+    "corretta": "B",
+    "spiegazione": "Dissipando l'energia cinetica del rotore su una resistenza esterna (frenatura reostatica), il motore agisce come un generatore caricato, producendo una coppia frenante che arresta il moto rapidamente."
   },
   {
     "id": 15,
@@ -176,7 +190,8 @@ const domandeQuiz = [
       "D": "Il collettore è un cilindro con lamelle di rame separate l'una dall'altra da isolante",
       "E": "Limita la massima potenza erogabile"
     },
-    "corretta": "D, E"
+    "corretta": "D, E",
+    "spiegazione": "Il collettore è l'organo meccanico rotante che permette l'alimentazione del rotore (D). Tuttavia, a causa dell'usura delle spazzole e delle scintille, limita la velocità e la potenza massima gestibile (E)."
   },
   {
     "id": 16,
@@ -188,7 +203,8 @@ const domandeQuiz = [
       "D": "È caratterizzata da una sequenza di operazioni fissa",
       "E": "Si implementa quando i volumi produttivi sono medio-bassi"
     },
-    "corretta": "A, E"
+    "corretta": "A, E",
+    "spiegazione": "L'automazione programmabile (come i robot industriali) è ideale per lotti medi o piccoli dove è necessario cambiare spesso il compito (A) ed è economicamente vantaggiosa per volumi non eccessivi (E)."
   },
   {
     "id": 17,
@@ -200,7 +216,8 @@ const domandeQuiz = [
       "D": "È una caratteristica di un sistema di produzione programmabile",
       "E": "È una caratteristica di un sistema di produzione rigido"
     },
-    "corretta": "A, D"
+    "corretta": "A, D",
+    "spiegazione": "È la capacità di gestire varianti di prodotto 'al volo' (A). È tipica dei sistemi programmabili che possono variare la loro sequenza tramite software (D)."
   },
   {
     "id": 18,
@@ -212,7 +229,8 @@ const domandeQuiz = [
       "D": "La tensione",
       "E": "La riluttanza"
     },
-    "corretta": "D"
+    "corretta": "D",
+    "spiegazione": "La tensione di armatura è la variabile principale usata per regolare la velocità del motore CC. Variandola, si sposta il punto di lavoro lungo l'asse delle ordinate del diagramma coppia-velocità."
   },
   {
     "id": 19,
@@ -223,7 +241,8 @@ const domandeQuiz = [
       "C": "Le spazzole possono generare scintille a causa della commutazione meccanica",
       "D": "Il collettore è solidale al rotore"
     },
-    "corretta": "A, B"
+    "corretta": "A, B",
+    "spiegazione": "Falso: le spire per la costanza della coppia sono sul rotore, non sullo statore (A). Gli avvolgimenti del rotore sono alimentati in corrente continua, che viene commutata meccanicamente, non trifase (B)."
   },
   {
     "id": 20,
@@ -235,7 +254,8 @@ const domandeQuiz = [
       "D": "Dipende solo dalla massa del motore",
       "E": "Aumenta al diminuire della massa"
     },
-    "corretta": "A, B"
+    "corretta": "A, B",
+    "spiegazione": "La capacità termica ($C = m \cdot c$) rappresenta l'inerzia termica del motore: più massa c'è (A), più calore il motore può accumulare prima di aumentare di un grado la sua temperatura (B)."
   },
   {
     "id": 21,
@@ -247,7 +267,8 @@ const domandeQuiz = [
       "D": "Possibilità di variare il contenuto di lavoro del prodotto",
       "E": "Possibilità di rapidi interventi di ristrutturazione"
     },
-    "corretta": "C"
+    "corretta": "C",
+    "spiegazione": "La flessibilità solitamente va a discapito della cadenza (velocità massima di produzione), che è invece il punto di forza dei sistemi rigidi dedicati."
   },
   {
     "id": 22,
@@ -259,7 +280,8 @@ const domandeQuiz = [
       "D": "Un segmento verticale",
       "E": "Una retta con pendenza negativa"
     },
-    "corretta": "E"
+    "corretta": "E",
+    "spiegazione": "La relazione tra coppia e velocità è lineare: all'aumentare del carico (coppia), la velocità diminuisce proporzionalmente, disegnando una retta decrescente."
   },
   {
     "id": 23,
@@ -271,7 +293,8 @@ const domandeQuiz = [
       "D": "L'alesaggio è il diametro del pistone",
       "E": "A pari portata la velocità di uscita è sempre uguale a quella di rientro"
     },
-    "corretta": "A"
+    "corretta": "A",
+    "spiegazione": "Lo stelo è l'elemento meccanico che fuoriesce dal cilindro per collegarsi fisicamente all'oggetto da muovere, trasmettendo la potenza pneumatica come forza meccanica."
   },
   {
     "id": 24,
@@ -283,7 +306,8 @@ const domandeQuiz = [
       "D": "65 mm",
       "E": "40 mm"
     },
-    "corretta": "C"
+    "corretta": "C",
+    "spiegazione": "Dalle tabelle tecniche di ammortizzo, incrociando la massa (80 kg) e la velocità (1 m/s, ovvero 3.6 km/h), si ricava che un alesaggio da 80 mm è il minimo necessario per frenare il carico senza urti violenti a fine corsa."
   },
   {
     "id": 25,
@@ -295,7 +319,8 @@ const domandeQuiz = [
       "D": "Aiuta a capire quali sono le variabili logiche di cui c'è effettiva necessità",
       "E": "Consente un'efficace verifica della correttezza di svolgimento del ciclo"
     },
-    "corretta": "B"
+    "corretta": "B",
+    "spiegazione": "Il GRAFCET descrive la logica sequenziale (stati e transizioni), non la 'legge di moto' fisica (posizione/tempo) che è invece rappresentata dai diagrammi spazio-fase o spazio-tempo."
   },
   {
     "id": 26,
@@ -307,7 +332,8 @@ const domandeQuiz = [
       "D": "Varia con il quadrato delle pressioni nelle camere",
       "E": "Si ricava dal catalogo che fornisce la forza massima"
     },
-    "corretta": "C"
+    "corretta": "C",
+    "spiegazione": "La forza utile è data dalla spinta della pressione posteriore meno la contropressione anteriore (se presente) e meno le forze d'attrito generate dalle guarnizioni del pistone e dello stelo."
   },
   {
     "id": 27,
@@ -318,7 +344,8 @@ const domandeQuiz = [
       "C": "Rappresenta un'azione compiuta dal sistema",
       "D": "È sempre legata a un sensore fisico"
     },
-    "corretta": "A, B"
+    "corretta": "A, B",
+    "spiegazione": "La ricettività è la condizione logica associata a una transizione (A). Se la tappa precedente è attiva e la ricettività è vera, il controllo passa alla tappa successiva (B)."
   },
   {
     "id": 28,
@@ -329,7 +356,8 @@ const domandeQuiz = [
       "C": "Ha la stessa area utile su entrambi i lati del pistone",
       "D": "È un cilindro a semplice effetto"
     },
-    "corretta": "A, B"
+    "corretta": "A, B",
+    "spiegazione": "Avendo lo stelo solo da un lato, le aree su cui preme l'aria sono diverse. A pari portata d'aria, il cilindro uscirà più lentamente (area maggiore) e rientrerà più velocemente (area minore)."
   },
   {
     "id": 29,
@@ -341,7 +369,8 @@ const domandeQuiz = [
       "D": "A catalogo si possono avere corse poco più grandi dell'alesaggio",
       "E": "Il ritorno può essere determinato dalla forza peso esercitata dalla massa da muovere"
     },
-    "corretta": "D, E"
+    "corretta": "D, E",
+    "spiegazione": "La corsa è limitata perché la molla interna occupa spazio (D). Il ritorno non richiede aria: può avvenire per molla o per gravità se il carico è disposto verticalmente (E)."
   },
   {
     "id": 30,
@@ -353,7 +382,8 @@ const domandeQuiz = [
       "D": "Solo se il cilindro non ha ammortizzo pneumatico",
       "E": "L'energia cinetica da ammortizzare è elevata"
     },
-    "corretta": "E"
+    "corretta": "E",
+    "spiegazione": "Se il carico è molto veloce o pesante, l'aria compressa nel cilindro (ammortizzo pneumatico) non basta a fermarlo. Si usano allora deceleratori idraulici esterni per assorbire l'energia cinetica in eccesso."
   },
   {
     "id": 31,
@@ -365,7 +395,7 @@ const domandeQuiz = [
       "D": "Non hanno bisogno di tubazioni di ritorno",
       "E": "Necessitano di sistemi di essiccamento dell'aria"
     },
-    "corretta": "B"
+    "corretta": "B",
+    "spiegazione": "La pneumatica lavora a pressioni relativamente basse (~6-8 bar). Per sviluppare forze molto elevate (come sollevare tonnellate) è necessario passare all'oleodinamica, che lavora a centinaia di bar."
   }
 ];
-

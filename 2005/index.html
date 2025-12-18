@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Simulazione Esame TSS</title>
+<title>Simulazione Esame Robotica</title>
 
 <script src="domande.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -188,7 +188,7 @@
     </button>
     <p style="font-size:12px; margin-top:8px; color:var(--text-muted);">
       20 Domande • Navigazione Libera • Esito finale<br>
-      <strong>Superamento al 75%</strong>
+      <strong>Superamento al 60%</strong>
     </p>
 
     <button onclick="startPractice()" class="btn btn-secondary">
@@ -575,7 +575,7 @@ function showResults() {
   const total = questionSet.length;
   const correct = validAnswers.filter(a => a.isCorrect).length;
   const percentage = Math.round((correct / total) * 100);
-  const isPassed = percentage >= 75;
+  const isPassed = percentage >= 60;
 
   document.getElementById('scoreText').innerText = `${correct} su ${total}`;
   document.getElementById('scoreBig').innerText = `${percentage}%`;

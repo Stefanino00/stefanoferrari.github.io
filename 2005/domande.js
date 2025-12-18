@@ -260,5 +260,112 @@ const domandeQuiz = [
       "E": "Una retta con pendenza negativa"
     },
     "corretta": "E"
+  },
+  {
+    "id": 23,
+    "domanda": "Per un cilindro doppio effetto si può affermare che:",
+    "risposte": {
+      "A": "Lo stelo trasmette la forza e il movimento al carico",
+      "B": "È sempre presente lo stelo",
+      "C": "È sempre presente l'ammortizzo pneumatico",
+      "D": "L'alesaggio è il diametro del pistone",
+      "E": "A pari portata la velocità di uscita è sempre uguale a quella di rientro"
+    },
+    "corretta": "A"
+  },
+  {
+    "id": 24,
+    "domanda": "Si deve muovere mediante un cilindro doppio effetto una massa complessiva di 80 kg alla velocità di $3.6~km/h$. L'alesaggio minimo del cilindro affinché l'ammortizzo pneumatico sia efficace è:",
+    "risposte": {
+      "A": "125 mm",
+      "B": "32 mm",
+      "C": "80 mm",
+      "D": "65 mm",
+      "E": "40 mm"
+    },
+    "corretta": "C"
+  },
+  {
+    "id": 25,
+    "domanda": "Quali delle seguenti affermazioni su un GRAFCET NON è corretta:",
+    "risposte": {
+      "A": "Consente di documentare in modo universalmente comprensibile le regole di funzionamento e le soluzioni progettuali adottate",
+      "B": "Si basa sulla rappresentazione della legge di moto di un ciclo automatico",
+      "C": "È un grafico di controllo per passi e transizioni",
+      "D": "Aiuta a capire quali sono le variabili logiche di cui c'è effettiva necessità",
+      "E": "Consente un'efficace verifica della correttezza di svolgimento del ciclo"
+    },
+    "corretta": "B"
+  },
+  {
+    "id": 26,
+    "domanda": "La forza effettivamente sviluppata nel movimento di uscita dal cilindro doppio effetto rappresentato:",
+    "risposte": {
+      "A": "È il prodotto tra la pressione nella camera posteriore e l'area del pistone",
+      "B": "Dipende solo dalla pressione nella camera anteriore",
+      "C": "Dipende dalla pressione nella camera posteriore, da quella nella camera anteriore e anche dagli attriti nelle guarnizioni",
+      "D": "Varia con il quadrato delle pressioni nelle camere",
+      "E": "Si ricava dal catalogo che fornisce la forza massima"
+    },
+    "corretta": "C"
+  },
+  {
+    "id": 27,
+    "domanda": "La condizione di ricettività in un GRAFCET (seleziona più risposte):",
+    "risposte": {
+      "A": "Può essere il risultato di operazioni logiche tra diversi segnali",
+      "B": "Abilita il passaggio da una tappa all'altra",
+      "C": "Rappresenta un'azione compiuta dal sistema",
+      "D": "È sempre legata a un sensore fisico"
+    },
+    "corretta": "A, B"
+  },
+  {
+    "id": 28,
+    "domanda": "Un cilindro differenziale (seleziona più risposte):",
+    "risposte": {
+      "A": "È un cilindro doppio effetto con stelo",
+      "B": "Ha velocità di uscita e di rientro diverse",
+      "C": "Ha la stessa area utile su entrambi i lati del pistone",
+      "D": "È un cilindro a semplice effetto"
+    },
+    "corretta": "A, B"
+  },
+  {
+    "id": 29,
+    "domanda": "Per i cilindri a semplice effetto si può affermare che (seleziona più risposte):",
+    "risposte": {
+      "A": "È sempre presente una molla",
+      "B": "A catalogo si possono avere corse anche molto più grandi dell'alesaggio",
+      "C": "L'affidabilità è sempre maggiore rispetto ad un cilindro doppio effetto",
+      "D": "A catalogo si possono avere corse poco più grandi dell'alesaggio",
+      "E": "Il ritorno può essere determinato dalla forza peso esercitata dalla massa da muovere"
+    },
+    "corretta": "D, E"
+  },
+  {
+    "id": 30,
+    "domanda": "L'ammortizzo esterno con shock adsorbers viene fatto quando:",
+    "risposte": {
+      "A": "L'energia potenziale da ammortizzare è elevata",
+      "B": "L'energia cinetica da ammortizzare è bassa",
+      "C": "L'energia potenziale da ammortizzare è bassa",
+      "D": "Solo se il cilindro non ha ammortizzo pneumatico",
+      "E": "L'energia cinetica da ammortizzare è elevata"
+    },
+    "corretta": "E"
+  },
+  {
+    "id": 31,
+    "domanda": "Quale/i delle seguenti affermazioni sugli azionamenti pneumatici NON è/sono corretta/e:",
+    "risposte": {
+      "A": "Sono sistemi più economici delle altre tipologie di azionamento",
+      "B": "Consentono di sviluppare forze molto elevate",
+      "C": "Sono poco precisi a causa della comprimibilità dell'aria",
+      "D": "Non hanno bisogno di tubazioni di ritorno",
+      "E": "Necessitano di sistemi di essiccamento dell'aria"
+    },
+    "corretta": "B"
   }
 ];
+

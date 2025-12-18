@@ -109,7 +109,7 @@
   .btn-option.correct { border-color: var(--success); background: rgba(40, 167, 69, 0.1); color: var(--success); border-width: 2px; }
   .btn-option.wrong { border-color: var(--danger); background: rgba(220, 53, 69, 0.1); color: var(--danger); border-width: 2px; }
 
-  /* SPIEGAZIONE */
+  /*  */
   .explanation-box {
     margin-top: 20px; padding: 18px; background: var(--primary-light); border-radius: 14px;
     border-left: 5px solid var(--accent); font-size: 14px; color: var(--text); line-height: 1.6;
@@ -326,7 +326,7 @@ function renderQuestion() {
 
   if(currentMode !== 'simulation' && ans && q.spiegazione) {
     const area = document.getElementById('explanationArea');
-    area.innerHTML = `<strong>💡 Spiegazione:</strong><br>${q.spiegazione}`;
+    area.innerHTML = `<strong>💡 Spiegazione (Fatta da AI, non fidarti troppo):</strong><br>${q.spiegazione}`;
     area.classList.remove('hidden');
   }
 

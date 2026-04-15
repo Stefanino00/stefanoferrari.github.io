@@ -82,15 +82,12 @@
             animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
-        /* Ritardi per l'animazione a cascata */
         .card:nth-child(2) { animation-delay: 0.1s; }
         .card:nth-child(3) { animation-delay: 0.2s; }
         .card:nth-child(4) { animation-delay: 0.3s; }
         .card:nth-child(5) { animation-delay: 0.4s; }
 
-        .card-full {
-            grid-column: 1 / -1;
-        }
+        .card-full { grid-column: 1 / -1; }
 
         .card h2 {
             font-size: 18px;
@@ -102,28 +99,52 @@
             gap: 8px;
         }
 
-        .stat-value {
-            font-size: 36px;
-            font-weight: 800;
-            color: var(--primary);
-            margin: 5px 0;
-            letter-spacing: -1px;
+        /* Nuova Griglia Statistiche Chiarissima */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        p {
+        .stat-box {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .stat-box span {
+            font-size: 12px;
             color: var(--text-muted);
-            font-size: 14px;
-            line-height: 1.5;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        /* Progress Bar Styling */
+        .stat-box strong {
+            font-size: 28px;
+            color: var(--text);
+            margin-top: 5px;
+            font-weight: 800;
+        }
+
+        .stat-box.highlight strong { color: var(--primary); }
+        .stat-box.highlight-alt strong { color: var(--accent); }
+
+        /* Progress Bar */
         .progress-container {
             width: 100%;
             background-color: var(--border);
             border-radius: 12px;
-            height: 16px;
+            height: 24px;
             overflow: hidden;
-            margin-top: 15px;
+            margin-top: 5px;
         }
 
         .progress-bar {
@@ -131,9 +152,16 @@
             background-color: var(--accent);
             border-radius: 12px;
             transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
         }
 
-        /* Timeline Styling */
+        /* Timeline e Stati */
         .timeline {
             margin-top: 10px;
             max-height: 350px;
@@ -149,81 +177,59 @@
             border-bottom: 1px solid var(--border);
             font-size: 14px;
         }
+        .lesson-item:last-child { border-bottom: none; }
 
-        .lesson-item:last-child {
-            border-bottom: none;
-        }
-
-        .lesson-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
+        .lesson-info { display: flex; flex-direction: column; gap: 4px; }
         .lesson-date { font-weight: 600; color: var(--text); }
         .lesson-topic { color: var(--text-muted); font-size: 13px; }
 
         .status-badge {
-            padding: 4px 10px;
+            padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
+            text-align: center;
         }
 
         .done .status-badge { background: #e8f5e9; color: var(--success); }
         .next .status-badge { background: var(--primary-light); color: var(--primary); }
         .future .status-badge { background: var(--border); color: var(--text-muted); }
+        
+        /* Animazione Lezione In Corso */
+        .in-progress .status-badge {
+            background: #ffebee;
+            color: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
 
-        /* Scrollbar per la timeline */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-        /* Bottoni */
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
         button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            background: var(--primary-light);
-            color: var(--primary);
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
+            flex: 1; padding: 12px; border: none; border-radius: 10px;
+            background: var(--primary-light); color: var(--primary);
+            font-size: 14px; font-weight: 700; cursor: pointer;
             transition: transform 0.1s, background 0.3s;
         }
-
-        button.btn-primary {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(0, 86, 179, 0.2);
-        }
-
+        button.btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(0, 86, 179, 0.2); }
         button:hover { transform: translateY(-2px); }
         button:active { transform: scale(0.98); }
 
-        @keyframes fadeIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
 
-        /* MOBILE RESPONSIVE GRID */
         @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            .card {
-                padding: 20px;
-            }
-            .stat-value {
-                font-size: 28px;
-            }
+            .container { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .card { padding: 20px; }
         }
     </style>
 </head>
@@ -236,25 +242,42 @@
         </div>
 
         <div class="card card-full">
-            <h2>Progresso Generale</h2>
-            <div class="stat-value" id="percent-text">0%</div>
-            <p><span id="hours-done" style="font-weight:700; color:var(--text);">0</span> ore completate su <span id="hours-total">0</span> totali stimati</p>
+            <h2>Situazione Globale</h2>
             <div class="progress-container">
-                <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+                <div class="progress-bar" id="progress-bar" style="width: 0%;">0%</div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-box highlight">
+                    <span>Ore Fatte</span>
+                    <strong id="hours-done">0</strong>
+                </div>
+                <div class="stat-box">
+                    <span>Ore Rimaste</span>
+                    <strong id="hours-left">0</strong>
+                </div>
+                <div class="stat-box highlight-alt">
+                    <span>Lez. Fatte</span>
+                    <strong id="lessons-done">0</strong>
+                </div>
+                <div class="stat-box">
+                    <span>Lez. Rimaste</span>
+                    <strong id="lessons-left">0</strong>
+                </div>
             </div>
         </div>
 
         <div class="card">
-            <h2>Prossima Lezione</h2>
-            <div class="stat-value" id="next-date" style="font-size: 24px; color: var(--accent);">--/--/----</div>
-            <p id="next-topic" style="margin-top:10px; color:var(--text); font-weight:500;">Argomento: -</p>
-            <p id="next-time">Orario: -</p>
+            <h2 id="focus-card-title">Prossima Lezione</h2>
+            <div id="focus-date" style="font-size: 24px; font-weight: 800; color: var(--accent); margin: 5px 0; letter-spacing:-0.5px;">--/--/----</div>
+            <p id="focus-topic" style="margin-top:10px; color:var(--text); font-weight:600;">Argomento: -</p>
+            <p id="focus-time">Orario: -</p>
         </div>
 
         <div class="card">
             <h2>Gestione Assenze</h2>
             <p>Limite AREU max: <strong>7.5 ore</strong> (10%)</p>
-            <div class="stat-value" id="absence-hours" style="font-size: 28px;">0h</div>
+            <div id="absence-hours" style="font-size: 28px; font-weight: 800; margin: 5px 0;">0h</div>
             <p id="absence-status">Stato: Sicuro.</p>
             
             <div class="btn-group">
@@ -309,29 +332,42 @@
             const now = new Date();
             let totalHours = 0;
             let completedHours = 0;
+            let totalLessons = courseData.length;
+            let completedLessons = 0;
+            
             let nextLesson = null;
+            let ongoingLesson = null;
             
             const timelineContainer = document.getElementById('timeline');
             timelineContainer.innerHTML = '';
 
-            courseData.forEach((lesson, index) => {
+            courseData.forEach((lesson) => {
                 totalHours += lesson.duration;
-                const lessonDate = new Date(lesson.date);
+                const lessonStart = new Date(lesson.date);
+                // Calcolo fine lezione convertendo le ore in millisecondi
+                const lessonEnd = new Date(lessonStart.getTime() + (lesson.duration * 60 * 60 * 1000));
                 
                 let statusClass = 'future';
                 let statusText = 'Da svolgere';
 
-                if (lessonDate < now) {
+                if (now > lessonEnd) {
                     completedHours += lesson.duration;
+                    completedLessons++;
                     statusClass = 'done';
-                    statusText = 'Completata';
-                } else if (!nextLesson) {
-                    nextLesson = lesson;
-                    statusClass = 'next';
-                    statusText = 'Prossima';
+                    statusText = '✓ Completata';
+                } else if (now >= lessonStart && now <= lessonEnd) {
+                    ongoingLesson = lesson;
+                    statusClass = 'in-progress';
+                    statusText = '🔴 IN CORSO';
+                } else {
+                    if (!nextLesson && !ongoingLesson && statusClass === 'future') {
+                        nextLesson = lesson;
+                        statusClass = 'next';
+                        statusText = '→ Prossima';
+                    }
                 }
 
-                const formattedDate = lessonDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const formattedDate = lessonStart.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
                 
                 const lessonDiv = document.createElement('div');
                 lessonDiv.className = `lesson-item ${statusClass}`;
@@ -345,26 +381,55 @@
                 timelineContainer.appendChild(lessonDiv);
             });
 
-            // Animazione e update stat
-            setTimeout(() => {
-                const percentage = ((completedHours / totalHours) * 100).toFixed(1);
-                document.getElementById('percent-text').innerText = `${percentage}%`;
-                document.getElementById('progress-bar').style.width = `${percentage}%`;
-            }, 300); // Ritardo leggero per far vedere l'animazione al caricamento
+            // Aggiornamento Statistiche Chiare
+            const hoursLeft = totalHours - completedHours;
+            const lessonsLeft = totalLessons - completedLessons;
 
             document.getElementById('hours-done').innerText = completedHours;
-            document.getElementById('hours-total').innerText = totalHours;
+            document.getElementById('hours-left').innerText = hoursLeft;
+            document.getElementById('lessons-done').innerText = completedLessons;
+            document.getElementById('lessons-left').innerText = lessonsLeft;
 
-            // Update Prossima lezione
-            if (nextLesson) {
+            // Animazione Progress Bar
+            setTimeout(() => {
+                const percentage = ((completedHours / totalHours) * 100).toFixed(1);
+                const pb = document.getElementById('progress-bar');
+                pb.style.width = `${percentage}%`;
+                pb.innerText = `${percentage}%`;
+            }, 100);
+
+            // Gestione Box Dinamico (In Corso vs Prossima)
+            const focusCardTitle = document.getElementById('focus-card-title');
+            const focusDate = document.getElementById('focus-date');
+            const focusTopic = document.getElementById('focus-topic');
+            const focusTime = document.getElementById('focus-time');
+
+            if (ongoingLesson) {
+                focusCardTitle.innerText = "🚨 Lezione in Corso";
+                focusCardTitle.style.color = "var(--danger)";
+                focusDate.innerText = "Ora in aula!";
+                focusDate.style.color = "var(--danger)";
+                focusTopic.innerText = ongoingLesson.topic;
+                
+                const startObj = new Date(ongoingLesson.date);
+                const endObj = new Date(startObj.getTime() + (ongoingLesson.duration * 3600000));
+                focusTime.innerText = `Termina alle: ${endObj.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`;
+            } else if (nextLesson) {
+                focusCardTitle.innerText = "Prossima Lezione";
+                focusCardTitle.style.color = "var(--text)";
                 const nextDateObj = new Date(nextLesson.date);
                 const opts = { weekday: 'long', day: 'numeric', month: 'long' };
                 let dateStr = nextDateObj.toLocaleDateString('it-IT', opts);
-                dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1); // Capitalize
                 
-                document.getElementById('next-date').innerText = dateStr;
-                document.getElementById('next-topic').innerText = `${nextLesson.topic}`;
-                document.getElementById('next-time').innerText = `${nextDateObj.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} (${nextLesson.duration}h)`;
+                focusDate.innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+                focusDate.style.color = "var(--accent)";
+                focusTopic.innerText = `${nextLesson.topic}`;
+                focusTime.innerText = `Orario: ${nextDateObj.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} (${nextLesson.duration}h)`;
+            } else {
+                focusCardTitle.innerText = "Corso Concluso";
+                focusDate.innerText = "Esame completato!";
+                focusTopic.innerText = "-";
+                focusTime.innerText = "-";
             }
 
             updateAbsenceUI();
@@ -400,7 +465,11 @@
             updateAbsenceUI();
         }
 
+        // Avvio iniziale
         window.onload = initDashboard;
+        
+        // Auto-refresh ogni 60 secondi per aggiornare lo stato "In corso" in tempo reale
+        setInterval(initDashboard, 60000);
     </script>
 </body>
 </html>

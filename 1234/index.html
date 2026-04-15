@@ -1,179 +1,266 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tracker Corso CeFRA - Croce Bianca</title>
+    <title>Dashboard Corso CeFRA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-color: #121212;
-            --surface-color: #1e1e1e;
-            --primary-color: #00e5ff;
-            --secondary-color: #ff3d00;
-            --text-main: #ffffff;
-            --text-muted: #aaaaaa;
-            --success: #00e676;
+            --primary: #0056b3;
+            --primary-light: #eef6ff;
+            --accent: #00a8e8;
+            --text: #212529;
+            --text-muted: #6c757d;
+            --bg: #f4f6f8;
+            --card-bg: #ffffff;
+            --radius: 16px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --border: #eef0f2;
+            --danger: #dc3545;
+            --success: #198754;
+            --warning: #f39c12;
         }
 
-        * {
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 2rem;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
             display: flex;
             justify-content: center;
+            min-height: 100vh;
         }
 
-        .dashboard {
-            max-width: 900px;
+        .container {
             width: 100%;
+            max-width: 900px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
+            align-content: start;
         }
 
         .header {
             grid-column: 1 / -1;
-            margin-bottom: 20px;
+            text-align: center;
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
 
         .header h1 {
-            font-size: 2rem;
-            color: var(--primary-color);
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
         }
 
         .header p {
             color: var(--text-muted);
+            font-size: 15px;
             margin-top: 5px;
         }
 
         .card {
-            background-color: var(--surface-color);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            border: 1px solid white;
             display: flex;
             flex-direction: column;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
         }
+
+        /* Ritardi per l'animazione a cascata */
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
+        .card:nth-child(4) { animation-delay: 0.3s; }
+        .card:nth-child(5) { animation-delay: 0.4s; }
 
         .card-full {
             grid-column: 1 / -1;
         }
 
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 10px 0;
+        .card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 5px 0;
+            letter-spacing: -1px;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Progress Bar Styling */
         .progress-container {
             width: 100%;
-            background-color: #333;
-            border-radius: 10px;
-            height: 20px;
+            background-color: var(--border);
+            border-radius: 12px;
+            height: 16px;
             overflow: hidden;
             margin-top: 15px;
         }
 
         .progress-bar {
             height: 100%;
-            background-color: var(--primary-color);
-            transition: width 0.5s ease-in-out;
+            background-color: var(--accent);
+            border-radius: 12px;
+            transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        .next-lesson {
-            border-left: 5px solid var(--primary-color);
-        }
-
-        .warning-zone {
-            border-left: 5px solid var(--secondary-color);
-        }
-
+        /* Timeline Styling */
         .timeline {
-            margin-top: 20px;
-            max-height: 300px;
+            margin-top: 10px;
+            max-height: 350px;
             overflow-y: auto;
+            padding-right: 10px;
         }
 
         .lesson-item {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #333;
-            color: var(--text-muted);
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
         }
 
-        .lesson-item.done {
-            color: var(--success);
-            text-decoration: line-through;
+        .lesson-item:last-child {
+            border-bottom: none;
         }
 
-        .lesson-item.next {
-            color: var(--primary-color);
-            font-weight: bold;
+        .lesson-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        /* Scrollbar custom */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary-color); }
+        .lesson-date { font-weight: 600; color: var(--text); }
+        .lesson-topic { color: var(--text-muted); font-size: 13px; }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .done .status-badge { background: #e8f5e9; color: var(--success); }
+        .next .status-badge { background: var(--primary-light); color: var(--primary); }
+        .future .status-badge { background: var(--border); color: var(--text-muted); }
+
+        /* Scrollbar per la timeline */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* Bottoni */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
 
         button {
-            background-color: var(--primary-color);
-            color: #000;
+            flex: 1;
+            padding: 12px;
             border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: opacity 0.2s;
+            transition: transform 0.1s, background 0.3s;
         }
 
-        button:hover {
-            opacity: 0.8;
+        button.btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 86, 179, 0.2);
+        }
+
+        button:hover { transform: translateY(-2px); }
+        button:active { transform: scale(0.98); }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* MOBILE RESPONSIVE GRID */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .card {
+                padding: 20px;
+            }
+            .stat-value {
+                font-size: 28px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="dashboard">
+    <div class="container">
         <div class="header">
-            <h1>Corso SSE - Croce Bianca Brescia</h1>
-            <p>Sez. Pontevico | Modulo 135</p>
+            <h1>Tracker CeFRA Modulo 135</h1>
+            <p>Croce Bianca Brescia - Sez. Pontevico</p>
         </div>
 
         <div class="card card-full">
             <h2>Progresso Generale</h2>
             <div class="stat-value" id="percent-text">0%</div>
-            <p><span id="hours-done">0</span> ore completate su <span id="hours-total">0</span> totali</p>
+            <p><span id="hours-done" style="font-weight:700; color:var(--text);">0</span> ore completate su <span id="hours-total">0</span> totali stimati</p>
             <div class="progress-container">
                 <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
             </div>
         </div>
 
-        <div class="card next-lesson">
+        <div class="card">
             <h2>Prossima Lezione</h2>
-            <div class="stat-value" id="next-date" style="font-size: 1.8rem; color: var(--primary-color);">--/--/----</div>
-            <p id="next-topic">Argomento: -</p>
+            <div class="stat-value" id="next-date" style="font-size: 24px; color: var(--accent);">--/--/----</div>
+            <p id="next-topic" style="margin-top:10px; color:var(--text); font-weight:500;">Argomento: -</p>
             <p id="next-time">Orario: -</p>
         </div>
 
-        <div class="card warning-zone">
+        <div class="card">
             <h2>Gestione Assenze</h2>
-            <p>Limite AREU stimato: ~7.5 ore (10%)</p>
-            <div class="stat-value" id="absence-hours" style="color: var(--secondary-color);">0h</div>
-            <p>Assenze accumulate. <span id="absence-status">Sei al sicuro.</span></p>
-            <button onclick="addAbsence()">+ Aggiungi 1h di assenza</button>
-            <button onclick="resetAbsence()" style="background-color: #333; color: white;">Reset</button>
+            <p>Limite AREU max: <strong>7.5 ore</strong> (10%)</p>
+            <div class="stat-value" id="absence-hours" style="font-size: 28px;">0h</div>
+            <p id="absence-status">Stato: Sicuro.</p>
+            
+            <div class="btn-group">
+                <button class="btn-primary" onclick="addAbsence()">+ 1h Assenza</button>
+                <button onclick="resetAbsence()">Azzera</button>
+            </div>
         </div>
 
         <div class="card card-full">
@@ -184,7 +271,6 @@
     </div>
 
     <script>
-        // Database interno strutturato dal PDF
         const courseData = [
             { date: "2026-01-14T20:30:00", duration: 3, topic: "Ruolo e Responsabilità / Trauma" },
             { date: "2026-01-21T20:30:00", duration: 2.5, topic: "TRAUMA - Approfondimenti" },
@@ -214,14 +300,13 @@
             { date: "2026-05-11T20:30:00", duration: 3, topic: "MAXIEMERGENZA" },
             { date: "2026-05-13T20:30:00", duration: 2, topic: "MAXIEMERGENZA" },
             { date: "2026-05-23T14:00:00", duration: 3, topic: "RIPASSO E VALUTAZIONE" },
-            { date: "2026-06-01T00:00:00", duration: 3, topic: "ESAME (Data da concordare)" } // Data fittizia per logica
+            { date: "2026-06-01T00:00:00", duration: 3, topic: "ESAME FINALE" } 
         ];
 
         let absences = localStorage.getItem('sse_absences') ? parseFloat(localStorage.getItem('sse_absences')) : 0;
         
         function initDashboard() {
-            const now = new Date(); // Usa il tempo reale per aggiornare i dati dinamicamente
-            
+            const now = new Date();
             let totalHours = 0;
             let completedHours = 0;
             let nextLesson = null;
@@ -233,68 +318,75 @@
                 totalHours += lesson.duration;
                 const lessonDate = new Date(lesson.date);
                 
-                let statusClass = '';
-                let statusText = '';
+                let statusClass = 'future';
+                let statusText = 'Da svolgere';
 
                 if (lessonDate < now) {
                     completedHours += lesson.duration;
                     statusClass = 'done';
-                    statusText = '✓ Completata';
-                } else {
-                    if (!nextLesson) {
-                        nextLesson = lesson;
-                        statusClass = 'next';
-                        statusText = '→ Prossima';
-                    } else {
-                        statusText = 'In programma';
-                    }
+                    statusText = 'Completata';
+                } else if (!nextLesson) {
+                    nextLesson = lesson;
+                    statusClass = 'next';
+                    statusText = 'Prossima';
                 }
 
-                // Generazione della timeline
+                const formattedDate = lessonDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                
                 const lessonDiv = document.createElement('div');
                 lessonDiv.className = `lesson-item ${statusClass}`;
-                
-                const formattedDate = lessonDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                const timeString = index === courseData.length - 1 ? 'TBD' : lessonDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-
                 lessonDiv.innerHTML = `
-                    <span>${formattedDate} | ${lesson.topic} (${lesson.duration}h)</span>
-                    <span>${statusText}</span>
+                    <div class="lesson-info">
+                        <span class="lesson-date">${formattedDate} <span style="font-weight:400; color:var(--text-muted)">(${lesson.duration}h)</span></span>
+                        <span class="lesson-topic">${lesson.topic}</span>
+                    </div>
+                    <div class="status-badge">${statusText}</div>
                 `;
                 timelineContainer.appendChild(lessonDiv);
             });
 
-            // Calcolo percentuale
-            const percentage = ((completedHours / totalHours) * 100).toFixed(1);
-            
-            // Aggiornamento DOM Statistiche
-            document.getElementById('percent-text').innerText = `${percentage}%`;
-            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            // Animazione e update stat
+            setTimeout(() => {
+                const percentage = ((completedHours / totalHours) * 100).toFixed(1);
+                document.getElementById('percent-text').innerText = `${percentage}%`;
+                document.getElementById('progress-bar').style.width = `${percentage}%`;
+            }, 300); // Ritardo leggero per far vedere l'animazione al caricamento
+
             document.getElementById('hours-done').innerText = completedHours;
             document.getElementById('hours-total').innerText = totalHours;
 
-            // Aggiornamento DOM Prossima Lezione
+            // Update Prossima lezione
             if (nextLesson) {
                 const nextDateObj = new Date(nextLesson.date);
-                document.getElementById('next-date').innerText = nextDateObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
-                document.getElementById('next-topic').innerText = `Argomento: ${nextLesson.topic}`;
-                document.getElementById('next-time').innerText = `Orario: ${nextDateObj.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} (${nextLesson.duration}h)`;
+                const opts = { weekday: 'long', day: 'numeric', month: 'long' };
+                let dateStr = nextDateObj.toLocaleDateString('it-IT', opts);
+                dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1); // Capitalize
+                
+                document.getElementById('next-date').innerText = dateStr;
+                document.getElementById('next-topic').innerText = `${nextLesson.topic}`;
+                document.getElementById('next-time').innerText = `${nextDateObj.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} (${nextLesson.duration}h)`;
             }
 
             updateAbsenceUI();
         }
 
-        // Logica Assenze (Proattività)
         function updateAbsenceUI() {
-            document.getElementById('absence-hours').innerText = `${absences}h`;
-            const statusEl = document.getElementById('absence-status');
+            const valEl = document.getElementById('absence-hours');
+            const statEl = document.getElementById('absence-status');
+            
+            valEl.innerText = `${absences}h`;
+            
             if (absences >= 7.5) {
-                statusEl.innerHTML = `<strong style="color:red">Attenzione! Sei oltre il limite del 10%.</strong>`;
+                valEl.style.color = 'var(--danger)';
+                statEl.innerHTML = `<span style="color:var(--danger); font-weight:600;">Sospensione esame. Limite superato.</span>`;
             } else if (absences >= 5) {
-                statusEl.innerHTML = `<strong style="color:orange">Occhio, ti stai avvicinando al limite.</strong>`;
+                valEl.style.color = 'var(--warning)';
+                statEl.innerHTML = `<span style="color:var(--warning); font-weight:600;">Attenzione, limite vicino.</span>`;
             } else {
-                statusEl.innerText = "Sei nel range di sicurezza.";
+                valEl.style.color = 'var(--text)';
+                statEl.innerHTML = `Sei nel range di sicurezza.`;
             }
+            
             localStorage.setItem('sse_absences', absences);
         }
 
@@ -308,8 +400,7 @@
             updateAbsenceUI();
         }
 
-        // Avvio app
-        initDashboard();
+        window.onload = initDashboard;
     </script>
 </body>
 </html>

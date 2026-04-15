@@ -1,1 +1,315 @@
 
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracker Corso CeFRA - Croce Bianca</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #00e5ff;
+            --secondary-color: #ff3d00;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --success: #00e676;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard {
+            max-width: 900px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-full {
+            grid-column: 1 / -1;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #333;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.5s ease-in-out;
+        }
+
+        .next-lesson {
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .warning-zone {
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .timeline {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .lesson-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+            color: var(--text-muted);
+        }
+
+        .lesson-item.done {
+            color: var(--success);
+            text-decoration: line-through;
+        }
+
+        .lesson-item.next {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* Scrollbar custom */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-color); }
+
+        button {
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="header">
+            <h1>Corso SSE - Croce Bianca Brescia</h1>
+            <p>Sez. Pontevico | Modulo 135</p>
+        </div>
+
+        <div class="card card-full">
+            <h2>Progresso Generale</h2>
+            <div class="stat-value" id="percent-text">0%</div>
+            <p><span id="hours-done">0</span> ore completate su <span id="hours-total">0</span> totali</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div class="card next-lesson">
+            <h2>Prossima Lezione</h2>
+            <div class="stat-value" id="next-date" style="font-size: 1.8rem; color: var(--primary-color);">--/--/----</div>
+            <p id="next-topic">Argomento: -</p>
+            <p id="next-time">Orario: -</p>
+        </div>
+
+        <div class="card warning-zone">
+            <h2>Gestione Assenze</h2>
+            <p>Limite AREU stimato: ~7.5 ore (10%)</p>
+            <div class="stat-value" id="absence-hours" style="color: var(--secondary-color);">0h</div>
+            <p>Assenze accumulate. <span id="absence-status">Sei al sicuro.</span></p>
+            <button onclick="addAbsence()">+ Aggiungi 1h di assenza</button>
+            <button onclick="resetAbsence()" style="background-color: #333; color: white;">Reset</button>
+        </div>
+
+        <div class="card card-full">
+            <h2>Registro Lezioni</h2>
+            <div class="timeline" id="timeline">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Database interno strutturato dal PDF
+        const courseData = [
+            { date: "2026-01-14T20:30:00", duration: 3, topic: "Ruolo e Responsabilità / Trauma" },
+            { date: "2026-01-21T20:30:00", duration: 2.5, topic: "TRAUMA - Approfondimenti" },
+            { date: "2026-01-26T20:30:00", duration: 2.5, topic: "TRAUMA - Approfondimenti" },
+            { date: "2026-02-04T20:30:00", duration: 2.5, topic: "TRAUMA - Approfondimenti" },
+            { date: "2026-02-11T20:30:00", duration: 2.5, topic: "TRAUMA - Approfondimenti" },
+            { date: "2026-02-16T20:30:00", duration: 3, topic: "TRAUMA - Approfondimenti" },
+            { date: "2026-02-18T20:30:00", duration: 3, topic: "TRAUMA - Approfondimenti" },
+            { date: "2026-02-25T20:30:00", duration: 3, topic: "TRAUMA - Approfondimenti" },
+            { date: "2026-03-04T20:30:00", duration: 3, topic: "TRAUMA - Approfondimenti" },
+            { date: "2026-03-11T20:30:00", duration: 3, topic: "TRAUMA - Approfondimenti" },
+            { date: "2026-03-16T20:30:00", duration: 3, topic: "TRAUMA / EMERGENZE MEDICHE" },
+            { date: "2026-03-18T20:30:00", duration: 3, topic: "EMERGENZE MEDICHE - Approfondimenti" },
+            { date: "2026-03-23T20:30:00", duration: 3, topic: "EMERGENZE MEDICHE - Approfondimenti" },
+            { date: "2026-03-25T20:30:00", duration: 3, topic: "EMERGENZE MEDICHE - Approfondimenti" },
+            { date: "2026-03-30T20:30:00", duration: 3, topic: "EMERGENZE MEDICHE - Approfondimenti" },
+            { date: "2026-04-01T20:30:00", duration: 2, topic: "EMERGENZE MEDICHE - Approfondimenti" },
+            { date: "2026-04-08T20:30:00", duration: 1, topic: "ASPETTI PSICOLOGICI" },
+            { date: "2026-04-13T20:30:00", duration: 2, topic: "URGENZE OSTETRICO GINECOLOGICHE" },
+            { date: "2026-04-15T20:30:00", duration: 2, topic: "EMERGENZE AMBIENTALI / TRATTAMENTO PRIMARIO" },
+            { date: "2026-04-20T20:30:00", duration: 2, topic: "IL TRATTAMENTO PRIMARIO - Approfondimenti" },
+            { date: "2026-04-22T20:30:00", duration: 3, topic: "IL TRATTAMENTO PRIMARIO - Approfondimenti" },
+            { date: "2026-04-27T20:30:00", duration: 3, topic: "IL TRATTAMENTO PRIMARIO - Approfondimenti" },
+            { date: "2026-04-29T20:30:00", duration: 3, topic: "LE OPERAZIONI D'AMBULANZA" },
+            { date: "2026-05-04T20:30:00", duration: 3, topic: "LE OPERAZIONI D'AMBULANZA" },
+            { date: "2026-05-06T20:30:00", duration: 3, topic: "MAXIEMERGENZA" },
+            { date: "2026-05-11T20:30:00", duration: 3, topic: "MAXIEMERGENZA" },
+            { date: "2026-05-13T20:30:00", duration: 2, topic: "MAXIEMERGENZA" },
+            { date: "2026-05-23T14:00:00", duration: 3, topic: "RIPASSO E VALUTAZIONE" },
+            { date: "2026-06-01T00:00:00", duration: 3, topic: "ESAME (Data da concordare)" } // Data fittizia per logica
+        ];
+
+        let absences = localStorage.getItem('sse_absences') ? parseFloat(localStorage.getItem('sse_absences')) : 0;
+        
+        function initDashboard() {
+            const now = new Date(); // Usa il tempo reale per aggiornare i dati dinamicamente
+            
+            let totalHours = 0;
+            let completedHours = 0;
+            let nextLesson = null;
+            
+            const timelineContainer = document.getElementById('timeline');
+            timelineContainer.innerHTML = '';
+
+            courseData.forEach((lesson, index) => {
+                totalHours += lesson.duration;
+                const lessonDate = new Date(lesson.date);
+                
+                let statusClass = '';
+                let statusText = '';
+
+                if (lessonDate < now) {
+                    completedHours += lesson.duration;
+                    statusClass = 'done';
+                    statusText = '✓ Completata';
+                } else {
+                    if (!nextLesson) {
+                        nextLesson = lesson;
+                        statusClass = 'next';
+                        statusText = '→ Prossima';
+                    } else {
+                        statusText = 'In programma';
+                    }
+                }
+
+                // Generazione della timeline
+                const lessonDiv = document.createElement('div');
+                lessonDiv.className = `lesson-item ${statusClass}`;
+                
+                const formattedDate = lessonDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const timeString = index === courseData.length - 1 ? 'TBD' : lessonDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
+                lessonDiv.innerHTML = `
+                    <span>${formattedDate} | ${lesson.topic} (${lesson.duration}h)</span>
+                    <span>${statusText}</span>
+                `;
+                timelineContainer.appendChild(lessonDiv);
+            });
+
+            // Calcolo percentuale
+            const percentage = ((completedHours / totalHours) * 100).toFixed(1);
+            
+            // Aggiornamento DOM Statistiche
+            document.getElementById('percent-text').innerText = `${percentage}%`;
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            document.getElementById('hours-done').innerText = completedHours;
+            document.getElementById('hours-total').innerText = totalHours;
+
+            // Aggiornamento DOM Prossima Lezione
+            if (nextLesson) {
+                const nextDateObj = new Date(nextLesson.date);
+                document.getElementById('next-date').innerText = nextDateObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+                document.getElementById('next-topic').innerText = `Argomento: ${nextLesson.topic}`;
+                document.getElementById('next-time').innerText = `Orario: ${nextDateObj.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} (${nextLesson.duration}h)`;
+            }
+
+            updateAbsenceUI();
+        }
+
+        // Logica Assenze (Proattività)
+        function updateAbsenceUI() {
+            document.getElementById('absence-hours').innerText = `${absences}h`;
+            const statusEl = document.getElementById('absence-status');
+            if (absences >= 7.5) {
+                statusEl.innerHTML = `<strong style="color:red">Attenzione! Sei oltre il limite del 10%.</strong>`;
+            } else if (absences >= 5) {
+                statusEl.innerHTML = `<strong style="color:orange">Occhio, ti stai avvicinando al limite.</strong>`;
+            } else {
+                statusEl.innerText = "Sei nel range di sicurezza.";
+            }
+            localStorage.setItem('sse_absences', absences);
+        }
+
+        function addAbsence() {
+            absences += 1;
+            updateAbsenceUI();
+        }
+
+        function resetAbsence() {
+            absences = 0;
+            updateAbsenceUI();
+        }
+
+        // Avvio app
+        initDashboard();
+    </script>
+</body>
+</html>

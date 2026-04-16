@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OFFICINE INDUSTRIALI ROSSI S.P.A.</title>
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f2f2f2;
+        }
+        .menu {
+            background: #333;
+            color: white;
+            padding: 10px;
+        }
+        .menu span {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        .box {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        .small {
+            font-size: 10px;
+            color: gray;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="menu">
+    <span>HOME</span>
+    <span>AZIENDA</span>
+    <span>PRODUZIONE</span>
+    <span>SERVIZI</span>
+    <span>QUALITÀ</span>
+    <span>MAGAZZINO</span>
+    <span>AREA CLIENTI</span>
+    <span>DOWNLOAD</span>
+</div>
+
+<h1 style="margin-left:20px;">OFFICINE INDUSTRIALI ROSSI S.P.A.</h1>
+<p style="margin-left:20px;">Lavorazioni meccaniche conto terzi dal 1987</p>
+
+<div class="box">
+    <h2>Chi siamo</h2>
+    <p>
+        Officine Industriali Rossi opera nel settore delle lavorazioni meccaniche di precisione,
+        offrendo servizi altamente specializzati nel campo della fresatura, tornitura,
+        lavorazioni CNC, assemblaggi e collaudi.
+    </p>
+</div>
+
+<div class="box">
+    <h2>Produzione</h2>
+    <ul>
+        <li>Fresatura CNC 3 assi</li>
+        <li>Fresatura CNC 5 assi</li>
+        <li>Tornitura automatica</li>
+        <li>Lavorazioni manuali</li>
+        <li>Controllo qualità</li>
+        <li>Assemblaggio componenti</li>
+        <li>Magazzino interno</li>
+        <li>Logistica integrata</li>
+    </ul>
+</div>
+
+<div class="box">
+    <h2>News aziendali</h2>
+    <p>2021 - Acquisto nuova macchina utensile</p>
+    <p>2020 - Certificazione ISO 9001</p>
+    <p>2019 - Espansione reparto produttivo</p>
+    <p>2018 - Nuovo gestionale interno</p>
+    <p>2017 - Partecipazione fiera MECSPE</p>
+</div>
+
+<div class="box">
+    <h2>Area tecnica</h2>
+    <p>
+        Scarica i nostri cataloghi tecnici, certificazioni, schede prodotto e documentazione.
+    </p>
+    <ul>
+        <li>Catalogo 2018.pdf</li>
+        <li>Catalogo 2019.pdf</li>
+        <li>Catalogo 2020.pdf</li>
+        <li>Catalogo 2021.pdf</li>
+        <li>Catalogo 2022.pdf</li>
+    </ul>
+</div>
+
+<div class="box">
+    <h2>Lavora con noi</h2>
+    <p>
+        Siamo sempre alla ricerca di personale qualificato da inserire nel nostro team.
+        Invia il tuo curriculum vitae tramite il form presente nell’area clienti.
+    </p>
+</div>
+
+<div class="box">
+    <h2>Certificazioni</h2>
+    <p>ISO 9001</p>
+    <p>ISO 14001</p>
+    <p>ISO 45001</p>
+</div>
+
+<div class="box">
+    <h2>Info varie</h2>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+    <p>Integer nec odio. Praesent libero. Sed cursus ante dapibus diam.</p>
+    <p>Sed nisi. Nulla quis sem at nibh elementum imperdiet.</p>
+    <p>Duis sagittis ipsum. Praesent mauris.</p>
+    <p>Fusce nec tellus sed augue semper porta.</p>
+</div>
+
+<div class="box">
+    <h2>Altre informazioni</h2>
+    <p>Per qualsiasi informazione consultare il sito o contattare l'ufficio tecnico.</p>
+</div>
+
+<div class="box">
+    <h2>Note legali</h2>
+    <p class="small">
+        Tutti i diritti riservati. Officine Industriali Rossi S.P.A.
+        Via delle Industrie 45 - 25020 - Italia
+        P.IVA 01234567890
+    </p>
+</div>
+
+<div style="margin:40px; border-top:1px solid #ccc; padding-top:20px;">
+    <h3>Contatti</h3>
+    <p class="small">
+        (per informazioni generali contattare l'amministrazione)
+    </p>
+    <p class="small">
+        Tel: 030 1234567 - Fax: 030 7654321
+    </p>
+    <p class="small">
+        Email: info@officinerossi.it
+    </p>
+</div>
+
+</body>
+</html>

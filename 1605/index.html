@@ -3,28 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Stefano & Matilde 💕</title>
+  <title>StreakGiorni</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --cream:       #FDF6EE;
-      --cream2:      #F5EBE0;
-      --rose:        #C4536A;
-      --rose-dark:   #A3405A;
-      --rose-light:  #F2B8C6;
-      --rose-pale:   #FDE8EE;
-      --blush:       #F8D7E3;
-      --gold:        #C9943A;
-      --text:        #2D1B1B;
-      --text-muted:  #9A7070;
-      --text-light:  #C4A8A8;
-      --card:        #FFFFFF;
-      --radius-sm:   12px;
-      --radius:      18px;
-      --radius-lg:   24px;
-      --shadow:      0 4px 24px rgba(196,83,106,0.12);
-      --shadow-sm:   0 2px 10px rgba(196,83,106,0.07);
+      --bg:       #F4F6F9;
+      --card:     #FFFFFF;
+      --accent:   #3B6EF8;
+      --accent-l: #EEF2FE;
+      --green:    #22C55E;
+      --green-l:  #F0FDF4;
+      --text:     #18181B;
+      --muted:    #71717A;
+      --light:    #A1A1AA;
+      --border:   #E4E4E7;
+      --radius:   16px;
+      --radius-sm:10px;
     }
 
     *, *::before, *::after {
@@ -33,417 +28,296 @@
     }
 
     body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cream);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; overflow-x: hidden;
     }
 
-    /* ═══════════════════════════════════
+    /* ═══════════════════════════════
        IDENTITY SCREEN
-    ═══════════════════════════════════ */
+    ═══════════════════════════════ */
     #identity-screen {
       position: fixed; inset: 0; z-index: 100;
-      background: var(--cream);
+      background: var(--bg);
       display: flex; align-items: center; justify-content: center;
-      flex-direction: column;
-      gap: 36px; padding: 32px;
+      flex-direction: column; gap: 32px; padding: 32px;
     }
-
-    .id-logo {
-      font-size: 56px;
-      animation: heartbeat 1.8s ease-in-out infinite;
+    .id-icon {
+      width: 64px; height: 64px; background: var(--accent-l);
+      border-radius: 20px; display: flex; align-items: center;
+      justify-content: center; font-size: 30px;
     }
-    @keyframes heartbeat {
-      0%,100% { transform: scale(1); }
-      50%      { transform: scale(1.18); }
-    }
-
     .id-title { text-align: center; }
-    .id-title h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 30px; font-weight: 700; color: var(--text);
-    }
-    .id-title p {
-      color: var(--text-muted); margin-top: 8px; font-size: 15px;
-    }
-
-    .id-cards {
-      display: flex; gap: 16px;
-      width: 100%; max-width: 340px;
-    }
+    .id-title h1 { font-size: 24px; font-weight: 700; }
+    .id-title p  { color: var(--muted); margin-top: 6px; font-size: 15px; }
+    .id-cards { display: flex; gap: 12px; width: 100%; max-width: 320px; }
     .id-card {
-      flex: 1;
-      background: var(--card);
-      border: 2px solid var(--rose-light);
-      border-radius: var(--radius-lg);
-      padding: 30px 16px 24px;
-      cursor: pointer; text-align: center;
-      transition: all .22s ease;
-      font-family: 'DM Sans', sans-serif;
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      flex: 1; background: var(--card); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 24px 16px;
+      cursor: pointer; text-align: center; transition: all .18s ease;
+      font-family: 'Outfit', sans-serif;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
     }
-    .id-card:hover, .id-card:active {
-      border-color: var(--rose);
-      background: var(--rose-pale);
-      transform: translateY(-3px);
-      box-shadow: var(--shadow);
-    }
-    .id-card .id-emoji { font-size: 46px; }
-    .id-card .id-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px; font-weight: 700; color: var(--text);
-    }
+    .id-card:hover { border-color: var(--accent); background: var(--accent-l); }
+    .id-card:active { transform: scale(.97); }
+    .id-card .ic-emoji { font-size: 36px; }
+    .id-card .ic-name  { font-size: 17px; font-weight: 600; }
 
-    /* ═══════════════════════════════════
-       MAIN APP
-    ═══════════════════════════════════ */
+    /* ═══════════════════════════════
+       APP SHELL
+    ═══════════════════════════════ */
     #app { display: none; padding-bottom: 48px; }
 
-    /* Header */
     .app-header {
-      background: var(--card);
-      padding: 18px 20px 14px;
-      text-align: center;
-      border-bottom: 1px solid var(--blush);
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 16px 20px; display: flex;
+      align-items: center; justify-content: space-between;
       position: sticky; top: 0; z-index: 10;
-      box-shadow: 0 1px 8px rgba(196,83,106,0.06);
     }
-    .header-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px; font-weight: 700; color: var(--rose);
+    .header-logo { display: flex; align-items: center; gap: 10px; }
+    .header-logo-icon {
+      width: 32px; height: 32px; background: var(--accent);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 16px;
     }
-    .header-sub {
-      font-size: 11px; color: var(--text-muted); margin-top: 2px; letter-spacing: .3px;
-    }
-    .header-user {
-      position: absolute; right: 14px; top: 50%;
-      transform: translateY(-50%);
-      font-size: 12px; color: var(--text-muted);
-      cursor: pointer;
-      background: var(--cream2);
-      padding: 5px 11px; border-radius: 20px;
-      font-weight: 500;
-      border: none; font-family: 'DM Sans', sans-serif;
+    .header-logo-text { font-size: 17px; font-weight: 700; }
+    .header-user-btn {
+      font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--muted); background: var(--bg);
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 5px 12px; cursor: pointer;
     }
 
-    /* Content wrapper */
-    .content {
-      max-width: 460px;
-      margin: 0 auto;
-      padding: 0 14px;
-    }
+    /* ═══════════════════════════════
+       CONTENT
+    ═══════════════════════════════ */
+    .content { max-width: 460px; margin: 0 auto; padding: 0 14px; }
 
-    /* ---- Streak Hero ---- */
+    .loading-wrap { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px; }
+
+    /* ── Streak Hero ── */
     .streak-hero {
-      margin: 20px 0 14px;
-      padding: 32px 24px 28px;
-      background: linear-gradient(135deg, #C4536A 0%, #E0728A 60%, #E8849A 100%);
-      border-radius: var(--radius-lg);
-      color: white;
-      text-align: center;
+      margin: 18px 0 12px; background: var(--accent);
+      border-radius: var(--radius); padding: 28px 24px;
+      color: white; text-align: center;
       position: relative; overflow: hidden;
     }
-    .streak-hero::before {
-      content: '❤️';
-      position: absolute; font-size: 130px;
-      opacity: .07; right: -24px; top: -24px;
-      transform: rotate(12deg);
+    .streak-hero::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg,rgba(255,255,255,.09) 0%,transparent 60%);
       pointer-events: none;
     }
-    .streak-fire { font-size: 36px; margin-bottom: 2px; display: block; }
-    .streak-number {
-      font-family: 'Playfair Display', serif;
-      font-size: 86px; font-weight: 700;
-      line-height: 1; letter-spacing: -3px;
+    .sh-label-top {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; opacity: .65; margin-bottom: 6px;
     }
-    .streak-label { font-size: 15px; opacity: .85; margin-top: 4px; font-weight: 500; }
-    .streak-sub   { font-size: 13px; opacity: .65; margin-top: 8px; min-height: 18px; }
+    .sh-number   { font-size: 80px; font-weight: 700; line-height: 1; letter-spacing: -3px; }
+    .sh-label-bot{ font-size: 15px; font-weight: 500; opacity: .8; margin-top: 4px; }
+    .sh-sub      { font-size: 13px; opacity: .6; margin-top: 8px; min-height: 18px; }
 
-    /* ---- Stats Row ---- */
+    /* ── Stats ── */
     .stats-row {
       display: grid; grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px; margin-bottom: 14px;
+      gap: 10px; margin-bottom: 12px;
     }
     .stat-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px 10px;
-      text-align: center;
-      box-shadow: var(--shadow-sm);
+      background: var(--card); border-radius: var(--radius);
+      padding: 14px 10px; text-align: center; border: 1px solid var(--border);
     }
-    .stat-value {
-      font-family: 'Playfair Display', serif;
-      font-size: 28px; font-weight: 700; color: var(--rose);
-    }
-    .stat-label {
-      font-size: 10px; color: var(--text-muted); margin-top: 3px; font-weight: 500;
-    }
+    .stat-value { font-size: 26px; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 500; }
 
-    /* ---- Cards ---- */
+    /* ── Cards ── */
     .card {
-      background: var(--card);
-      border-radius: var(--radius-lg);
-      padding: 22px 20px;
-      margin-bottom: 14px;
-      box-shadow: var(--shadow-sm);
+      background: var(--card); border-radius: var(--radius);
+      padding: 20px; margin-bottom: 12px; border: 1px solid var(--border);
     }
-    .section-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 17px; font-weight: 600; color: var(--text);
-      margin-bottom: 16px;
-      display: flex; align-items: center; gap: 7px;
+    .card-title {
+      font-size: 11px; font-weight: 700; color: var(--light);
+      letter-spacing: .8px; text-transform: uppercase; margin-bottom: 14px;
     }
 
-    /* ---- Check-in ---- */
-    .checkin-btn {
-      width: 100%;
-      padding: 18px;
-      background: linear-gradient(135deg, #C4536A, #E0728A);
-      color: white; border: none;
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 17px; font-weight: 600;
-      cursor: pointer; letter-spacing: .2px;
-      transition: all .18s ease;
-      box-shadow: 0 4px 18px rgba(196,83,106,.35);
-    }
-    .checkin-btn:active {
-      transform: scale(.97);
-      box-shadow: 0 2px 8px rgba(196,83,106,.2);
-    }
-
+    /* ── Person badges ── */
     .person-badge {
       display: flex; align-items: center; gap: 12px;
-      border-radius: var(--radius-sm); padding: 13px 15px;
-      margin-bottom: 10px;
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      margin-bottom: 8px; border: 1px solid transparent;
     }
-    .person-badge.done {
-      background: var(--rose-pale);
-      border: 1.5px solid var(--rose-light);
+    .person-badge.done    { background: var(--green-l); border-color: #BBF7D0; }
+    .person-badge.waiting { background: var(--bg); border-color: var(--border); }
+    .pb-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
     }
-    .person-badge.waiting {
-      background: var(--cream2);
-      border: 1.5px dashed var(--text-light);
-      opacity: .75;
-    }
-    .pb-icon  { font-size: 22px; flex-shrink: 0; }
-    .pb-info  { flex: 1; }
-    .pb-name  { font-weight: 600; font-size: 14px; }
-    .done .pb-name  { color: var(--rose); }
-    .waiting .pb-name { color: var(--text-muted); }
-    .pb-sub   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .done .pb-dot    { background: var(--green); }
+    .waiting .pb-dot { background: var(--border); }
+    .pb-info { flex: 1; }
+    .pb-name { font-size: 14px; font-weight: 600; }
+    .done .pb-name    { color: #15803D; }
+    .waiting .pb-name { color: var(--muted); }
+    .pb-sub { font-size: 12px; color: var(--light); margin-top: 2px; }
 
-    /* ---- Note ---- */
-    .note-section { margin-top: 18px; }
-    .note-label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
-    .note-input {
-      width: 100%;
-      border: 1.5px solid var(--blush);
+    /* ── Check-in button ── */
+    .checkin-btn-wrap { margin-top: 4px; }
+    .checkin-btn {
+      width: 100%; padding: 16px;
+      background: var(--accent); color: white; border: none;
       border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px; color: var(--text);
-      background: var(--cream); resize: none; outline: none;
-      transition: border-color .2s;
-      line-height: 1.5;
+      font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: all .16s ease;
     }
-    .note-input::placeholder { color: var(--text-light); }
-    .note-input:focus { border-color: var(--rose-light); background: white; }
+    .checkin-btn:active   { transform: scale(.98); opacity: .9; }
+    .checkin-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── Note ── */
+    .note-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .note-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; letter-spacing: .3px; }
+    .note-input {
+      width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 11px 13px; font-family: 'Outfit', sans-serif; font-size: 14px;
+      color: var(--text); background: var(--bg); resize: none; outline: none;
+      transition: border-color .18s; line-height: 1.5;
+    }
+    .note-input::placeholder { color: var(--light); }
+    .note-input:focus { border-color: var(--accent); background: white; }
     .note-footer { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
     .note-save-btn {
-      padding: 9px 20px;
-      background: var(--rose-pale); color: var(--rose);
-      border: 1.5px solid var(--rose-light); border-radius: var(--radius-sm);
-      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
-      cursor: pointer; transition: all .18s;
+      padding: 8px 18px; background: var(--accent-l); color: var(--accent);
+      border: 1px solid #C7D7FD; border-radius: var(--radius-sm);
+      font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
     }
-    .note-save-btn:active { background: var(--rose); color: white; border-color: var(--rose); }
-    .note-saved { color: var(--gold); font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .3s; }
+    .note-save-btn:active { background: var(--accent); color: white; }
+    .note-saved { font-size: 13px; color: var(--green); font-weight: 500; opacity: 0; transition: opacity .3s; }
     .note-saved.show { opacity: 1; }
 
-    /* ---- Calendar ---- */
+    /* ── Calendar ── */
     .cal-nav {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 14px;
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 12px;
     }
-    .cal-month-label {
-      font-family: 'Playfair Display', serif;
-      font-size: 16px; font-weight: 600; text-transform: capitalize;
-    }
+    .cal-month { font-size: 15px; font-weight: 600; text-transform: capitalize; }
     .cal-btn {
-      background: none; border: none; font-size: 20px;
-      cursor: pointer; color: var(--text-muted);
-      padding: 4px 10px; border-radius: 8px; line-height: 1;
-      transition: background .15s;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 16px; cursor: pointer;
+      color: var(--muted); padding: 4px 11px; line-height: 1.4;
+      font-family: 'Outfit', sans-serif;
     }
-    .cal-btn:active { background: var(--cream2); }
-    .cal-btn:disabled { opacity: .25; cursor: default; }
-
-    .cal-days-header {
-      display: grid; grid-template-columns: repeat(7, 1fr);
+    .cal-btn:disabled { opacity: .3; cursor: default; }
+    .cal-btn:not(:disabled):active { background: var(--border); }
+    .cal-header {
+      display: grid; grid-template-columns: repeat(7,1fr);
       text-align: center; margin-bottom: 4px;
     }
-    .cal-dh {
-      font-size: 10px; font-weight: 700;
-      color: var(--text-light); padding: 3px 0;
-      letter-spacing: .5px;
-    }
-    .cal-grid {
-      display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
-    }
+    .cal-dh { font-size: 10px; font-weight: 700; color: var(--light); padding: 3px 0; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
     .cal-day {
-      aspect-ratio: 1;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 50%; font-size: 12px; font-weight: 500;
-      color: var(--text-muted); position: relative;
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; font-size: 12px; font-weight: 500; color: var(--muted);
     }
-    .cal-day.has-checkin {
-      background: var(--rose); color: white; font-weight: 700;
-    }
-    .cal-day.is-today:not(.has-checkin) {
-      border: 2px solid var(--rose); color: var(--rose); font-weight: 700;
-    }
-    .cal-day.is-today.has-checkin {
-      box-shadow: 0 0 0 3px rgba(196,83,106,.28);
-    }
-    .cal-day.is-empty   { opacity: 0; pointer-events: none; }
-    .cal-day.is-future  { opacity: .2; }
+    .cal-day.has-visit  { background: var(--accent); color: white; font-weight: 700; }
+    .cal-day.is-today:not(.has-visit) { border: 2px solid var(--accent); color: var(--accent); font-weight: 700; }
+    .cal-day.is-today.has-visit { box-shadow: 0 0 0 3px rgba(59,110,248,.22); }
+    .cal-day.is-empty  { opacity: 0; pointer-events: none; }
+    .cal-day.is-future { opacity: .2; }
 
-    /* ---- History ---- */
+    /* ── History ── */
     .history-list { max-height: 420px; overflow-y: auto; }
-    .history-item {
-      padding: 14px 0;
-      border-bottom: 1px solid var(--cream2);
-    }
+    .history-item { padding: 13px 0; border-bottom: 1px solid var(--border); }
     .history-item:last-child { border-bottom: none; }
     .h-date {
-      font-size: 11px; font-weight: 700; color: var(--text-muted);
+      font-size: 11px; font-weight: 700; color: var(--light);
       text-transform: uppercase; letter-spacing: .6px; margin-bottom: 7px;
     }
-    .h-pills { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 5px; }
+    .h-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
     .h-pill {
-      background: var(--rose-pale); color: var(--rose);
-      border-radius: 20px; padding: 4px 11px;
-      font-size: 12px; font-weight: 600;
+      background: var(--accent-l); color: var(--accent);
+      border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600;
     }
-    .h-note {
-      font-size: 13px; color: var(--text-muted); font-style: italic; margin-top: 5px;
-    }
-    .h-note::before { content: '❝ '; font-style: normal; color: var(--rose-light); }
-    .h-note::after  { content: ' ❞'; font-style: normal; color: var(--rose-light); }
+    .h-note { font-size: 13px; color: var(--muted); font-style: italic; margin-top: 4px; }
+    .h-note::before { content: '"'; font-style: normal; color: var(--light); }
+    .h-note::after  { content: '"'; font-style: normal; color: var(--light); }
 
-    /* ---- Milestone Toast ---- */
+    /* ── Milestone toast ── */
     .milestone-toast {
       position: fixed; top: 20px; left: 50%;
-      transform: translateX(-50%) translateY(-120px);
-      background: linear-gradient(135deg, #C4536A, #E8739A);
-      color: white; padding: 16px 28px;
-      border-radius: var(--radius-lg);
-      font-family: 'Playfair Display', serif; font-size: 16px;
-      text-align: center; z-index: 300;
-      box-shadow: 0 8px 32px rgba(196,83,106,.45);
-      transition: transform .42s cubic-bezier(.34,1.56,.64,1);
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--accent); color: white;
+      padding: 14px 24px; border-radius: var(--radius);
+      font-size: 15px; font-weight: 600; z-index: 300;
       pointer-events: none; white-space: nowrap;
+      box-shadow: 0 8px 28px rgba(59,110,248,.35);
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1);
     }
     .milestone-toast.show { transform: translateX(-50%) translateY(0); }
 
-    /* ---- Confetti Canvas ---- */
     #confetti-canvas {
-      position: fixed; inset: 0;
-      width: 100%; height: 100%;
+      position: fixed; inset: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: 200;
     }
 
-    /* ---- Loading ---- */
-    .loading-wrap {
-      text-align: center; padding: 60px 20px;
-      color: var(--text-muted);
-    }
-    .loading-wrap span { font-size: 32px; display: block; margin-bottom: 12px; animation: spin 1.2s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state { text-align: center; padding: 24px; color: var(--light); font-size: 14px; }
 
-    /* ---- Animations ---- */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .fade-in { animation: fadeInUp .35s ease both; }
-    .fade-in-2 { animation: fadeInUp .35s .08s ease both; }
-    .fade-in-3 { animation: fadeInUp .35s .16s ease both; }
-    .fade-in-4 { animation: fadeInUp .35s .24s ease both; }
-    .fade-in-5 { animation: fadeInUp .35s .32s ease both; }
-
-    /* ---- Empty state ---- */
-    .empty-state {
-      text-align: center; padding: 24px 16px;
-      color: var(--text-muted); font-size: 14px;
-    }
-
-    /* ---- Scrollbar ---- */
     .history-list::-webkit-scrollbar { width: 4px; }
     .history-list::-webkit-scrollbar-track { background: transparent; }
-    .history-list::-webkit-scrollbar-thumb { background: var(--rose-light); border-radius: 4px; }
+    .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fu-1 { animation: fadeUp .3s ease both; }
+    .fu-2 { animation: fadeUp .3s .07s ease both; }
+    .fu-3 { animation: fadeUp .3s .14s ease both; }
+    .fu-4 { animation: fadeUp .3s .21s ease both; }
+    .fu-5 { animation: fadeUp .3s .28s ease both; }
   </style>
 </head>
 <body>
 
-<!-- Confetti -->
 <canvas id="confetti-canvas"></canvas>
-
-<!-- Milestone Toast -->
 <div class="milestone-toast" id="milestone-toast"></div>
 
-<!-- ══════════════════════════════════
-     IDENTITY SCREEN
-══════════════════════════════════ -->
+<!-- IDENTITY -->
 <div id="identity-screen">
-  <div class="id-logo">💕</div>
+  <div class="id-icon">📅</div>
   <div class="id-title">
     <h1>Chi sei?</h1>
-    <p>Scegli il tuo profilo per iniziare</p>
+    <p>Scegli il tuo profilo per continuare</p>
   </div>
   <div class="id-cards">
     <button class="id-card" id="btn-stefano">
-      <span class="id-emoji">🧑</span>
-      <span class="id-name">Stefano</span>
+      <span class="ic-emoji">🧑</span>
+      <span class="ic-name">Stefano</span>
     </button>
     <button class="id-card" id="btn-matilde">
-      <span class="id-emoji">👩</span>
-      <span class="id-name">Matilde</span>
+      <span class="ic-emoji">👩</span>
+      <span class="ic-name">Matilde</span>
     </button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════
-     MAIN APP
-══════════════════════════════════ -->
+<!-- APP -->
 <div id="app">
   <div class="app-header">
-    <div class="header-title">Stefano & Matilde 💕</div>
-    <div class="header-sub">la vostra streak d'amore</div>
-    <button class="header-user" id="header-user"></button>
+    <div class="header-logo">
+      <div class="header-logo-icon">🔥</div>
+      <div class="header-logo-text">StreakGiorni</div>
+    </div>
+    <button class="header-user-btn" id="header-user"></button>
   </div>
 
   <div class="content">
-
-    <!-- Loading -->
-    <div class="loading-wrap" id="loading">
-      <span>🌸</span>
-      Caricamento…
-    </div>
+    <div class="loading-wrap" id="loading">Caricamento…</div>
 
     <!-- Streak Hero -->
-    <div class="streak-hero fade-in" id="streak-hero" style="display:none">
-      <span class="streak-fire" id="streak-fire">🔥</span>
-      <div class="streak-number" id="streak-number">0</div>
-      <div class="streak-label" id="streak-label">giorni di fila</div>
-      <div class="streak-sub" id="streak-sub"></div>
+    <div class="streak-hero fu-1" id="streak-hero" style="display:none">
+      <div class="sh-label-top">STREAK ATTUALE</div>
+      <div class="sh-number" id="sh-number">0</div>
+      <div class="sh-label-bot" id="sh-label">giorni di fila</div>
+      <div class="sh-sub" id="sh-sub"></div>
     </div>
 
     <!-- Stats -->
-    <div class="stats-row fade-in-2" id="stats-row" style="display:none">
+    <div class="stats-row fu-2" id="stats-row" style="display:none">
       <div class="stat-card">
         <div class="stat-value" id="stat-best">0</div>
         <div class="stat-label">🏆 Record</div>
@@ -458,59 +332,53 @@
       </div>
     </div>
 
-    <!-- Today Card -->
-    <div class="card fade-in-3" id="today-card" style="display:none">
-      <div class="section-title">❤️ Oggi</div>
+    <!-- Today -->
+    <div class="card fu-3" id="today-card" style="display:none">
+      <div class="card-title">Oggi</div>
       <div id="today-checkins"></div>
-      <div id="checkin-btn-wrap" style="display:none; margin-top:4px">
-        <button class="checkin-btn" id="checkin-btn">
-          Ci siamo visti oggi! 💕
-        </button>
+      <div class="checkin-btn-wrap" id="checkin-btn-wrap" style="display:none">
+        <button class="checkin-btn" id="checkin-btn">Ci siamo visti oggi ✓</button>
       </div>
       <div class="note-section">
-        <div class="note-label">📝 Nota del giorno</div>
+        <div class="note-label">NOTA DEL GIORNO</div>
         <textarea class="note-input" id="note-input" rows="3"
-          placeholder="Cosa avete fatto insieme oggi?"></textarea>
+          placeholder="Cosa avete fatto?"></textarea>
         <div class="note-footer">
-          <button class="note-save-btn" id="note-save-btn">Salva nota</button>
-          <span class="note-saved" id="note-saved">✓ Salvata!</span>
+          <button class="note-save-btn" id="note-save-btn">Salva</button>
+          <span class="note-saved" id="note-saved">✓ Salvata</span>
         </div>
       </div>
     </div>
 
-    <!-- Calendar Card -->
-    <div class="card fade-in-4" id="calendar-card" style="display:none">
+    <!-- Calendar -->
+    <div class="card fu-4" id="calendar-card" style="display:none">
       <div class="cal-nav">
         <button class="cal-btn" id="cal-prev">‹</button>
-        <div class="cal-month-label" id="cal-month-label"></div>
+        <div class="cal-month" id="cal-month"></div>
         <button class="cal-btn" id="cal-next" disabled>›</button>
       </div>
-      <div class="cal-days-header">
-        <div class="cal-dh">LUN</div>
-        <div class="cal-dh">MAR</div>
-        <div class="cal-dh">MER</div>
-        <div class="cal-dh">GIO</div>
-        <div class="cal-dh">VEN</div>
-        <div class="cal-dh">SAB</div>
+      <div class="cal-header">
+        <div class="cal-dh">LUN</div><div class="cal-dh">MAR</div>
+        <div class="cal-dh">MER</div><div class="cal-dh">GIO</div>
+        <div class="cal-dh">VEN</div><div class="cal-dh">SAB</div>
         <div class="cal-dh">DOM</div>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
     </div>
 
-    <!-- History Card -->
-    <div class="card fade-in-5" id="history-card" style="display:none">
-      <div class="section-title">📖 Storia</div>
+    <!-- History -->
+    <div class="card fu-5" id="history-card" style="display:none">
+      <div class="card-title">Registro</div>
       <div class="history-list" id="history-list"></div>
     </div>
 
-  </div><!-- .content -->
-</div><!-- #app -->
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp }                     from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
-/* ─── Firebase config ─────────────────────────────── */
 const firebaseConfig = {
   apiKey:            "AIzaSyDFmuneg4EMI-xrsXxc012ucUfpfI49OHU",
   authDomain:        "streakgiorni.firebaseapp.com",
@@ -521,388 +389,251 @@ const firebaseConfig = {
   appId:             "1:40196215137:web:abc6481d78abf1c19ff520",
 };
 
-const fbApp = initializeApp(firebaseConfig);
-const db    = getDatabase(fbApp);
+const db = getDatabase(initializeApp(firebaseConfig));
 
-/* ─── State ───────────────────────────────────────── */
-let allDays      = {};
-let myIdentity   = null;
-let calOffset    = 0;   // months from today
-let prevStreak   = -1;
+let allDays    = {};
+let myIdentity = null;
+let calOffset  = 0;
+let prevStreak = -1;
+const MILESTONES = new Set([7,14,21,30,50,100,150,200,365]);
 
-const MILESTONES = new Set([3,7,14,21,30,50,100,150,200,365]);
-
-/* ─── Date helpers ────────────────────────────────── */
-function todayStr() { return dateStr(new Date()); }
-
-function dateStr(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const n = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${n}`;
+/* ── Date utils ── */
+function todayStr() { return fmt(new Date()); }
+function fmt(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-
-function parseLocalDate(ds) {
-  const [y,m,d] = ds.split('-').map(Number);
-  return new Date(y, m-1, d);
-}
-
-function formatTime(ts) {
-  return new Date(ts).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-}
-
+function parseLocal(ds) { const [y,m,d]=ds.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtTime(ts)    { return new Date(ts).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); }
 function humanDate(ds) {
-  const t = todayStr();
-  const yesterday = dateStr(new Date(Date.now() - 86400000));
-  if (ds === t)         return 'Oggi';
-  if (ds === yesterday) return 'Ieri';
-  return parseLocalDate(ds).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  if (ds===todayStr()) return 'Oggi';
+  if (ds===fmt(new Date(Date.now()-86400000))) return 'Ieri';
+  return parseLocal(ds).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
 }
 
-/* ─── Calculations ────────────────────────────────── */
-function hasVisit(day) { return day && (day.stefano || day.matilde); }
+/* ── Logic ── */
+function hasVisit(d) { return d && (d.stefano || d.matilde); }
 
 function calcStreak(days) {
-  const t = todayStr();
-  const d = new Date();
-  if (!hasVisit(days[t])) d.setDate(d.getDate()-1);
-  let streak = 0;
-  while (true) {
-    const ds = dateStr(d);
-    if (hasVisit(days[ds])) { streak++; d.setDate(d.getDate()-1); }
-    else break;
-  }
-  return streak;
+  const d=new Date();
+  if (!hasVisit(days[todayStr()])) d.setDate(d.getDate()-1);
+  let s=0;
+  while(hasVisit(days[fmt(d)])) { s++; d.setDate(d.getDate()-1); }
+  return s;
 }
 
 function calcBest(days) {
-  const sorted = Object.keys(days).filter(k => hasVisit(days[k])).sort();
-  let best = 0, cur = 0, prev = null;
-  for (const ds of sorted) {
-    if (prev) {
-      const diff = (parseLocalDate(ds) - parseLocalDate(prev)) / 86400000;
-      cur = diff === 1 ? cur+1 : 1;
-    } else { cur = 1; }
-    if (cur > best) best = cur;
-    prev = ds;
+  const sorted=Object.keys(days).filter(k=>hasVisit(days[k])).sort();
+  let best=0,cur=0,prev=null;
+  for(const ds of sorted){
+    if(prev){ const diff=(parseLocal(ds)-parseLocal(prev))/86400000; cur=diff===1?cur+1:1; } else cur=1;
+    if(cur>best)best=cur; prev=ds;
   }
   return best;
 }
 
-function calcTotal(days) {
-  return Object.values(days).filter(hasVisit).length;
-}
-
+function calcTotal(days) { return Object.values(days).filter(hasVisit).length; }
 function calcMonth(days) {
-  const now = new Date();
-  const pfx = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  return Object.keys(days).filter(k => k.startsWith(pfx) && hasVisit(days[k])).length;
+  const now=new Date();
+  const pfx=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  return Object.keys(days).filter(k=>k.startsWith(pfx)&&hasVisit(days[k])).length;
 }
 
-/* ─── Render: Streak Hero ─────────────────────────── */
+/* ── Render ── */
 function renderStreak() {
-  const streak = calcStreak(allDays);
-  const best   = Math.max(calcBest(allDays), streak);
-  const total  = calcTotal(allDays);
-  const month  = calcMonth(allDays);
+  const streak=calcStreak(allDays);
+  const best=Math.max(calcBest(allDays),streak);
+  document.getElementById('sh-number').textContent  = streak;
+  document.getElementById('stat-best').textContent  = best;
+  document.getElementById('stat-total').textContent = calcTotal(allDays);
+  document.getElementById('stat-month').textContent = calcMonth(allDays);
 
-  document.getElementById('streak-number').textContent = streak;
-  document.getElementById('stat-best').textContent   = best;
-  document.getElementById('stat-total').textContent  = total;
-  document.getElementById('stat-month').textContent  = month;
+  const label=document.getElementById('sh-label');
+  const sub  =document.getElementById('sh-sub');
 
-  const fire  = document.getElementById('streak-fire');
-  const label = document.getElementById('streak-label');
-  const sub   = document.getElementById('streak-sub');
-
-  if (streak === 0) {
-    fire.textContent  = '💔';
-    label.textContent = 'nessuna streak attiva';
-    const lastKey = Object.keys(allDays).filter(k => hasVisit(allDays[k])).sort().pop();
-    if (lastKey) {
-      const diff = Math.round((parseLocalDate(todayStr()) - parseLocalDate(lastKey)) / 86400000);
-      sub.textContent = `Ultima volta ${diff} ${diff===1?'giorno':'giorni'} fa`;
+  if(streak===0){
+    label.textContent='nessuna streak attiva';
+    const lastKey=Object.keys(allDays).filter(k=>hasVisit(allDays[k])).sort().pop();
+    if(lastKey){
+      const diff=Math.round((parseLocal(todayStr())-parseLocal(lastKey))/86400000);
+      sub.textContent=`Ultima volta ${diff} ${diff===1?'giorno':'giorni'} fa`;
     } else {
-      fire.textContent = '✨';
-      sub.textContent  = 'Iniziate la vostra prima streak! 🌟';
+      sub.textContent='Nessun giorno registrato';
     }
   } else {
-    fire.textContent  = streak >= 30 ? '🔥🔥🔥' : streak >= 7 ? '🔥🔥' : '🔥';
-    label.textContent = 'giorni di fila';
-    sub.textContent   = '';
-    if (prevStreak >= 0 && streak > prevStreak && MILESTONES.has(streak)) {
-      showMilestone(streak);
-    }
+    label.textContent='giorni di fila';
+    sub.textContent='';
+    if(prevStreak>=0 && streak>prevStreak && MILESTONES.has(streak)) showMilestone(streak);
   }
-  prevStreak = streak;
+  prevStreak=streak;
 }
 
-/* ─── Render: Today ───────────────────────────────── */
 function renderToday() {
-  const t       = todayStr();
-  const dayData = allDays[t] || {};
-
-  const people = [
-    { key:'stefano', label:'Stefano', emoji:'🧑' },
-    { key:'matilde', label:'Matilde', emoji:'👩' },
-  ];
-
-  let html = '';
-  for (const p of people) {
-    if (dayData[p.key]) {
-      html += `
-        <div class="person-badge done">
-          <div class="pb-icon">✅</div>
-          <div class="pb-info">
-            <div class="pb-name">${p.emoji} ${p.label}</div>
-            <div class="pb-sub">Segnato alle ${dayData[p.key].time} — ${humanDate(t)}</div>
-          </div>
-        </div>`;
+  const t=todayStr(); const day=allDays[t]||{};
+  const people=[{key:'stefano',label:'Stefano',emoji:'🧑'},{key:'matilde',label:'Matilde',emoji:'👩'}];
+  let html='';
+  for(const p of people){
+    if(day[p.key]){
+      html+=`<div class="person-badge done">
+        <div class="pb-dot"></div>
+        <div class="pb-info">
+          <div class="pb-name">${p.emoji} ${p.label}</div>
+          <div class="pb-sub">Check-in alle ${day[p.key].time}</div>
+        </div></div>`;
     } else {
-      const isMe = p.key === myIdentity;
-      html += `
-        <div class="person-badge waiting">
-          <div class="pb-icon">${p.emoji}</div>
-          <div class="pb-info">
-            <div class="pb-name">${p.label}</div>
-            <div class="pb-sub">${isMe ? 'Non hai ancora segnato' : 'Non ha ancora segnato'}</div>
-          </div>
-        </div>`;
+      html+=`<div class="person-badge waiting">
+        <div class="pb-dot"></div>
+        <div class="pb-info">
+          <div class="pb-name">${p.emoji} ${p.label}</div>
+          <div class="pb-sub">${p.key===myIdentity?'Non hai ancora segnato':'Non ha ancora segnato'}</div>
+        </div></div>`;
     }
   }
-  document.getElementById('today-checkins').innerHTML = html;
-
-  // Show/hide check-in button
-  const btnWrap = document.getElementById('checkin-btn-wrap');
-  btnWrap.style.display = dayData[myIdentity] ? 'none' : 'block';
-
-  // Note
-  const ni = document.getElementById('note-input');
-  if (document.activeElement !== ni) {
-    ni.value = dayData.note || '';
-  }
+  document.getElementById('today-checkins').innerHTML=html;
+  document.getElementById('checkin-btn-wrap').style.display=day[myIdentity]?'none':'block';
+  const ni=document.getElementById('note-input');
+  if(document.activeElement!==ni) ni.value=day.note||'';
 }
 
-/* ─── Render: Calendar ────────────────────────────── */
 function renderCalendar() {
-  const now    = new Date();
-  const target = new Date(now.getFullYear(), now.getMonth() + calOffset, 1);
-  const year   = target.getFullYear();
-  const month  = target.getMonth();
-
-  document.getElementById('cal-month-label').textContent =
+  const now=new Date();
+  const target=new Date(now.getFullYear(),now.getMonth()+calOffset,1);
+  const y=target.getFullYear(), mo=target.getMonth();
+  document.getElementById('cal-month').textContent=
     target.toLocaleDateString('it-IT',{month:'long',year:'numeric'});
-
-  document.getElementById('cal-next').disabled = calOffset >= 0;
-
-  const firstDow = new Date(year, month, 1).getDay();
-  const blanks   = firstDow === 0 ? 6 : firstDow - 1; // Mon-start
-  const daysInM  = new Date(year, month+1, 0).getDate();
-  const today    = todayStr();
-
-  const grid = document.getElementById('cal-grid');
-  grid.innerHTML = '';
-
-  for (let i = 0; i < blanks; i++) {
-    const c = document.createElement('div');
-    c.className = 'cal-day is-empty'; grid.appendChild(c);
-  }
-  for (let d = 1; d <= daysInM; d++) {
-    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const c  = document.createElement('div');
-    c.className = 'cal-day';
-    c.textContent = d;
-    if (ds > today)             c.classList.add('is-future');
-    if (ds === today)           c.classList.add('is-today');
-    if (hasVisit(allDays[ds]))  c.classList.add('has-checkin');
-    const day = allDays[ds];
-    if (day) {
-      const parts = [];
-      if (day.stefano) parts.push(`🧑 ${day.stefano.time}`);
-      if (day.matilde) parts.push(`👩 ${day.matilde.time}`);
-      if (day.note)    parts.push(`"${day.note}"`);
-      if (parts.length) c.title = parts.join('\n');
+  document.getElementById('cal-next').disabled=calOffset>=0;
+  let dow=new Date(y,mo,1).getDay(); dow=dow===0?6:dow-1;
+  const days=new Date(y,mo+1,0).getDate();
+  const today=todayStr();
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  for(let i=0;i<dow;i++){const c=document.createElement('div');c.className='cal-day is-empty';grid.appendChild(c);}
+  for(let d=1;d<=days;d++){
+    const ds=`${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const c=document.createElement('div');
+    c.className='cal-day'; c.textContent=d;
+    if(ds>today)            c.classList.add('is-future');
+    if(ds===today)          c.classList.add('is-today');
+    if(hasVisit(allDays[ds])) c.classList.add('has-visit');
+    const dd=allDays[ds];
+    if(dd){
+      const parts=[];
+      if(dd.stefano) parts.push(`Stefano ${dd.stefano.time}`);
+      if(dd.matilde) parts.push(`Matilde ${dd.matilde.time}`);
+      if(dd.note)    parts.push(dd.note);
+      if(parts.length) c.title=parts.join('\n');
     }
     grid.appendChild(c);
   }
 }
 
-/* ─── Render: History ─────────────────────────────── */
 function renderHistory() {
-  const list = document.getElementById('history-list');
-  const days = Object.keys(allDays)
-    .filter(k => hasVisit(allDays[k]))
-    .sort((a,b) => b.localeCompare(a))
-    .slice(0, 60);
-
-  if (!days.length) {
-    list.innerHTML = '<div class="empty-state">Nessun giorno ancora… iniziate oggi! 🌸</div>';
-    return;
-  }
-
-  list.innerHTML = days.map(ds => {
-    const d = allDays[ds];
-    const pills = [];
-    if (d.stefano) pills.push(`<span class="h-pill">🧑 Stefano — ${d.stefano.time}</span>`);
-    if (d.matilde) pills.push(`<span class="h-pill">👩 Matilde — ${d.matilde.time}</span>`);
-    const note = d.note ? `<div class="h-note">${esc(d.note)}</div>` : '';
+  const list=document.getElementById('history-list');
+  const keys=Object.keys(allDays).filter(k=>hasVisit(allDays[k])).sort((a,b)=>b.localeCompare(a)).slice(0,60);
+  if(!keys.length){list.innerHTML='<div class="empty-state">Nessun giorno registrato.</div>';return;}
+  list.innerHTML=keys.map(ds=>{
+    const d=allDays[ds];
+    const pills=[];
+    if(d.stefano) pills.push(`<span class="h-pill">🧑 Stefano — ${d.stefano.time}</span>`);
+    if(d.matilde) pills.push(`<span class="h-pill">👩 Matilde — ${d.matilde.time}</span>`);
+    const note=d.note?`<div class="h-note">${esc(d.note)}</div>`:'';
     return `<div class="history-item">
       <div class="h-date">${humanDate(ds)}</div>
-      <div class="h-pills">${pills.join('')}</div>
-      ${note}
+      <div class="h-pills">${pills.join('')}</div>${note}
     </div>`;
   }).join('');
 }
 
-function esc(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function showMilestone(n){
+  const msgs={7:'7 giorni di fila! 🎉',14:'2 settimane! 🔥',21:'3 settimane!',30:'Un mese! 🏆',
+    50:'50 giorni!',100:'100 giorni! 🎊',150:'150 giorni!',200:'200 giorni! 👑',365:'365 giorni! 🥂'};
+  const el=document.getElementById('milestone-toast');
+  el.textContent=msgs[n]||`${n} giorni!`;
+  el.classList.add('show'); launchConfetti();
+  setTimeout(()=>el.classList.remove('show'),4000);
 }
 
-/* ─── Milestone ───────────────────────────────────── */
-function showMilestone(streak) {
-  const msgs = {
-    3:'3 giorni di fila! 🌸', 7:'Una settimana intera! 🎉',
-    14:'Due settimane! 💫', 21:'Tre settimane! 🌟',
-    30:'Un mese intero! 🎊', 50:'50 giorni! Incredibili! 🔥',
-    100:'100 giorni insieme! 💕', 150:'150 giorni! Fantastici! ✨',
-    200:'200 giorni! Leggendari! 👑', 365:'Un anno intero! 🥂❤️',
-  };
-  const toast = document.getElementById('milestone-toast');
-  toast.textContent = msgs[streak] || `${streak} giorni! 🎉`;
-  toast.classList.add('show');
-  launchConfetti();
-  setTimeout(() => toast.classList.remove('show'), 4500);
-}
-
-/* ─── Confetti ────────────────────────────────────── */
-function launchConfetti() {
-  const canvas = document.getElementById('confetti-canvas');
-  const ctx    = canvas.getContext('2d');
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const COLORS  = ['#C4536A','#F2B8C6','#C9943A','#FDE8EE','#E8739A','#FFFFFF'];
-  const pieces  = Array.from({length:90}, () => ({
-    x: Math.random() * canvas.width,
-    y: -10,
-    vx: (Math.random()-.5)*5,
-    vy: Math.random()*3+1.5,
-    r: Math.random()*8+3,
-    rot: Math.random()*360,
-    rs: (Math.random()-.5)*9,
-    color: COLORS[Math.floor(Math.random()*COLORS.length)],
+function launchConfetti(){
+  const cv=document.getElementById('confetti-canvas');
+  const cx=cv.getContext('2d');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const colors=['#3B6EF8','#60A5FA','#22C55E','#FBBF24','#F87171','#A78BFA'];
+  const ps=Array.from({length:80},()=>({
+    x:Math.random()*cv.width,y:-10,vx:(Math.random()-.5)*5,vy:Math.random()*3+1.5,
+    r:Math.random()*7+3,rot:Math.random()*360,rs:(Math.random()-.5)*9,
+    c:colors[Math.floor(Math.random()*colors.length)]
   }));
   let raf;
-  function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    let alive = false;
-    for (const p of pieces) {
-      p.x += p.vx; p.y += p.vy; p.vy += .06; p.rot += p.rs;
-      if (p.y < canvas.height + 20) alive = true;
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot * Math.PI/180);
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.r/2, -p.r/4, p.r, p.r/2);
-      ctx.restore();
+  (function draw(){
+    cx.clearRect(0,0,cv.width,cv.height);let alive=false;
+    for(const p of ps){
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.06;p.rot+=p.rs;
+      if(p.y<cv.height+20)alive=true;
+      cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot*Math.PI/180);
+      cx.fillStyle=p.c;cx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);cx.restore();
     }
-    if (alive) raf = requestAnimationFrame(draw);
-    else ctx.clearRect(0,0,canvas.width,canvas.height);
-  }
-  cancelAnimationFrame(raf);
-  draw();
+    if(alive)raf=requestAnimationFrame(draw);else cx.clearRect(0,0,cv.width,cv.height);
+  })();
 }
 
-/* ─── Show UI ─────────────────────────────────────── */
-function showApp() {
-  document.getElementById('loading').style.display       = 'none';
-  document.getElementById('streak-hero').style.display   = 'block';
-  document.getElementById('stats-row').style.display     = 'grid';
-  document.getElementById('today-card').style.display    = 'block';
-  document.getElementById('calendar-card').style.display = 'block';
-  document.getElementById('history-card').style.display  = 'block';
+function showUI(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('streak-hero').style.display='block';
+  document.getElementById('stats-row').style.display='grid';
+  document.getElementById('today-card').style.display='block';
+  document.getElementById('calendar-card').style.display='block';
+  document.getElementById('history-card').style.display='block';
 }
 
-/* ─── Firebase listener ───────────────────────────── */
-function startListening() {
-  onValue(ref(db, 'days'), snap => {
-    allDays = snap.val() || {};
-    showApp();
-    renderStreak();
-    renderToday();
-    renderCalendar();
-    renderHistory();
+function startListening(){
+  onValue(ref(db,'days'),snap=>{
+    allDays=snap.val()||{};
+    showUI(); renderStreak(); renderToday(); renderCalendar(); renderHistory();
   });
 }
 
-/* ─── Check-in ────────────────────────────────────── */
-async function doCheckIn() {
-  const btn = document.getElementById('checkin-btn');
-  btn.disabled = true;
-  const ts = Date.now();
-  try {
-    await update(ref(db, `days/${todayStr()}`), {
-      [myIdentity]: { time: formatTime(ts), ts }
-    });
-  } catch(e) {
-    alert('Errore nel check-in. Controlla la connessione.');
-  } finally {
-    btn.disabled = false;
-  }
+async function doCheckIn(){
+  const btn=document.getElementById('checkin-btn'); btn.disabled=true;
+  const ts=Date.now();
+  try{ await update(ref(db,`days/${todayStr()}`),{[myIdentity]:{time:fmtTime(ts),ts}}); }
+  catch(e){ alert('Errore nel check-in.'); btn.disabled=false; }
 }
 
-/* ─── Save note ───────────────────────────────────── */
-async function saveNote() {
-  const note = document.getElementById('note-input').value.trim();
-  try {
-    await update(ref(db, `days/${todayStr()}`), { note });
-    const el = document.getElementById('note-saved');
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2200);
-  } catch(e) {
-    alert('Errore nel salvare la nota.');
-  }
+async function saveNote(){
+  const note=document.getElementById('note-input').value.trim();
+  try{
+    await update(ref(db,`days/${todayStr()}`),{note});
+    const el=document.getElementById('note-saved');
+    el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2000);
+  }catch(e){}
 }
 
-/* ─── Identity ────────────────────────────────────── */
-function setIdentity(name) {
-  localStorage.setItem('streak_identity', name);
-  myIdentity = name;
-  document.getElementById('identity-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('header-user').textContent = name === 'stefano' ? '🧑 Stefano' : '👩 Matilde';
+function setIdentity(name){
+  localStorage.setItem('streak_identity',name); myIdentity=name;
+  document.getElementById('identity-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('header-user').textContent=name==='stefano'?'🧑 Stefano':'👩 Matilde';
   startListening();
 }
 
-function changeIdentity() {
-  if (confirm('Cambiare profilo?')) {
-    localStorage.removeItem('streak_identity');
-    location.reload();
-  }
-}
-
-/* ─── Event listeners ─────────────────────────────── */
-document.getElementById('btn-stefano').addEventListener('click', () => setIdentity('stefano'));
-document.getElementById('btn-matilde').addEventListener('click', () => setIdentity('matilde'));
-document.getElementById('checkin-btn').addEventListener('click', doCheckIn);
-document.getElementById('note-save-btn').addEventListener('click', saveNote);
-document.getElementById('header-user').addEventListener('click', changeIdentity);
-document.getElementById('cal-prev').addEventListener('click', () => {
-  calOffset--; renderCalendar();
+document.getElementById('btn-stefano').addEventListener('click',()=>setIdentity('stefano'));
+document.getElementById('btn-matilde').addEventListener('click',()=>setIdentity('matilde'));
+document.getElementById('checkin-btn').addEventListener('click',doCheckIn);
+document.getElementById('note-save-btn').addEventListener('click',saveNote);
+document.getElementById('note-input').addEventListener('blur',saveNote);
+document.getElementById('header-user').addEventListener('click',()=>{
+  if(confirm('Cambiare profilo?')){localStorage.removeItem('streak_identity');location.reload();}
 });
-document.getElementById('cal-next').addEventListener('click', () => {
-  if (calOffset < 0) { calOffset++; renderCalendar(); }
-});
+document.getElementById('cal-prev').addEventListener('click',()=>{calOffset--;renderCalendar();});
+document.getElementById('cal-next').addEventListener('click',()=>{if(calOffset<0){calOffset++;renderCalendar();}});
 
-/* ─── Auto-save note on blur ──────────────────────── */
-document.getElementById('note-input').addEventListener('blur', saveNote);
-
-/* ─── Init ────────────────────────────────────────── */
-const saved = localStorage.getItem('streak_identity');
-if (saved === 'stefano' || saved === 'matilde') {
-  myIdentity = saved;
-  document.getElementById('identity-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('header-user').textContent = saved === 'stefano' ? '🧑 Stefano' : '👩 Matilde';
+const saved=localStorage.getItem('streak_identity');
+if(saved==='stefano'||saved==='matilde'){
+  myIdentity=saved;
+  document.getElementById('identity-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('header-user').textContent=saved==='stefano'?'🧑 Stefano':'👩 Matilde';
   startListening();
 }
 </script>

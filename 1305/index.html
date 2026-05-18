@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Slot Tracker</title>
+    <title>Process Tracker</title>
     <style>
         :root {
             --bg-color: #0f172a;
             --container-bg: #1e293b;
             --bar-bg: #334155;
             --bar-fill: #38bdf8;
+            --bar-extra: #10b981; /* Colore verde per lo slot finale dei 3 minuti */
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
         }
@@ -63,6 +64,10 @@
             transition: width 0.1s linear;
         }
 
+        .progress-bar.extra {
+            background: linear-gradient(90deg, #059669, var(--bar-extra)) !important;
+        }
+
         .percentage {
             font-size: 3rem;
             font-weight: 700;
@@ -84,7 +89,7 @@
 <body>
 
     <div class="container">
-        <h1 id="slot-title">Tracker</h1>
+        <h1 id="slot-title">Monitoraggio</h1>
         <div class="progress-wrapper">
             <div id="progress-bar" class="progress-bar"></div>
         </div>
@@ -97,55 +102,64 @@
             const now = new Date();
             const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds() + now.getMilliseconds() / 1000;
 
-            // Slot temporali definiti in secondi dall'inizio della giornata
+            // Slot principali in secondi
             const slot1Start = 7 * 3600 + 55 * 60; // 07:55
             const slot1End = 12 * 3600;            // 12:00
             const slot2Start = 13 * 3600 + 30 * 60; // 13:30
             const slot2End = 17 * 3600 + 30 * 60;   // 17:30
+            
+            // Slot extra da 3 minuti (dalle 17:30 alle 17:33)
+            const extraStart = slot2End;
+            const extraEnd = slot2End + (3 * 60);
 
             let percentage = 0;
             let statusMessage = "";
             let slotTitle = "Stato Attivo";
+            const progressBar = document.getElementById('progress-bar');
+            
+            // Reset della classe per il colore speciale
+            progressBar.classList.remove('extra');
 
             if (currentTime >= slot1Start && currentTime < slot1End) {
-                // Primo slot giornaliero
                 const totalSlot1 = slot1End - slot1Start;
                 const elapsedSlot1 = currentTime - slot1Start;
                 percentage = (elapsedSlot1 / totalSlot1) * 100;
-                statusMessage = "Fase 1 in corso";
+                statusMessage = "Esecuzione ciclo corrente";
             } else if (currentTime >= slot2Start && currentTime < slot2End) {
-                // Secondo slot giornaliero
                 const totalSlot2 = slot2End - slot2Start;
                 const elapsedSlot2 = currentTime - slot2Start;
                 percentage = (elapsedSlot2 / totalSlot2) * 100;
-                statusMessage = "Fase 2 in corso";
+                statusMessage = "Esecuzione ciclo corrente";
+            } else if (currentTime >= extraStart && currentTime < extraEnd) {
+                // Slot extra da 3 minuti attivo
+                progressBar.classList.add('extra');
+                const totalExtra = extraEnd - extraStart;
+                const elapsedExtra = currentTime - extraStart;
+                percentage = (elapsedExtra / totalExtra) * 100;
+                slotTitle = "Ricalibrazione";
+                statusMessage = "Fase finale in corso";
             } else {
-                // Fuori dagli slot indicati
                 percentage = 0;
                 slotTitle = "Inattivo";
                 if (currentTime < slot1Start) {
-                    statusMessage = "In attesa di Fase 1";
+                    statusMessage = "In attesa di avvio";
                 } else if (currentTime >= slot1End && currentTime < slot2Start) {
-                    statusMessage = "Intervallo intermedio";
+                    statusMessage = "Intervallo di sistema";
                 } else {
-                    statusMessage = "Ciclo giornaliero concluso";
+                    statusMessage = "Processo giornaliero terminato";
                 }
             }
 
-            // Sicurezza per i limiti della barra grafica
             percentage = Math.max(0, Math.min(100, percentage));
 
-            // Aggiornamento elementi della pagina
-            document.getElementById('progress-bar').style.width = percentage + '%';
+            // Aggiornamento interfaccia
+            progressBar.style.width = percentage + '%';
             document.getElementById('percentage').innerText = percentage.toFixed(3) + '%';
             document.getElementById('status-text').innerText = statusMessage;
             document.getElementById('slot-title').innerText = slotTitle;
         }
 
-        // Aggiornamento continuo ogni 100ms per la fluidità dei tre decimali
         setInterval(updateProgress, 100);
-        
-        // Esecuzione immediata all'apertura
         updateProgress();
     </script>
 </body>

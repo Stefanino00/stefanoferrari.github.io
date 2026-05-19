@@ -3,17 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulatore Esame Sicurezza</title>
+    <title>Simulatore Esame Normativa e Sicurezza</title>
     <style>
         :root {
             --primary: #2563eb;
+            --primary-dark: #1d4ed8;
             --bg: #f8fafc;
             --text: #1e293b;
+            --muted: #64748b;
             --correct: #16a34a;
+            --correct-bg: #dcfce7;
+            --correct-text: #166534;
             --wrong: #dc2626;
+            --wrong-bg: #fee2e2;
+            --wrong-text: #991b1b;
             --card-bg: #ffffff;
+            --border: #e2e8f0;
         }
-
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
@@ -22,376 +29,1083 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            min-height: 100vh;
         }
-
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 680px;
             background: var(--card-bg);
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            padding: 28px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.08), 0 4px 6px -2px rgb(0 0 0 / 0.04);
+            height: fit-content;
         }
+        /* Start screen */
+        .start-screen { text-align: center; }
+        .start-screen h1 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+        .start-screen p.subtitle {
+            color: var(--muted);
+            margin-top: 0;
+            margin-bottom: 24px;
+        }
+        .mode-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .mode-btn {
+            background-color: #f1f5f9;
+            border: 2px solid transparent;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+        .mode-btn:hover {
+            background-color: #e2e8f0;
+            border-color: var(--primary);
+        }
+        .mode-btn strong { display: block; margin-bottom: 4px; font-size: 1.05rem; }
+        .mode-btn span { font-size: 0.85rem; color: var(--muted); }
+        .start-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 8px;
+        }
+        .start-btn:hover { background-color: var(--primary-dark); }
 
-        /* Progress Bar */
-        .progress-header {
+        /* Progress header */
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            font-weight: bold;
+            margin-bottom: 10px;
             font-size: 0.9rem;
+            color: var(--muted);
         }
-
+        .top-bar .stats {
+            display: flex;
+            gap: 12px;
+            font-weight: 600;
+        }
+        .stats .ok { color: var(--correct); }
+        .stats .ko { color: var(--wrong); }
         .progress-bar-bg {
             width: 100%;
             height: 8px;
-            background-color: #e2e8f0;
+            background-color: var(--border);
             border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
-
         .progress-fill {
             height: 100%;
-            background-color: var(--primary);
+            background: linear-gradient(90deg, var(--primary), #60a5fa);
             width: 0%;
             transition: width 0.3s ease;
         }
-
-        /* Typography */
-        h2 {
-            font-size: 1.25rem;
-            margin-top: 0;
-            margin-bottom: 20px;
-            line-height: 1.4;
+        .category-tag {
+            display: inline-block;
+            background-color: #eff6ff;
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
+        h2 {
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 22px;
+            line-height: 1.45;
+        }
         /* Options */
         .options-grid {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
-
         .option-btn {
-            background-color: #f1f5f9;
-            border: 2px solid transparent;
-            padding: 16px;
-            border-radius: 8px;
-            font-size: 1rem;
+            background-color: #f8fafc;
+            border: 2px solid var(--border);
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 0.98rem;
             text-align: left;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             color: var(--text);
+            font-family: inherit;
+            line-height: 1.4;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
         }
-
+        .option-btn .letter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: var(--border);
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
         .option-btn:hover:not(:disabled) {
-            background-color: #e2e8f0;
-            border-color: #cbd5e1;
+            background-color: #eff6ff;
+            border-color: var(--primary);
         }
-
-        .option-btn:disabled {
-            cursor: default;
-        }
-
+        .option-btn:disabled { cursor: default; }
         .option-btn.correct {
-            background-color: #dcfce7;
+            background-color: var(--correct-bg);
             border-color: var(--correct);
-            color: #166534;
+            color: var(--correct-text);
         }
-
+        .option-btn.correct .letter {
+            background: var(--correct);
+            color: white;
+        }
         .option-btn.wrong {
-            background-color: #fee2e2;
+            background-color: var(--wrong-bg);
             border-color: var(--wrong);
-            color: #991b1b;
+            color: var(--wrong-text);
         }
-
-        /* Explanation & Next Btn */
+        .option-btn.wrong .letter {
+            background: var(--wrong);
+            color: white;
+        }
+        /* Feedback */
         .feedback-section {
             margin-top: 20px;
             display: none;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
         }
-
         .explanation {
             background-color: #f8fafc;
             border-left: 4px solid var(--primary);
-            padding: 16px;
+            padding: 14px 16px;
             border-radius: 0 8px 8px 0;
-            font-size: 0.95rem;
-            line-height: 1.5;
+            font-size: 0.93rem;
+            line-height: 1.55;
         }
-
         .next-btn {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 16px;
-            border-radius: 8px;
+            padding: 14px;
+            border-radius: 10px;
             font-size: 1rem;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
+            font-family: inherit;
         }
-
-        .next-btn:hover {
-            background-color: #1d4ed8;
-        }
-
+        .next-btn:hover { background-color: var(--primary-dark); }
         /* Results */
-        .results-section {
-            text-align: center;
-            display: none;
-        }
-
+        .results-section { text-align: center; display: none; }
         .score-display {
-            font-size: 3rem;
-            font-weight: bold;
+            font-size: 3.5rem;
+            font-weight: 700;
             color: var(--primary);
-            margin: 20px 0;
+            margin: 16px 0 4px;
         }
-
-        .restart-btn {
+        .score-percent {
+            font-size: 1.1rem;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+        .category-breakdown {
+            text-align: left;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 10px;
+            margin: 16px 0;
+        }
+        .category-breakdown h3 {
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+        }
+        .cat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .cat-row:last-child { border-bottom: none; }
+        .review-section { text-align: left; margin-top: 20px; }
+        .review-section h3 { font-size: 1rem; }
+        .review-item {
+            background: #fef2f2;
+            border-left: 4px solid var(--wrong);
+            padding: 12px 14px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 10px;
+            font-size: 0.88rem;
+        }
+        .review-item .q { font-weight: 600; margin-bottom: 6px; }
+        .review-item .your { color: var(--wrong-text); }
+        .review-item .right { color: var(--correct-text); margin-top: 4px; }
+        .button-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+        .restart-btn, .home-btn {
             background-color: var(--text);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 22px;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
-            margin-top: 20px;
+            font-family: inherit;
+        }
+        .home-btn { background-color: var(--muted); }
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .container { padding: 20px; }
+            h2 { font-size: 1.05rem; }
         }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <div id="quiz-section">
-        <div class="progress-header">
-            <span>Domanda <span id="current-q-num">1</span> di <span id="total-q-num">x</span></span>
-            <span id="progress-percentage">0%</span>
+    <!-- Start screen -->
+    <div id="start-screen" class="start-screen">
+        <h1>Simulatore Esame</h1>
+        <p class="subtitle">Normativa e Sicurezza · Ing. Diana Rossi</p>
+        <div class="mode-options">
+            <button class="mode-btn" data-mode="all">
+                <strong>Esame completo</strong>
+                <span>Tutte le domande, ordine casuale</span>
+            </button>
+            <button class="mode-btn" data-mode="short">
+                <strong>Quiz rapido</strong>
+                <span>10 domande casuali</span>
+            </button>
+            <button class="mode-btn" data-mode="ordered">
+                <strong>Studio ordinato</strong>
+                <span>Domande per categoria, in ordine</span>
+            </button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--muted); margin-top: 20px;">
+            <span id="question-count-label"></span>
+        </p>
+    </div>
+
+    <!-- Quiz screen -->
+    <div id="quiz-section" style="display:none;">
+        <div class="top-bar">
+            <span>Domanda <strong id="current-q-num">1</strong> di <strong id="total-q-num">x</strong></span>
+            <span class="stats">
+                <span class="ok">✓ <span id="correct-count">0</span></span>
+                <span class="ko">✗ <span id="wrong-count">0</span></span>
+            </span>
         </div>
         <div class="progress-bar-bg">
             <div class="progress-fill" id="progress-fill"></div>
         </div>
-
+        <span class="category-tag" id="category-tag">Categoria</span>
         <h2 id="question-text">Testo della domanda...</h2>
-        
-        <div class="options-grid" id="options-container">
-            </div>
-
+        <div class="options-grid" id="options-container"></div>
         <div class="feedback-section" id="feedback-section">
-            <div class="explanation" id="explanation-text">Spiegazione qui...</div>
-            <button class="next-btn" id="next-btn">Prossima Domanda</button>
+            <div class="explanation" id="explanation-text"></div>
+            <button class="next-btn" id="next-btn">Prossima domanda</button>
         </div>
     </div>
 
+    <!-- Results -->
     <div class="results-section" id="results-section">
-        <h2>Esame Completato!</h2>
+        <h2 style="margin-bottom: 0;">Esame completato!</h2>
         <div class="score-display" id="score-display">0/0</div>
+        <div class="score-percent" id="score-percent">0%</div>
         <p id="score-message">Valutazione...</p>
-        <button class="restart-btn" onclick="initQuiz()">Rifai il test</button>
+
+        <div class="category-breakdown" id="category-breakdown"></div>
+
+        <div class="review-section" id="review-section" style="display:none;">
+            <h3>Domande da ripassare</h3>
+            <div id="review-list"></div>
+        </div>
+
+        <div class="button-row">
+            <button class="restart-btn" id="restart-btn">Rifai il test</button>
+            <button class="home-btn" id="home-btn">Cambia modalità</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // Database delle domande basato sul tuo materiale
-    const quizData = [
-        {
-            question: "Qual è la differenza principale tra infortunio e malattia professionale?",
-            options: [
-                "L'infortunio avviene solo nel tragitto casa-lavoro, la malattia in fabbrica.",
-                "L'infortunio è un evento rapido e violento, la malattia è progressiva e dilazionata nel tempo.",
-                "Non c'è differenza normativa ai sensi del D.Lgs. 81/08.",
-                "L'infortunio riguarda danni alle macchine, la malattia ai lavoratori."
-            ],
-            correct: 1,
-            explanation: "Esatto. L'infortunio ha una causa violenta e concentrata nel tempo (es. un taglio o una caduta). La malattia professionale emerge dopo un'esposizione prolungata a un rischio (es. ipoacusia per rumore continuo)."
-        },
-        {
-            question: "Se devi acquistare una macchina industriale (es. tornio o pressa), quale normativa di riferimento devi controllare per verificarne i requisiti di sicurezza?",
-            options: [
-                "Il Codice del Consumo",
-                "Il Modello PES",
-                "La Direttiva Macchine (D.Lgs. 17/10)",
-                "Esclusivamente la norma tecnica UNI volontaria"
-            ],
-            correct: 2,
-            explanation: "Corretto. Le macchine industriali ricadono sotto la Direttiva Macchine (D.Lgs. 17/10), che impone marcatura CE, manuale d'uso in lingua e dichiarazione di conformità."
-        },
-        {
-            question: "Cosa si intende per 'Mancato Incidente' (Near Miss)?",
-            options: [
-                "Un infortunio lieve che non richiede giorni di mutua.",
-                "Un evento imprevisto che avrebbe potuto causare un danno, ma per puro caso non l'ha fatto.",
-                "Un incidente causato da negligenza diretta del lavoratore.",
-                "Un malfunzionamento del software gestionale aziendale."
-            ],
-            correct: 1,
-            explanation: "Giusto. Il near miss è il 'quasi infortunio'. Analizzarli è fondamentale perché permettono di intervenire sulle procedure prima che si verifichi un danno reale."
-        },
-        {
-            question: "Cos'è il Livello Sonoro Equivalente (Leq)?",
-            options: [
-                "Il picco massimo di decibel raggiunto durante una lavorazione.",
-                "La media matematica dei decibel emessi da due macchine accese contemporaneamente.",
-                "Il livello di rumore costante che ha la stessa energia acustica del rumore reale fluttuante nel medesimo lasso di tempo.",
-                "Il livello minimo di udibilità umana (soglia a 20 microPascal)."
-            ],
-            correct: 2,
-            explanation: "Perfetto. Il Leq trasforma l'esposizione a rumori variabili (es. 1h a 78dB, 2.5h a 89dB) in un unico valore costante equivalente, essenziale per capire se si superano le soglie di rischio previste dalla legge."
-        },
-        {
-            question: "Quale strumento si utilizza per misurare la temperatura media radiante in un reparto industriale (es. per calore emesso da fornaci)?",
-            options: [
-                "Psicrometro a ventilazione forzata",
-                "Anemometro",
-                "Globotermometro",
-                "Termometro a bulbo secco"
-            ],
-            correct: 2,
-            explanation: "Esatto. Il globotermometro (quella sfera nera cava) è lo strumento specifico per assorbire e misurare il calore irraggiato dalle superfici, a differenza del termometro normale che misura solo l'aria."
-        },
-        {
-            question: "Nel Modello PES per la valutazione dei rischi industriali, l'acronimo sta per:",
-            options: [
-                "Prevenzione, Emergenza, Soccorso",
-                "Probabilità x Esposizione x Severità",
-                "Pressione, Energia, Suono",
-                "Persona Esperta Sicurezza"
-            ],
-            correct: 1,
-            explanation: "Corretto! (Nota: nel settore elettrico PES indica la Persona Esperta, ma nel calcolo generale del rischio tramite matrice si riferisce alla moltiplicazione tra Probabilità, frequenza di Esposizione ed entità/Severità del danno)."
-        },
-        {
-            question: "Cosa esprime il criterio SIL (Speech Interference Level) in un reparto produttivo?",
-            options: [
-                "La probabilità di contrarre sordità dopo 8 ore di lavoro.",
-                "Il grado in cui il rumore di fondo maschera e disturba la comunicazione verbale.",
-                "Il livello di isolamento termico offerto dall'abbigliamento del lavoratore.",
-                "La potenza del segnale wifi nel reparto produttivo."
-            ],
-            correct: 1,
-            explanation: "Giusto. Il SIL valuta se gli addetti riescono a comunicare e sentire gli avvisi. Per essere udibile, una comunicazione deve sovrastare il rumore di fondo (calcolato col SIL) di almeno 10/15 dB."
-        }
-    ];
+// =====================================================
+// DATABASE DOMANDE
+// Coerente con i PDF: D.Lgs. 81/08, Direttiva Macchine
+// 17/10, Codice del Consumo, microclima, rumore, SIL,
+// PES, WBGT, DPI, segnaletica.
+// =====================================================
+const quizData = [
+    // ---------- DEFINIZIONI ----------
+    {
+        category: "Definizioni",
+        question: "Qual è la differenza principale tra infortunio e malattia professionale?",
+        options: [
+            "L'infortunio avviene solo nel tragitto casa-lavoro, la malattia in fabbrica",
+            "L'infortunio è un evento rapido e violento concentrato nel tempo; la malattia deriva da un'esposizione lenta e progressiva",
+            "Non c'è differenza normativa ai sensi del D.Lgs. 81/08",
+            "L'infortunio riguarda danni alle macchine, la malattia ai lavoratori"
+        ],
+        correct: 1,
+        explanation: "L'infortunio ha causa violenta e concentrata nel tempo (es. taglio, caduta). La malattia professionale emerge dopo esposizione prolungata a un rischio (es. ipoacusia da rumore continuo)."
+    },
+    {
+        category: "Definizioni",
+        question: "Come si definisce il 'rischio' nella normativa di sicurezza?",
+        options: [
+            "Una proprietà intrinseca di una sostanza o attrezzo",
+            "Il numero di infortuni registrati in azienda nell'ultimo anno",
+            "La probabilità che un evento dannoso si verifichi, moltiplicata per la gravità del danno atteso (R = P × G)",
+            "Un sinonimo tecnico di 'pericolo'"
+        ],
+        correct: 2,
+        explanation: "Il rischio è un concetto probabilistico: R = P × G. Si combinano la probabilità che il pericolo si concretizzi e la magnitudo del danno conseguente."
+    },
+    {
+        category: "Definizioni",
+        question: "Cosa si intende per 'sicurezza' nell'ambito del D.Lgs. 81/08?",
+        options: [
+            "L'assenza totale di qualunque pericolo nell'ambiente di lavoro",
+            "La condizione in cui i rischi sono stati eliminati o ridotti a un livello giudicato accettabile tramite misure di prevenzione e protezione",
+            "Il rispetto formale delle ispezioni periodiche da parte dell'INAIL",
+            "Una certificazione volontaria rilasciata dall'UNI"
+        ],
+        correct: 1,
+        explanation: "La sicurezza non è assenza assoluta di pericolo, ma uno stato in cui i rischi sono stati portati ad un livello accettabile mediante adeguate misure di prevenzione e protezione."
+    },
+    {
+        category: "Definizioni",
+        question: "Cosa si intende per 'Mancato Incidente' (Near Miss)?",
+        options: [
+            "Un infortunio lieve che non richiede giorni di mutua",
+            "Un evento imprevisto che avrebbe potuto causare un danno, ma per puro caso o circostanze fortuite non l'ha fatto",
+            "Un incidente causato da negligenza diretta del lavoratore",
+            "Un malfunzionamento del software gestionale aziendale"
+        ],
+        correct: 1,
+        explanation: "Il near miss è il 'quasi infortunio': analizzarlo è fondamentale perché permette di intervenire sulle procedure prima che si verifichi un danno reale (es. gancio di una gru che si rompe quando nessuno passa sotto)."
+    },
+    {
+        category: "Definizioni",
+        question: "Qual è la differenza fra direttiva sociale e direttiva di prodotto?",
+        options: [
+            "La direttiva sociale è nazionale, quella di prodotto è solo internazionale",
+            "Le direttive sociali tutelano la salute e sicurezza dei lavoratori sul luogo di lavoro; le direttive di prodotto dettano i requisiti costruttivi essenziali per immettere un bene sul mercato",
+            "Sono sinonimi: cambia solo il nome a seconda dell'ente che le emette",
+            "La direttiva di prodotto si applica solo ai prodotti alimentari"
+        ],
+        correct: 1,
+        explanation: "Le direttive sociali (es. 89/391/CEE recepita col D.Lgs. 81/08) tutelano i lavoratori. Le direttive di prodotto (es. Direttiva Macchine) stabiliscono i requisiti essenziali di sicurezza per immettere un bene sul mercato europeo."
+    },
+    {
+        category: "Definizioni",
+        question: "Pericolo e rischio: qual è la distinzione corretta?",
+        options: [
+            "Sono sinonimi nel linguaggio tecnico",
+            "Il pericolo è la proprietà intrinseca di un fattore di causare danni; il rischio è la probabilità che tale potenziale si trasformi in danno reale",
+            "Il pericolo è quantitativo, il rischio è qualitativo",
+            "Il rischio riguarda solo le persone, il pericolo solo le cose"
+        ],
+        correct: 1,
+        explanation: "Esempio classico: uno squalo è un pericolo (proprietà intrinseca di causare danno). Il rischio di essere morsi è alto se ci nuoti vicino, nullo se lo guardi in TV."
+    },
 
-    // Variabili di stato
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let answered = false;
+    // ---------- NORMATIVE E NORME TECNICHE ----------
+    {
+        category: "Normative",
+        question: "Cos'è una norma tecnica e che valore ha?",
+        options: [
+            "È una legge dello Stato vincolante per tutti",
+            "È un documento approvato da un organismo riconosciuto (UNI, CEI, ISO, EN) che stabilisce le regole 'a regola d'arte'; non è vincolante ma dà presunzione di conformità",
+            "È un regolamento europeo direttamente applicabile",
+            "È un'indicazione interna emanata dal datore di lavoro"
+        ],
+        correct: 1,
+        explanation: "La norma tecnica è volontaria, ma applicarla dà presunzione di conformità. Si acquista presso i portali ufficiali (es. UNI Store)."
+    },
+    {
+        category: "Normative",
+        question: "Quali sono i principali enti normatori di riferimento citati nel corso?",
+        options: [
+            "INAIL, INPS, ASL",
+            "UNI e CEI per l'Italia, ISO ed EN a livello internazionale/europeo",
+            "ANSA, RAI, FCC",
+            "Solo l'Unione Europea tramite regolamenti"
+        ],
+        correct: 1,
+        explanation: "UNI (Ente Italiano di Normazione) e CEI (Comitato Elettrotecnico Italiano) operano in Italia. A livello internazionale ed europeo intervengono ISO ed EN."
+    },
+    {
+        category: "Normative",
+        question: "Cos'è il Codice del Consumo?",
+        options: [
+            "Una norma tecnica volontaria pubblicata dall'UNI",
+            "Il testo unico (D.Lgs. 206/2005) che raggruppa le normative a tutela dei consumatori e utenti finali non professionali",
+            "Il regolamento interno delle aziende per la sicurezza dei lavoratori",
+            "La direttiva europea sulle macchine industriali"
+        ],
+        correct: 1,
+        explanation: "Il Codice del Consumo (D.Lgs. 206/2005) tutela i diritti dei consumatori finali, garantendo che i prodotti immessi nel mercato civile siano sicuri, trasparenti e privi di clausole vessatorie."
+    },
+    {
+        category: "Normative",
+        question: "Quale di questi è un esempio tipico di prodotto ai sensi del Codice del Consumo?",
+        options: [
+            "Una pressa piegatrice industriale",
+            "Un tornio CNC",
+            "Un asciugacapelli domestico acquistato da un cittadino privato",
+            "Un nastro trasportatore di stabilimento"
+        ],
+        correct: 2,
+        explanation: "Il Codice del Consumo tutela il consumatore finale: asciugacapelli, frullatori, tostapane, televisori. Le macchine industriali ricadono invece sotto la Direttiva Macchine (D.Lgs. 17/10)."
+    },
 
-    // Elementi DOM
-    const questionText = document.getElementById('question-text');
-    const optionsContainer = document.getElementById('options-container');
-    const feedbackSection = document.getElementById('feedback-section');
-    const explanationText = document.getElementById('explanation-text');
-    const nextBtn = document.getElementById('next-btn');
-    
-    const currentQNum = document.getElementById('current-q-num');
-    const totalQNum = document.getElementById('total-q-num');
-    const progressFill = document.getElementById('progress-fill');
-    const progressPercentage = document.getElementById('progress-percentage');
-    
-    const quizSection = document.getElementById('quiz-section');
-    const resultsSection = document.getElementById('results-section');
-    const scoreDisplay = document.getElementById('score-display');
-    const scoreMessage = document.getElementById('score-message');
+    // ---------- FIGURE DI PREVENZIONE ----------
+    {
+        category: "Figure 81/08",
+        question: "Chi è il Datore di Lavoro nel D.Lgs. 81/08?",
+        options: [
+            "Il consulente esterno che redige il DVR",
+            "Il titolare del rapporto di lavoro con il lavoratore, che ha responsabilità organizzativa e detiene poteri decisionali e di spesa",
+            "Il preposto al controllo dei reparti produttivi",
+            "Il medico competente designato dall'azienda"
+        ],
+        correct: 1,
+        explanation: "Il Datore di Lavoro è il titolare del rapporto di lavoro. Ha obblighi non delegabili, tra cui la valutazione di tutti i rischi e la stesura del DVR."
+    },
+    {
+        category: "Figure 81/08",
+        question: "Cosa fa il RSPP?",
+        options: [
+            "Rappresenta i lavoratori nelle consultazioni sulla sicurezza",
+            "Visita medicalmente i lavoratori esposti",
+            "È la figura tecnica che affianca il Datore di Lavoro nella valutazione dei rischi e redazione del documento",
+            "Sostituisce il Datore di Lavoro nelle responsabilità penali"
+        ],
+        correct: 2,
+        explanation: "Il RSPP (Responsabile Servizio Prevenzione e Protezione) è la figura tecnica che affianca il Datore di Lavoro per la valutazione e la redazione del DVR."
+    },
+    {
+        category: "Figure 81/08",
+        question: "Chi è il RLS?",
+        options: [
+            "Il Responsabile della Linea di Sicurezza in produzione",
+            "Il Rappresentante dei Lavoratori per la Sicurezza, eletto dai lavoratori per farne le veci nelle consultazioni sulla prevenzione",
+            "Il Referente Legale della Sicurezza, nominato dal datore di lavoro",
+            "Una figura prevista solo nelle aziende con più di 250 dipendenti"
+        ],
+        correct: 1,
+        explanation: "Il RLS è eletto dai lavoratori e li rappresenta nelle consultazioni con il datore di lavoro sui temi di salute e sicurezza."
+    },
+    {
+        category: "Figure 81/08",
+        question: "Quale obbligo del Datore di Lavoro NON è delegabile?",
+        options: [
+            "L'acquisto dei DPI",
+            "La manutenzione delle macchine",
+            "La valutazione di tutti i rischi e la stesura del Documento di Valutazione dei Rischi (DVR)",
+            "L'organizzazione dei turni di lavoro"
+        ],
+        correct: 2,
+        explanation: "Il D.Lgs. 81/08 individua tra gli obblighi non delegabili del Datore di Lavoro la valutazione di tutti i rischi e la conseguente stesura del DVR."
+    },
+    {
+        category: "Figure 81/08",
+        question: "In cosa consiste la 'valutazione del rischio'?",
+        options: [
+            "Nel calcolo del premio assicurativo INAIL annuale",
+            "Nel processo con cui il Datore di Lavoro individua i pericoli, identifica i soggetti esposti, stima la magnitudo del rischio e definisce le misure per abbatterlo, confluente nel DVR",
+            "In un'ispezione tecnica delle macchine eseguita ogni 5 anni",
+            "Nella verifica delle credenziali del personale qualificato"
+        ],
+        correct: 1,
+        explanation: "È il processo obbligatorio strutturato per mappare pericoli, esposti e misure di prevenzione/protezione. Confluisce nel DVR."
+    },
 
-    // Inizializzazione
-    function initQuiz() {
-        currentQuestionIndex = 0;
-        score = 0;
-        quizSection.style.display = 'block';
-        resultsSection.style.display = 'none';
-        totalQNum.textContent = quizData.length;
-        loadQuestion();
+    // ---------- DPI ----------
+    {
+        category: "DPI",
+        question: "Quale di queste è la definizione corretta di DPI?",
+        options: [
+            "Dispositivo di Pulizia Industriale, usato per disinfettare i reparti",
+            "Documento di Prevenzione Interna allegato al DVR",
+            "Dispositivo di Protezione Individuale: attrezzatura destinata ad essere indossata dal lavoratore per proteggerlo da uno o più rischi",
+            "Direttiva di Prodotto Industriale"
+        ],
+        correct: 2,
+        explanation: "I DPI sono attrezzature indossate dal lavoratore (caschi, otoprotettori, guanti isolanti, scarpe antinfortunistiche, imbracature) per proteggerlo da rischi specifici."
+    },
+    {
+        category: "DPI",
+        question: "Prima dell'acquisto di un DPI, quale verifica NON è prevista?",
+        options: [
+            "Verificare che sia marchiato CE e provvisto di manuale informativo",
+            "Verificare che sia adeguato ai rischi senza comportare di per sé un rischio maggiore",
+            "Verificare che sia compatibile con altri DPI già forniti al lavoratore",
+            "Verificare che sia stato prodotto in Italia"
+        ],
+        correct: 3,
+        explanation: "Il paese di produzione non è un requisito. Servono: marcatura CE, adeguatezza al rischio, ergonomia, compatibilità con gli altri DPI in uso."
+    },
+    {
+        category: "DPI",
+        question: "Quale di questi è un esempio di DPI per la protezione dell'udito?",
+        options: [
+            "Caschetto di sicurezza",
+            "Otoprotettori (cuffie o tappi auricolari)",
+            "Imbracatura per lavori in quota",
+            "Guanti isolanti"
+        ],
+        correct: 1,
+        explanation: "Gli otoprotettori (cuffie o tappi) proteggono l'udito. Caschetto, imbracatura e guanti proteggono rispettivamente capo, cadute e mani."
+    },
+
+    // ---------- SEGNALETICA ----------
+    {
+        category: "Segnaletica",
+        question: "Un cartello ROTONDO ROSSO con barra obliqua significa:",
+        options: [
+            "Avvertimento / pericolo generico",
+            "Divieto (es. 'Vietato fumare')",
+            "Prescrizione / obbligo (es. 'Indossare i guanti')",
+            "Salvataggio / uscita di sicurezza"
+        ],
+        correct: 1,
+        explanation: "Rosso + rotondo = divieto. Giallo + triangolare = avvertimento. Azzurro + rotondo = prescrizione/obbligo. Verde + quadrato = salvataggio/uscite di sicurezza."
+    },
+    {
+        category: "Segnaletica",
+        question: "Un cartello AZZURRO ROTONDO indica:",
+        options: [
+            "Un divieto",
+            "Un avvertimento di pericolo",
+            "Una prescrizione od obbligo (es. 'Obbligo di guanti')",
+            "Un'uscita di sicurezza"
+        ],
+        correct: 2,
+        explanation: "Azzurro + rotondo = prescrizione/obbligo. Indica un'azione obbligatoria, come indossare un DPI."
+    },
+    {
+        category: "Segnaletica",
+        question: "Cos'è la segnaletica di sicurezza?",
+        options: [
+            "Solo i cartelli appesi nei luoghi di lavoro",
+            "Un sistema di comunicazione rapida (visiva o sonora) che trasmette un messaggio di sicurezza tramite combinazioni standardizzate di forme e colori",
+            "Una pubblicazione obbligatoria dell'UNI",
+            "Una procedura interna di emergenza"
+        ],
+        correct: 1,
+        explanation: "La segnaletica trasmette un messaggio di sicurezza in modo rapido, sfruttando una precisa combinazione di forme geometriche e colori (oltre a segnali sonori e luminosi)."
+    },
+
+    // ---------- MACCHINE / D.Lgs 17/10 ----------
+    {
+        category: "Macchine",
+        question: "Acquistando una macchina industriale, quale documentazione NON deve mancare ai sensi del D.Lgs. 17/10?",
+        options: [
+            "Marcatura CE sulla macchina",
+            "Dichiarazione di conformità CE firmata dal fabbricante",
+            "Manuale d'uso e manutenzione in lingua del paese di utilizzo (italiano)",
+            "Contratto di leasing finanziario"
+        ],
+        correct: 3,
+        explanation: "Il contratto di leasing è un aspetto commerciale, non un requisito di sicurezza. Sono invece obbligatori: marcatura CE, dichiarazione di conformità CE e manuale d'uso e manutenzione in lingua italiana."
+    },
+    {
+        category: "Macchine",
+        question: "Qual è la differenza fra 'sicurezza delle macchine' e 'sicurezza dei prodotti'?",
+        options: [
+            "Non c'è alcuna differenza giuridica",
+            "La sicurezza delle macchine riguarda attrezzature industriali/professionali (Direttiva Macchine, D.Lgs. 17/10); la sicurezza dei prodotti riguarda beni di consumo per il mercato privato (Codice del Consumo)",
+            "Le macchine sono sotto il Codice del Consumo, i prodotti sotto la Direttiva Macchine",
+            "La sicurezza dei prodotti è una norma tecnica volontaria"
+        ],
+        correct: 1,
+        explanation: "Direttiva Macchine = ambito industriale/professionale (torni, presse). Codice del Consumo = beni destinati al consumatore finale (frullatore, TV)."
+    },
+    {
+        category: "Macchine",
+        question: "Quale di questi è un esempio tipico di 'macchina' ai sensi della Direttiva Macchine?",
+        options: [
+            "Un televisore in salotto",
+            "Un frullatore da cucina",
+            "Una pressa piegatrice industriale o un tornio CNC",
+            "Uno smartphone"
+        ],
+        correct: 2,
+        explanation: "Le macchine sono insiemi di pezzi collegati, dotati di attuatori/motori, usate in ambito industriale (torni, presse, nastri trasportatori)."
+    },
+
+    // ---------- PES / VALUTAZIONE RISCHIO ----------
+    {
+        category: "Modello PES",
+        question: "Nel Modello PES per la valutazione dei rischi industriali, l'acronimo sta per:",
+        options: [
+            "Prevenzione, Emergenza, Soccorso",
+            "Probabilità × Esposizione × Severità (matrice di stima del rischio)",
+            "Pressione, Energia, Suono",
+            "Persona Esperta Sicurezza (in tutti i contesti)"
+        ],
+        correct: 1,
+        explanation: "Nella matrice di stima del rischio: R = P × E × S. Attenzione: nel contesto della sicurezza elettrica (CEI 11-27) PES significa anche 'Persona ESperta', abilitata ai lavori sotto tensione."
+    },
+    {
+        category: "Modello PES",
+        question: "Nel contesto della sicurezza elettrica (CEI 11-27), il termine 'PES' indica:",
+        options: [
+            "Una matrice numerica per il calcolo del rischio",
+            "La Persona ESperta, qualificata per riconoscere e gestire i rischi dell'alta tensione (a differenza della PAV - Persona Avvertita)",
+            "Un dispositivo di protezione dell'udito",
+            "Una procedura di valutazione del microclima"
+        ],
+        correct: 1,
+        explanation: "Nel ramo elettrico (CEI 11-27), PES = Persona ESperta, qualifica di chi è legalmente in grado di lavorare in sicurezza con la tensione. La PAV è la Persona Avvertita (livello inferiore)."
+    },
+    {
+        category: "Modello PES",
+        question: "Un manutentore lavora sul tetto di uno stabilimento 1 volta all'anno; la probabilità di scivolare è bassa ma una caduta sarebbe letale. Secondo il modello R = P × E × S, cosa si conclude?",
+        options: [
+            "Il rischio è trascurabile, perché l'esposizione è rara",
+            "Il rischio è alto a causa della severità massima del danno: serve dotare il lavoratore di adeguate misure (es. linea vita fissa)",
+            "Non si applica il modello PES su attività occasionali",
+            "Va valutato solo dal medico competente"
+        ],
+        correct: 1,
+        explanation: "Anche con probabilità ed esposizione basse, una severità letale alza il prodotto P×E×S a valori critici. Il datore di lavoro deve intervenire (es. installazione di linea vita fissa)."
+    },
+
+    // ---------- MICROCLIMA ----------
+    {
+        category: "Microclima",
+        question: "Quale strumento si utilizza per misurare il calore radiante in un reparto (es. da fornaci)?",
+        options: [
+            "Psicrometro a ventilazione forzata",
+            "Anemometro",
+            "Globotermometro (sfera cava nera)",
+            "Termometro a bulbo secco"
+        ],
+        correct: 2,
+        explanation: "Il globotermometro (sfera nera cava) assorbe il calore irraggiato e ne misura la temperatura media radiante. Il termometro a bulbo secco misura solo la temperatura dell'aria."
+    },
+    {
+        category: "Microclima",
+        question: "Quali sono i parametri OGGETTIVI/FISICI nella valutazione del microclima?",
+        options: [
+            "Solo la temperatura dell'aria",
+            "Temperatura dell'aria, temperatura media radiante, umidità relativa, velocità dell'aria",
+            "Isolamento del vestiario e dispendio metabolico",
+            "Età e peso del lavoratore"
+        ],
+        correct: 1,
+        explanation: "Parametri oggettivi: Ta, Tr, rh, va. Parametri soggettivi/personali: isolamento del vestiario (clo) e metabolismo dell'attività (met o W/m²)."
+    },
+    {
+        category: "Microclima",
+        question: "L'unità 'clo' nella valutazione termoigrometrica esprime:",
+        options: [
+            "La velocità di un flusso d'aria in m/s",
+            "Il dispendio metabolico del lavoratore",
+            "L'isolamento termico del vestiario indossato dal lavoratore",
+            "L'umidità relativa percentuale"
+        ],
+        correct: 2,
+        explanation: "Il clo è un parametro soggettivo che quantifica l'isolamento termico dell'abbigliamento. Il metabolismo si esprime in met o W/m²."
+    },
+    {
+        category: "Microclima",
+        question: "Cos'è il WBGT?",
+        options: [
+            "Un dispositivo di protezione individuale termico",
+            "Il Wet Bulb Globe Temperature: un indice empirico per valutare lo stress termico in ambienti caldi severi e prevenire colpi di calore",
+            "Una tabella di valori di rumore standard",
+            "Il valore di azione superiore del rumore (85 dBA)"
+        ],
+        correct: 1,
+        explanation: "Il WBGT (Wet Bulb Globe Temperature) è un indice usato in ambienti severi caldi (fonderie, altiforni, lavori estivi sotto il sole) per fissare i limiti massimi di esposizione."
+    },
+    {
+        category: "Microclima",
+        question: "Per la valutazione del comfort termoigrometrico in un AMBIENTE MODERATO (es. una calzoleria) quale metodo si usa?",
+        options: [
+            "WBGT",
+            "IREQ",
+            "Indice PMV (Voto Medio Previsto) e PPD (Percentuale di Insoddisfatti) di Fanger",
+            "Solo il valore di LEX,8h"
+        ],
+        correct: 2,
+        explanation: "Ambiente moderato → metodo di Fanger (PMV/PPD). Ambiente severo caldo → WBGT. Ambiente severo freddo → IREQ."
+    },
+    {
+        category: "Microclima",
+        question: "Un PMV (Voto Medio Previsto) prossimo a 0 significa:",
+        options: [
+            "Condizione di freddo estremo",
+            "Condizione di caldo estremo",
+            "Comfort termico neutrale: condizioni ambientali pressoché ottimali",
+            "Dato non interpretabile"
+        ],
+        correct: 2,
+        explanation: "La scala PMV va da -3 (freddo estremo) a +3 (caldo estremo). Un valore vicino a 0 indica comfort neutrale."
+    },
+
+    // ---------- RUMORE / dB / Leq ----------
+    {
+        category: "Rumore",
+        question: "Cosa sono i decibel (dB)?",
+        options: [
+            "Un'unità di misura assoluta come i metri o i chili",
+            "Un'unità di misura logaritmica adimensionale che esprime il rapporto tra la pressione acustica misurata e una pressione di riferimento (soglia di udibilità a 20 μPa)",
+            "L'energia totale prodotta in 1 secondo da una sorgente",
+            "La frequenza fondamentale di un'onda sonora"
+        ],
+        correct: 1,
+        explanation: "Il dB è logaritmico e adimensionale: esprime un rapporto rispetto alla pressione di riferimento (20 μPa, soglia di udibilità a 1000 Hz). Si usa il logaritmo perché l'orecchio percepisce in modo esponenziale."
+    },
+    {
+        category: "Rumore",
+        question: "Cos'è il Livello Sonoro Equivalente (Leq)?",
+        options: [
+            "Il picco massimo di decibel raggiunto durante una lavorazione",
+            "La media aritmetica dei decibel di due macchine accese contemporaneamente",
+            "Il livello di rumore costante (in dBA) che a parità di tempo trasmette la stessa energia acustica del rumore reale fluttuante",
+            "La soglia di udibilità umana a 1000 Hz"
+        ],
+        correct: 2,
+        explanation: "Il Leq trasforma un'esposizione a rumori variabili in un unico valore costante energeticamente equivalente. Essenziale per capire se si superano le soglie del D.Lgs. 81/08."
+    },
+    {
+        category: "Rumore",
+        question: "Un lavoratore è esposto a 1 h a 78 dBA, 2,5 h a 89 dBA e 3,5 h a 81 dBA. Il Leq risulta circa 85,5 dBA. Quali sono i valori d'azione del D.Lgs. 81/08?",
+        options: [
+            "Valore d'azione inferiore 70 dBA, superiore 75 dBA",
+            "Valore d'azione inferiore 80 dBA, superiore 85 dBA",
+            "Valore d'azione inferiore 85 dBA, superiore 90 dBA",
+            "Valore d'azione unico 100 dBA"
+        ],
+        correct: 1,
+        explanation: "Il D.Lgs. 81/08 fissa: valore d'azione inferiore = 80 dBA, valore d'azione superiore = 85 dBA. Il LEX,8h del nostro esempio (~84,9 dBA) supera l'inferiore e sfiora il superiore."
+    },
+    {
+        category: "Rumore",
+        question: "Se il LEX,8h di un lavoratore supera 85 dBA, il Datore di Lavoro DEVE:",
+        options: [
+            "Solo affiggere un cartello di avvertimento",
+            "Fornire DPI uditivi, garantirne l'uso obbligatorio, informare e formare i lavoratori, sottoporli a controlli sanitari (audiometrie) e programmare bonifiche acustiche",
+            "Spegnere le macchine rumorose ogni 2 ore",
+            "Nessuna azione, finché non si superano i 90 dBA"
+        ],
+        correct: 1,
+        explanation: "Sopra al valore d'azione superiore (85 dBA) scattano obblighi pieni: DPI uditivi obbligatori, formazione/informazione, audiometrie periodiche e bonifiche tecniche alla sorgente."
+    },
+    {
+        category: "Rumore",
+        question: "Due macchine emettono rispettivamente 80 dB e 80 dB. Il livello sonoro totale è:",
+        options: [
+            "160 dB (somma algebrica)",
+            "Circa 83 dB (somma logaritmica energetica: differenza 0 dB → si aggiungono ~3 dB al maggiore)",
+            "85 dB",
+            "Resta 80 dB"
+        ],
+        correct: 1,
+        explanation: "I dB non si sommano linearmente. Differenza = 0 dB → dal diagramma si aggiungono ~3 dB al livello maggiore: 80 + 3 = 83 dB."
+    },
+    {
+        category: "Rumore",
+        question: "Usando il diagramma di somma energetica: due sorgenti di 85 dB e 81 dB. Quanto fa il totale?",
+        options: [
+            "166 dB",
+            "Circa 86,5 dB (differenza 4 dB → si aggiunge ~1,45 dB al maggiore)",
+            "83 dB",
+            "Circa 90 dB"
+        ],
+        correct: 1,
+        explanation: "Procedura: |85-81|=4 dB → sul grafico la curva corrisponde a ~1,45 dB → 85 + 1,45 ≈ 86,5 dB."
+    },
+    {
+        category: "Rumore",
+        question: "Cosa esprime il criterio SIL (Speech Interference Level)?",
+        options: [
+            "La probabilità di contrarre sordità dopo 8 ore di lavoro",
+            "Il grado in cui il rumore di fondo maschera e disturba la comunicazione verbale; si calcola come media aritmetica dei livelli sonori nelle bande di ottava 500, 1000, 2000 (e 4000) Hz",
+            "L'isolamento termico del vestiario del lavoratore",
+            "La potenza del segnale di un altoparlante in watt"
+        ],
+        correct: 1,
+        explanation: "Il SIL valuta il mascheramento del parlato. Si calcola come MEDIA ARITMETICA dei dB sulle bande di ottava centrali (500, 1000, 2000, ed eventualmente 4000 Hz)."
+    },
+    {
+        category: "Rumore",
+        question: "In un reparto i livelli sonori alle bande 500/1000/2000/4000 Hz sono 73/76/79/73 dB. Quanto vale il SIL e quale livello deve avere una sorgente vocale per essere udibile?",
+        options: [
+            "SIL = 75,25 dB → sorgente vocale ~85-90 dB (10-15 dB sopra il SIL)",
+            "SIL = 301 dB → sorgente vocale 311 dB",
+            "SIL = 73 dB → sorgente vocale 75 dB",
+            "Il SIL non è calcolabile senza la banda dei 250 Hz"
+        ],
+        correct: 0,
+        explanation: "Media aritmetica: (73+76+79+73)/4 = 75,25 dB. Per garantire udibilità, la sorgente vocale deve superare il SIL di 10-15 dB → 85-90 dB."
+    },
+    {
+        category: "Rumore",
+        question: "Se per superare il SIL bisogna emettere annunci a 90 dB, qual è una considerazione critica da segnalare al Datore di Lavoro?",
+        options: [
+            "Nessun problema, basta un altoparlante più potente",
+            "Aumentare il volume rischia di superare i valori di azione di esposizione al rumore e gli otoprotettori indossati ridurrebbero comunque l'udibilità; meglio integrare con segnali visivi (lampeggianti)",
+            "Bisogna togliere gli otoprotettori durante gli annunci",
+            "Il SIL si misura solo all'esterno dello stabilimento"
+        ],
+        correct: 1,
+        explanation: "Alzare la voce dei messaggi a 90 dB fa lievitare l'esposizione complessiva e i DPI uditivi ne attenuano comunque l'udibilità. Il D.Lgs. 81/08 suggerisce di integrare con segnali visivi (lampeggianti)."
+    },
+];
+
+// =====================================================
+// STATO
+// =====================================================
+let activeQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let wrongCount = 0;
+let answered = false;
+let wrongAnswers = []; // per la sezione "ripasso"
+
+// DOM
+const startScreen = document.getElementById('start-screen');
+const quizSection = document.getElementById('quiz-section');
+const resultsSection = document.getElementById('results-section');
+const questionCountLabel = document.getElementById('question-count-label');
+
+const questionText = document.getElementById('question-text');
+const optionsContainer = document.getElementById('options-container');
+const feedbackSection = document.getElementById('feedback-section');
+const explanationText = document.getElementById('explanation-text');
+const nextBtn = document.getElementById('next-btn');
+const categoryTag = document.getElementById('category-tag');
+
+const currentQNum = document.getElementById('current-q-num');
+const totalQNum = document.getElementById('total-q-num');
+const progressFill = document.getElementById('progress-fill');
+const correctCount = document.getElementById('correct-count');
+const wrongCountEl = document.getElementById('wrong-count');
+
+const scoreDisplay = document.getElementById('score-display');
+const scorePercent = document.getElementById('score-percent');
+const scoreMessage = document.getElementById('score-message');
+const categoryBreakdown = document.getElementById('category-breakdown');
+const reviewSection = document.getElementById('review-section');
+const reviewList = document.getElementById('review-list');
+
+// Avvio
+questionCountLabel.textContent = `Banca dati: ${quizData.length} domande`;
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => startQuiz(btn.dataset.mode));
+});
+document.getElementById('restart-btn').addEventListener('click', () => startQuiz(window._lastMode || 'all'));
+document.getElementById('home-btn').addEventListener('click', goHome);
+
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
     }
+    return a;
+}
 
-    function loadQuestion() {
-        answered = false;
-        feedbackSection.style.display = 'none';
-        
-        const q = quizData[currentQuestionIndex];
-        questionText.textContent = q.question;
-        currentQNum.textContent = currentQuestionIndex + 1;
-        
-        // Calcolo progresso
-        const progress = Math.round(((currentQuestionIndex) / quizData.length) * 100);
-        progressFill.style.width = `${progress}%`;
-        progressPercentage.textContent = `${progress}%`;
+function startQuiz(mode) {
+    window._lastMode = mode;
+    if (mode === 'all') {
+        activeQuestions = shuffle(quizData).map(prepareQuestion);
+    } else if (mode === 'short') {
+        activeQuestions = shuffle(quizData).slice(0, 10).map(prepareQuestion);
+    } else { // ordered
+        activeQuestions = quizData.map(prepareQuestion);
+    }
+    currentQuestionIndex = 0;
+    score = 0;
+    wrongCount = 0;
+    wrongAnswers = [];
+    startScreen.style.display = 'none';
+    quizSection.style.display = 'block';
+    resultsSection.style.display = 'none';
+    totalQNum.textContent = activeQuestions.length;
+    correctCount.textContent = 0;
+    wrongCountEl.textContent = 0;
+    loadQuestion();
+}
 
-        // Genera bottoni opzioni
-        optionsContainer.innerHTML = '';
-        q.options.forEach((opt, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.textContent = opt;
-            btn.onclick = () => checkAnswer(index, btn);
-            optionsContainer.appendChild(btn);
+// Crea una copia della domanda con opzioni rimescolate
+function prepareQuestion(q) {
+    const indices = q.options.map((_, i) => i);
+    const shuffled = shuffle(indices);
+    const newOptions = shuffled.map(i => q.options[i]);
+    const newCorrect = shuffled.indexOf(q.correct);
+    return {
+        category: q.category,
+        question: q.question,
+        options: newOptions,
+        correct: newCorrect,
+        explanation: q.explanation
+    };
+}
+
+function goHome() {
+    quizSection.style.display = 'none';
+    resultsSection.style.display = 'none';
+    startScreen.style.display = 'block';
+}
+
+function loadQuestion() {
+    answered = false;
+    feedbackSection.style.display = 'none';
+    const q = activeQuestions[currentQuestionIndex];
+    questionText.textContent = q.question;
+    categoryTag.textContent = q.category;
+    currentQNum.textContent = currentQuestionIndex + 1;
+    const progress = Math.round((currentQuestionIndex / activeQuestions.length) * 100);
+    progressFill.style.width = `${progress}%`;
+    optionsContainer.innerHTML = '';
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    q.options.forEach((opt, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<span class="letter">${letters[index]}</span><span>${opt}</span>`;
+        btn.onclick = () => checkAnswer(index, btn);
+        optionsContainer.appendChild(btn);
+    });
+}
+
+function checkAnswer(selectedIndex, btnElement) {
+    if (answered) return;
+    answered = true;
+    const q = activeQuestions[currentQuestionIndex];
+    const buttons = optionsContainer.querySelectorAll('.option-btn');
+    buttons.forEach(btn => btn.disabled = true);
+    if (selectedIndex === q.correct) {
+        btnElement.classList.add('correct');
+        score++;
+        correctCount.textContent = score;
+    } else {
+        btnElement.classList.add('wrong');
+        buttons[q.correct].classList.add('correct');
+        wrongCount++;
+        wrongCountEl.textContent = wrongCount;
+        wrongAnswers.push({
+            question: q.question,
+            category: q.category,
+            your: q.options[selectedIndex],
+            right: q.options[q.correct],
+            explanation: q.explanation
         });
     }
+    explanationText.textContent = q.explanation;
+    feedbackSection.style.display = 'flex';
+    nextBtn.textContent = (currentQuestionIndex === activeQuestions.length - 1)
+        ? "Vedi risultati" : "Prossima domanda";
+    nextBtn.focus();
+}
 
-    function checkAnswer(selectedIndex, btnElement) {
-        if (answered) return;
-        answered = true;
-
-        const q = quizData[currentQuestionIndex];
-        const buttons = optionsContainer.querySelectorAll('.option-btn');
-        
-        // Disabilita bottoni
-        buttons.forEach(btn => btn.disabled = true);
-
-        // Verifica risposta
-        if (selectedIndex === q.correct) {
-            btnElement.classList.add('correct');
-            score++;
-        } else {
-            btnElement.classList.add('wrong');
-            // Mostra quella giusta
-            buttons[q.correct].classList.add('correct');
-        }
-
-        // Mostra spiegazione
-        explanationText.textContent = q.explanation;
-        feedbackSection.style.display = 'flex';
-        
-        // Cambia testo bottone se è l'ultima domanda
-        if (currentQuestionIndex === quizData.length - 1) {
-            nextBtn.textContent = "Vedi Risultati";
-        } else {
-            nextBtn.textContent = "Prossima Domanda";
-        }
+nextBtn.onclick = () => {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < activeQuestions.length) {
+        loadQuestion();
+    } else {
+        showResults();
     }
+};
 
-    nextBtn.onclick = () => {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < quizData.length) {
-            loadQuestion();
-        } else {
-            showResults();
+// Supporto tastiera: 1-4 per rispondere, Invio per next
+document.addEventListener('keydown', (e) => {
+    if (quizSection.style.display !== 'block') return;
+    if (!answered) {
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= 6) {
+            const btns = optionsContainer.querySelectorAll('.option-btn');
+            if (btns[num - 1]) btns[num - 1].click();
         }
-    };
-
-    function showResults() {
-        quizSection.style.display = 'none';
-        resultsSection.style.display = 'block';
-        scoreDisplay.textContent = `${score} / ${quizData.length}`;
-        
-        const perc = (score / quizData.length) * 100;
-        if (perc === 100) {
-            scoreMessage.textContent = "Perfetto! Esame in tasca.";
-        } else if (perc >= 70) {
-            scoreMessage.textContent = "Ottimo lavoro, concetti base consolidati.";
-        } else {
-            scoreMessage.textContent = "C'è ancora qualcosina da ripassare, dai un'altra occhiata alle definizioni.";
-        }
+    } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        nextBtn.click();
     }
+});
 
-    // Avvia al caricamento
-    initQuiz();
+function showResults() {
+    quizSection.style.display = 'none';
+    resultsSection.style.display = 'block';
+    progressFill.style.width = '100%';
+    const total = activeQuestions.length;
+    scoreDisplay.textContent = `${score} / ${total}`;
+    const perc = Math.round((score / total) * 100);
+    scorePercent.textContent = `${perc}%`;
+    if (perc === 100) scoreMessage.textContent = "Perfetto! Esame in tasca.";
+    else if (perc >= 85) scoreMessage.textContent = "Ottimo, padronanza solida dei concetti.";
+    else if (perc >= 70) scoreMessage.textContent = "Buono, qualche dettaglio da rivedere.";
+    else if (perc >= 50) scoreMessage.textContent = "Sufficiente, ma c'è ancora da ripassare.";
+    else scoreMessage.textContent = "Da rivedere bene, riparti dalle definizioni.";
+
+    // Breakdown per categoria
+    const byCategory = {};
+    activeQuestions.forEach((q, i) => {
+        if (!byCategory[q.category]) byCategory[q.category] = { ok: 0, total: 0 };
+        byCategory[q.category].total++;
+    });
+    // calcola corretti per categoria
+    activeQuestions.forEach((q, i) => {
+        const wasWrong = wrongAnswers.some(w => w.question === q.question);
+        if (!wasWrong) byCategory[q.category].ok++;
+    });
+
+    let breakdownHTML = '<h3>Risultati per categoria</h3>';
+    for (const cat in byCategory) {
+        const c = byCategory[cat];
+        const pct = Math.round((c.ok / c.total) * 100);
+        breakdownHTML += `<div class="cat-row"><span>${cat}</span><span><strong>${c.ok}/${c.total}</strong> (${pct}%)</span></div>`;
+    }
+    categoryBreakdown.innerHTML = breakdownHTML;
+
+    // Sezione ripasso errori
+    if (wrongAnswers.length > 0) {
+        reviewSection.style.display = 'block';
+        reviewList.innerHTML = '';
+        wrongAnswers.forEach(w => {
+            const div = document.createElement('div');
+            div.className = 'review-item';
+            div.innerHTML = `
+                <div class="q">${w.question}</div>
+                <div class="your"><strong>Tu hai risposto:</strong> ${w.your}</div>
+                <div class="right"><strong>Corretta:</strong> ${w.right}</div>
+                <div style="margin-top:6px; color:var(--muted); font-size:0.85rem;">${w.explanation}</div>
+            `;
+            reviewList.appendChild(div);
+        });
+    } else {
+        reviewSection.style.display = 'none';
+    }
+}
 </script>
-
 </body>
 </html>

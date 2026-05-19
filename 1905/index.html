@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Esame Sicurezza</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --correct: #16a34a;
+            --wrong: #dc2626;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        /* Progress Bar */
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Typography */
+        h2 {
+            font-size: 1.25rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        /* Options */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: #f1f5f9;
+            border: 2px solid transparent;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        .option-btn.correct {
+            background-color: #dcfce7;
+            border-color: var(--correct);
+            color: #166534;
+        }
+
+        .option-btn.wrong {
+            background-color: #fee2e2;
+            border-color: var(--wrong);
+            color: #991b1b;
+        }
+
+        /* Explanation & Next Btn */
+        .feedback-section {
+            margin-top: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .explanation {
+            background-color: #f8fafc;
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .next-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .next-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* Results */
+        .results-section {
+            text-align: center;
+            display: none;
+        }
+
+        .score-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        .restart-btn {
+            background-color: var(--text);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-section">
+        <div class="progress-header">
+            <span>Domanda <span id="current-q-num">1</span> di <span id="total-q-num">x</span></span>
+            <span id="progress-percentage">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <h2 id="question-text">Testo della domanda...</h2>
+        
+        <div class="options-grid" id="options-container">
+            </div>
+
+        <div class="feedback-section" id="feedback-section">
+            <div class="explanation" id="explanation-text">Spiegazione qui...</div>
+            <button class="next-btn" id="next-btn">Prossima Domanda</button>
+        </div>
+    </div>
+
+    <div class="results-section" id="results-section">
+        <h2>Esame Completato!</h2>
+        <div class="score-display" id="score-display">0/0</div>
+        <p id="score-message">Valutazione...</p>
+        <button class="restart-btn" onclick="initQuiz()">Rifai il test</button>
+    </div>
+</div>
+
+<script>
+    // Database delle domande basato sul tuo materiale
+    const quizData = [
+        {
+            question: "Qual è la differenza principale tra infortunio e malattia professionale?",
+            options: [
+                "L'infortunio avviene solo nel tragitto casa-lavoro, la malattia in fabbrica.",
+                "L'infortunio è un evento rapido e violento, la malattia è progressiva e dilazionata nel tempo.",
+                "Non c'è differenza normativa ai sensi del D.Lgs. 81/08.",
+                "L'infortunio riguarda danni alle macchine, la malattia ai lavoratori."
+            ],
+            correct: 1,
+            explanation: "Esatto. L'infortunio ha una causa violenta e concentrata nel tempo (es. un taglio o una caduta). La malattia professionale emerge dopo un'esposizione prolungata a un rischio (es. ipoacusia per rumore continuo)."
+        },
+        {
+            question: "Se devi acquistare una macchina industriale (es. tornio o pressa), quale normativa di riferimento devi controllare per verificarne i requisiti di sicurezza?",
+            options: [
+                "Il Codice del Consumo",
+                "Il Modello PES",
+                "La Direttiva Macchine (D.Lgs. 17/10)",
+                "Esclusivamente la norma tecnica UNI volontaria"
+            ],
+            correct: 2,
+            explanation: "Corretto. Le macchine industriali ricadono sotto la Direttiva Macchine (D.Lgs. 17/10), che impone marcatura CE, manuale d'uso in lingua e dichiarazione di conformità."
+        },
+        {
+            question: "Cosa si intende per 'Mancato Incidente' (Near Miss)?",
+            options: [
+                "Un infortunio lieve che non richiede giorni di mutua.",
+                "Un evento imprevisto che avrebbe potuto causare un danno, ma per puro caso non l'ha fatto.",
+                "Un incidente causato da negligenza diretta del lavoratore.",
+                "Un malfunzionamento del software gestionale aziendale."
+            ],
+            correct: 1,
+            explanation: "Giusto. Il near miss è il 'quasi infortunio'. Analizzarli è fondamentale perché permettono di intervenire sulle procedure prima che si verifichi un danno reale."
+        },
+        {
+            question: "Cos'è il Livello Sonoro Equivalente (Leq)?",
+            options: [
+                "Il picco massimo di decibel raggiunto durante una lavorazione.",
+                "La media matematica dei decibel emessi da due macchine accese contemporaneamente.",
+                "Il livello di rumore costante che ha la stessa energia acustica del rumore reale fluttuante nel medesimo lasso di tempo.",
+                "Il livello minimo di udibilità umana (soglia a 20 microPascal)."
+            ],
+            correct: 2,
+            explanation: "Perfetto. Il Leq trasforma l'esposizione a rumori variabili (es. 1h a 78dB, 2.5h a 89dB) in un unico valore costante equivalente, essenziale per capire se si superano le soglie di rischio previste dalla legge."
+        },
+        {
+            question: "Quale strumento si utilizza per misurare la temperatura media radiante in un reparto industriale (es. per calore emesso da fornaci)?",
+            options: [
+                "Psicrometro a ventilazione forzata",
+                "Anemometro",
+                "Globotermometro",
+                "Termometro a bulbo secco"
+            ],
+            correct: 2,
+            explanation: "Esatto. Il globotermometro (quella sfera nera cava) è lo strumento specifico per assorbire e misurare il calore irraggiato dalle superfici, a differenza del termometro normale che misura solo l'aria."
+        },
+        {
+            question: "Nel Modello PES per la valutazione dei rischi industriali, l'acronimo sta per:",
+            options: [
+                "Prevenzione, Emergenza, Soccorso",
+                "Probabilità x Esposizione x Severità",
+                "Pressione, Energia, Suono",
+                "Persona Esperta Sicurezza"
+            ],
+            correct: 1,
+            explanation: "Corretto! (Nota: nel settore elettrico PES indica la Persona Esperta, ma nel calcolo generale del rischio tramite matrice si riferisce alla moltiplicazione tra Probabilità, frequenza di Esposizione ed entità/Severità del danno)."
+        },
+        {
+            question: "Cosa esprime il criterio SIL (Speech Interference Level) in un reparto produttivo?",
+            options: [
+                "La probabilità di contrarre sordità dopo 8 ore di lavoro.",
+                "Il grado in cui il rumore di fondo maschera e disturba la comunicazione verbale.",
+                "Il livello di isolamento termico offerto dall'abbigliamento del lavoratore.",
+                "La potenza del segnale wifi nel reparto produttivo."
+            ],
+            correct: 1,
+            explanation: "Giusto. Il SIL valuta se gli addetti riescono a comunicare e sentire gli avvisi. Per essere udibile, una comunicazione deve sovrastare il rumore di fondo (calcolato col SIL) di almeno 10/15 dB."
+        }
+    ];
+
+    // Variabili di stato
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    // Elementi DOM
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackSection = document.getElementById('feedback-section');
+    const explanationText = document.getElementById('explanation-text');
+    const nextBtn = document.getElementById('next-btn');
+    
+    const currentQNum = document.getElementById('current-q-num');
+    const totalQNum = document.getElementById('total-q-num');
+    const progressFill = document.getElementById('progress-fill');
+    const progressPercentage = document.getElementById('progress-percentage');
+    
+    const quizSection = document.getElementById('quiz-section');
+    const resultsSection = document.getElementById('results-section');
+    const scoreDisplay = document.getElementById('score-display');
+    const scoreMessage = document.getElementById('score-message');
+
+    // Inizializzazione
+    function initQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        quizSection.style.display = 'block';
+        resultsSection.style.display = 'none';
+        totalQNum.textContent = quizData.length;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        answered = false;
+        feedbackSection.style.display = 'none';
+        
+        const q = quizData[currentQuestionIndex];
+        questionText.textContent = q.question;
+        currentQNum.textContent = currentQuestionIndex + 1;
+        
+        // Calcolo progresso
+        const progress = Math.round(((currentQuestionIndex) / quizData.length) * 100);
+        progressFill.style.width = `${progress}%`;
+        progressPercentage.textContent = `${progress}%`;
+
+        // Genera bottoni opzioni
+        optionsContainer.innerHTML = '';
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIndex, btnElement) {
+        if (answered) return;
+        answered = true;
+
+        const q = quizData[currentQuestionIndex];
+        const buttons = optionsContainer.querySelectorAll('.option-btn');
+        
+        // Disabilita bottoni
+        buttons.forEach(btn => btn.disabled = true);
+
+        // Verifica risposta
+        if (selectedIndex === q.correct) {
+            btnElement.classList.add('correct');
+            score++;
+        } else {
+            btnElement.classList.add('wrong');
+            // Mostra quella giusta
+            buttons[q.correct].classList.add('correct');
+        }
+
+        // Mostra spiegazione
+        explanationText.textContent = q.explanation;
+        feedbackSection.style.display = 'flex';
+        
+        // Cambia testo bottone se è l'ultima domanda
+        if (currentQuestionIndex === quizData.length - 1) {
+            nextBtn.textContent = "Vedi Risultati";
+        } else {
+            nextBtn.textContent = "Prossima Domanda";
+        }
+    }
+
+    nextBtn.onclick = () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    };
+
+    function showResults() {
+        quizSection.style.display = 'none';
+        resultsSection.style.display = 'block';
+        scoreDisplay.textContent = `${score} / ${quizData.length}`;
+        
+        const perc = (score / quizData.length) * 100;
+        if (perc === 100) {
+            scoreMessage.textContent = "Perfetto! Esame in tasca.";
+        } else if (perc >= 70) {
+            scoreMessage.textContent = "Ottimo lavoro, concetti base consolidati.";
+        } else {
+            scoreMessage.textContent = "C'è ancora qualcosina da ripassare, dai un'altra occhiata alle definizioni.";
+        }
+    }
+
+    // Avvia al caricamento
+    initQuiz();
+</script>
+
+</body>
+</html>

@@ -11,7 +11,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body, html { height: 100%; font-family: 'Consolas', 'Fira Code', monospace; background-color: #111; color: #ff3333; overflow: hidden; }
         
-        #error-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; padding: 20px; }
+        #error-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; padding: 20px; cursor: pointer; }
         #error-container h1 { font-size: 48px; margin-bottom: 10px; }
         #error-container p { color: #888; font-size: 16px; }
 
@@ -50,10 +50,10 @@
            ========================================================================== */
         @media (max-width: 768px) {
             body, html { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #e5ddd5; color: #000; }
-            #error-container { display: flex; } /* Mantiene il finto errore anche su mobile all'avvio */
+            #error-container { display: flex; } 
             
             .sidebar { display: none; }
-            .panel-header { background-color: #075e54; height: 55px; color: white; padding: 0 15px; font-weight: bold; font-size: 16px; }
+            .panel-header { background-color: #075e54; height: 55px; color: white; padding: 0 15px; font-weight: bold; font-size: 16px; display: flex; align-items: center; }
             
             .log-output { background-color: #e5ddd5; padding: 10px; gap: 8px; }
             
@@ -62,9 +62,7 @@
             .log-row::before { display: none !important; }
             .log-row .payload { color: #000000 !important; }
 
-            /* INVERSIONE LOGICA RUOLI SU MOBILE: 
-               La classe client-a (che su PC è l'utente principale) va a sinistra.
-               La classe client-b (che su PC è l'interlocutore) va a destra. */
+            /* Inversione dei ruoli grafici su mobile */
             .log-row.client-a { background-color: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
             .log-row.client-b { background-color: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
 
@@ -120,10 +118,7 @@ Monitoring status: ACTIVE | Thread pool utilization: 8.3%
                     node_runtime_diagnostic.log
                 </header>
 
-                <div class="log-output" id="log-display">
-                    <div class="log-row client-a"><span class="payload">Verifica canale di comunicazione completata.</span></div>
-                    <div class="log-row client-b"><span class="payload">Ricevuto. Connessione stabilita correttamente dall'endpoint remoto.</span></div>
-                </div>
+                <div class="log-output" id="log-display"></div>
 
                 <div class="terminal-input-wrapper">
                     <input type="text" id="terminal-field" class="term-input" placeholder="Execute diagnostic command..." autocomplete="off">
@@ -134,8 +129,26 @@ Monitoring status: ACTIVE | Thread pool utilization: 8.3%
         </div>
     </div>
 
-    <script>
-        // Costanti ed Elementi DOM
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Configurazione basata sulle tue credenziali operative
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIYNbVpzrpiDuUk3LCReK3wiZNR0xVMHk",
+            authDomain: "sys-monitor-diagnostic.firebaseapp.com",
+            projectId: "sys-monitor-diagnostic",
+            storageBucket: "sys-monitor-diagnostic.firebasestorage.app",
+            messagingSenderId: "583739208085",
+            appId: "1:583739208085:web:2f699ebf647a88cb1e869c"
+        };
+
+        // Inizializzazione
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const messagesCollection = collection(db, "diagnostic_streams");
+
+        // Elementi DOM
         const errorContainer = document.getElementById('error-container');
         const appWrapper = document.getElementById('app-wrapper');
         const terminalField = document.getElementById('terminal-field');
@@ -146,7 +159,7 @@ Monitoring status: ACTIVE | Thread pool utilization: 8.3%
         const dynamicHeader = document.getElementById('dynamic-header');
 
         // ==========================================================================
-        // SBLOCCO CON CODICE SEGRETO (Konami Code: Su, Su, Giù, Giù)
+        // SISTEMI DI SBLOCCO COPERTURA (Konami Code su PC, 4 Tocchi su Mobile)
         // ==========================================================================
         const secretCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown'];
         let codePosition = 0;
@@ -163,13 +176,23 @@ Monitoring status: ACTIVE | Thread pool utilization: 8.3%
             }
         });
 
-        // Sblocco alternativo tramite tocchi per dispositivi Mobile (4 tocchi sullo schermo)
-        let touchCount = 0;
-        errorContainer.addEventListener('touchstart', () => {
-            touchCount++;
-            if (touchCount >= 4) {
+        // Nuovo sblocco semplificato: 4 tocchi ovunque sullo schermo di errore
+        let globalTouchCount = 0;
+        let lastTouchTime = 0;
+
+        errorContainer.addEventListener('touchstart', (e) => {
+            const currentTime = new Date().getTime();
+            // Resetta il conteggio se passa più di 1.5 secondi tra un tocco e l'altro
+            if (currentTime - lastTouchTime > 1500) {
+                globalTouchCount = 0;
+            }
+            
+            globalTouchCount++;
+            lastTouchTime = currentTime;
+
+            if (globalTouchCount >= 4) {
                 unlockApplication();
-                touchCount = 0;
+                globalTouchCount = 0;
             }
         });
 
@@ -177,10 +200,9 @@ Monitoring status: ACTIVE | Thread pool utilization: 8.3%
             errorContainer.style.display = 'none';
             appWrapper.style.display = 'block';
             
-            // Logica di camuffamento URL nella cronologia del browser
+            // Sostituzione URL invisibile nella cronologia
             window.history.replaceState({}, '', '/api/v1/status/check?node=4&auth=true');
             
-            // Setup scritte testata in base alla risoluzione dello schermo rilevata al login
             if (window.innerWidth <= 768) {
                 pageTitle.innerText = "System Room";
                 dynamicHeader.innerText = "System Room (Online)";
@@ -192,28 +214,46 @@ Monitoring status: ACTIVE | Thread pool utilization: 8.3%
         }
 
         // ==========================================================================
-        // GESTIONE INPUT E DISTRIBUZIONE RUOLI (Desktop vs Mobile)
+        // ASCOLTO FLUSSO IN REAL-TIME (Ricezione dati da Firebase)
         // ==========================================================================
-        function processStream() {
+        const q = query(messagesCollection, orderBy("timestamp", "asc"));
+
+        onSnapshot(q, (snapshot) => {
+            logDisplay.innerHTML = ''; // Evita duplicazione rendering
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const row = document.createElement('div');
+                row.classList.add('log-row', data.sender);
+                row.innerHTML = `<span class="payload">${data.text}</span>`;
+                logDisplay.appendChild(row);
+            });
+            logDisplay.scrollTop = logDisplay.scrollHeight;
+        });
+
+        // ==========================================================================
+        // LOGICA DI INVIO STREAM (Scrittura su Firebase)
+        // ==========================================================================
+        async function processStream() {
             const rawText = terminalField.value;
             if (!rawText.trim()) return;
 
-            // Rileva dinamicamente se siamo su PC o Mobile per assegnare la classe corretta
-            let targetClass = 'client-a'; // Di base è il messaggio locale su PC
+            let targetClass = 'client-a'; // Default per Desktop
             if (window.innerWidth <= 768) {
-                targetClass = 'client-b'; // Diventa il messaggio dell'altra persona su Mobile
+                targetClass = 'client-b'; // Diventa l'interlocutore se inviato da Mobile
             }
 
-            const row = document.createElement('div');
-            row.classList.add('log-row', targetClass);
-            row.innerHTML = `<span class="payload">${rawText}</span>`;
-            
-            logDisplay.appendChild(row);
             terminalField.value = '';
-            logDisplay.scrollTop = logDisplay.scrollHeight;
 
-            // In una configurazione reale con Firebase, qui invierai il dato al database:
-            // database.collection('logs').add({ text: rawText, sender: targetClass, timestamp: Date.now() });
+            try {
+                await addDoc(messagesCollection, {
+                    text: rawText,
+                    sender: targetClass,
+                    timestamp: Date.now()
+                });
+            } catch (e) {
+                console.error("Transmission error inside backend interface: ", e);
+            }
         }
 
         terminalField.addEventListener('keydown', (e) => {
@@ -222,7 +262,7 @@ Monitoring status: ACTIVE | Thread pool utilization: 8.3%
         mobileSend.addEventListener('click', processStream);
 
         // ==========================================================================
-        // EMERGENCY PANIC OVERRIDE (Tasto ESC)
+        // EMERGENCY OVERRIDE (Panic Button - Tasto ESC)
         // ==========================================================================
         let internalPanicState = false;
         window.addEventListener('keydown', (e) => {
@@ -238,7 +278,7 @@ Monitoring status: ACTIVE | Thread pool utilization: 8.3%
             }
         });
 
-        // Finta notifica push discreta in caso la scheda perda il focus (Background)
+        // Falsi avvisi di carico quando si deseleziona la scheda del browser
         window.addEventListener('blur', () => {
             if (appWrapper.style.display === 'block') {
                 pageTitle.innerText = "[⚠️] High CPU Usage on Core 04";

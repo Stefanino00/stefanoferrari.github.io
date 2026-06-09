@@ -1,216 +1,255 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">sys_cluster_monitor.log</title>
+    <title id="page-title">403 Forbidden</title>
     <style>
         /* ==========================================================================
-           1. STILI BASE & DESKTOP (Camuffamento Editor di Codice / Terminale)
+           1. STILI BASE & FAKE LOGIN (Schermata Errore iniziale)
            ========================================================================== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body, html { height: 100%; font-family: 'Consolas', 'Fira Code', Monaco, monospace; background-color: #1e1e1e; color: #d4d4d4; overflow: hidden; }
+        body, html { height: 100%; font-family: 'Consolas', 'Fira Code', monospace; background-color: #111; color: #ff3333; overflow: hidden; }
         
-        #app-wrapper { display: flex; height: 100vh; width: 100vw; }
-        
-        /* Finta Sidebar di VS Code (Solo Desktop) */
-        .desktop-sidebar { width: 220px; background-color: #252526; border-right: 1px solid #3c3c3c; display: flex; flex-direction: column; padding: 10px; font-size: 13px; color: #858585; }
-        .desktop-sidebar .folder { color: #cccccc; font-weight: bold; margin-bottom: 8px; }
-        .desktop-sidebar .file { padding-left: 15px; margin-bottom: 5px; color: #a2a2a2; cursor: pointer; }
-        .desktop-sidebar .file.active { color: #569cd6; background-color: #37373d; padding-right: 5px; border-radius: 3px; }
+        #error-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; padding: 20px; }
+        #error-container h1 { font-size: 48px; margin-bottom: 10px; }
+        #error-container p { color: #888; font-size: 16px; }
 
-        /* Contenitore Principale Chat */
-        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: #1e1e1e; }
-
-        /* Intestazione (Tab dell'editor su Desktop) */
-        .chat-header { background-color: #2d2d2d; height: 35px; display: flex; align-items: center; padding-left: 10px; border-bottom: 1px solid #3c3c3c; }
-        .chat-header .tab { background-color: #1e1e1e; color: #fff; padding: 8px 30px 8px 15px; font-size: 12px; border-top: 1px solid #007acc; position: relative; display: flex; align-items: center; }
-        .chat-header .tab::after { content: "×"; position: absolute; right: 8px; color: #858585; }
-        .chat-header .mobile-profile { display: none; } /* Nascosto su desktop */
-
-        /* Area Messaggi (Come righe di log su Desktop) */
-        .messages-area { flex: 1; padding: 20px; overflow-y: auto; font-size: 14px; line-height: 1.6; }
-        .msg { margin-bottom: 6px; display: block; white-space: pre-wrap; }
-        
-        /* Formattazione Log Desktop */
-        .msg.received::before { content: "[INFO] [" url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="%234fc1ff" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>') "] Inbound_Packet: "; color: #4fc1ff; }
-        .msg.sent::before { content: "[DEBUG] [" url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="%236a9955" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>') "] Outbound_Sync: "; color: #6a9955; }
-        .msg .text { color: #ce9178; } /* Colore stringhe di codice */
-
-        /* Input di testo (Come riga di comando terminale su Desktop) */
-        .input-area { background-color: #1e1e1e; padding: 10px 20px; border-top: 1px solid #2d2d2d; display: flex; align-items: center; }
-        .input-area::before { content: "user@prod-cluster-db:~$ "; color: #4ec9b0; margin-right: 5px; font-size: 14px; }
-        .input-field { flex: 1; background: transparent; border: none; color: #ce9178; font-family: inherit; font-size: 14px; outline: none; }
-        .send-btn { display: none; } /* Invio solo con tasto Enter su desktop */
-
-        /* Finto Schermo di Panico (Salva-vita) */
-        #panic-screen { display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background-color: #1e1e1e; color: #6a9955; padding: 30px; font-size: 14px; z-index: 99999; overflow: auto; }
+        /* Contenitore Principale dell'Applicazione (Nascosto all'avvio) */
+        #app-wrapper { display: none; height: 100vh; width: 100vw; background-color: #1e1e1e; color: #d4d4d4; }
 
         /* ==========================================================================
-           2. STILI MOBILE (Trasformazione in Chat Stile WhatsApp)
+           2. INTERFACCIA DESKTOP (Pannello Log di Sistema)
+           ========================================================================== */
+        .desktop-layout { display: flex; width: 100%; height: 100%; }
+        .sidebar { width: 240px; background-color: #252526; border-right: 1px solid #3c3c3c; padding: 15px; font-size: 13px; color: #858585; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar .status-node { color: #4ec9b0; font-weight: bold; }
+        .sidebar .metrics { font-size: 11px; line-height: 1.5; color: #a2a2a2; margin-top: 10px; border-top: 1px solid #3c3c3c; padding-top: 10px; }
+
+        .main-panel { flex: 1; display: flex; flex-direction: column; background-color: #1e1e1e; }
+        .panel-header { background-color: #2d2d2d; height: 38px; display: flex; align-items: center; padding-left: 15px; border-bottom: 1px solid #3c3c3c; font-size: 12px; color: #fff; }
+        
+        .log-output { flex: 1; padding: 20px; overflow-y: auto; font-size: 14px; line-height: 1.6; display: flex; flex-direction: column; }
+        
+        /* Formattazione Messaggi su Desktop (Iniezione prefissi tramite CSS) */
+        .log-row { margin-bottom: 4px; white-space: pre-wrap; display: block; }
+        .log-row.client-a::before { content: "[SYS_MONITOR] [STABLE] Inbound execution stream: "; color: #6a9955; }
+        .log-row.client-b::before { content: "[SYS_MONITOR] [TRACE] Echo core response: "; color: #4fc1ff; }
+        .log-row .payload { color: #ce9178; }
+
+        .terminal-input-wrapper { background-color: #1e1e1e; padding: 12px 20px; border-top: 1px solid #2d2d2d; display: flex; align-items: center; }
+        .terminal-input-wrapper::before { content: "admin@node-diagnostic:~# "; color: #4ec9b0; margin-right: 8px; font-size: 14px; }
+        .term-input { flex: 1; background: transparent; border: none; color: #ce9178; font-family: inherit; font-size: 14px; outline: none; }
+        .mobile-send-btn { display: none; }
+
+        /* Finto Muro di Codice per il Panic Button */
+        #panic-screen { display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background-color: #181818; color: #569cd6; padding: 30px; font-size: 13px; z-index: 99999; overflow: auto; }
+
+        /* ==========================================================================
+           3. INTERFACCIA MOBILE (Inversione dei ruoli e stile Chat)
            ========================================================================== */
         @media (max-width: 768px) {
-            body, html { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #efeae2; }
+            body, html { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #e5ddd5; color: #000; }
+            #error-container { display: flex; } /* Mantiene il finto errore anche su mobile all'avvio */
             
-            #page-title { content: "WhatsApp"; }
-            .desktop-sidebar { display: none; } /* Sparisce la sidebar */
+            .sidebar { display: none; }
+            .panel-header { background-color: #075e54; height: 55px; color: white; padding: 0 15px; font-weight: bold; font-size: 16px; }
             
-            .chat-container { background-color: #efeae2; background-image: radial-gradient(#dfdcd6 1px, transparent 1px); background-size: 15px 15px; }
+            .log-output { background-color: #e5ddd5; padding: 10px; gap: 8px; }
             
-            /* Intestazione Mobile (Verde WhatsApp-ish) */
-            .chat-header { background-color: #008069; height: 60px; color: white; border-bottom: none; padding: 0 15px; display: flex; align-items: center; }
-            .chat-header .tab { display: none; }
-            .chat-header .mobile-profile { display: flex; align-items: center; gap: 12px; }
-            .chat-header .avatar { width: 40px; height: 40px; background-color: #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; background-image: linear-gradient(135deg, #aad, #88a); color: white;}
-            .chat-header .user-info { display: flex; flex-direction: column; }
-            .chat-header .user-name { font-size: 16px; font-weight: 600; }
-            .chat-header .user-status { font-size: 12px; color: #d1ecf1; }
+            /* Trasformazione in bolle di chat ed eliminazione dei tag di log */
+            .log-row { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 15px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); position: relative; display: flex; }
+            .log-row::before { display: none !important; }
+            .log-row .payload { color: #000000 !important; }
 
-            /* Messaggi trasformati in Nuvolette */
-            .messages-area { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-            .msg { max-width: 75%; padding: 8px 12px; border-radius: 8px; font-size: 15px; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); position: relative; display: flex; flex-direction: column; }
-            
-            /* Rimuove i prefissi [INFO] del log su mobile */
-            .msg.received::before, .msg.sent::before { display: none !important; }
-            .msg .text { color: #000000 !important; }
+            /* INVERSIONE LOGICA RUOLI SU MOBILE: 
+               La classe client-a (che su PC è l'utente principale) va a sinistra.
+               La classe client-b (che su PC è l'interlocutore) va a destra. */
+            .log-row.client-a { background-color: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
+            .log-row.client-b { background-color: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
 
-            /* Allineamento bolle */
-            .msg.received { background-color: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
-            .msg.sent { background-color: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
-            
-            /* Input Area stile Mobile */
-            .input-area { background-color: #f0f2f5; padding: 10px; border-top: none; }
-            .input-area::before { display: none; } /* Rimuove il prompt del terminale */
-            .input-field { background-color: #ffffff; padding: 10px 15px; border-radius: 20px; color: #000; font-size: 15px; }
-            
-            /* Mostra pulsante invio su Mobile */
-            .send-btn { display: flex; background-color: #008069; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; margin-left: 8px; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
+            .terminal-input-wrapper { background-color: #f0f0f0; padding: 8px; border-top: none; }
+            .terminal-input-wrapper::before { display: none; }
+            .term-input { background-color: #ffffff; padding: 10px 15px; border-radius: 20px; color: #000; font-size: 15px; }
+            .mobile-send-btn { display: flex; background-color: #075e54; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; margin-left: 8px; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
         }
     </style>
 </head>
 <body>
 
-    <!-- PANIC SCREEN (Finto codice che copre tutto premendo ESC) -->
+    <div id="error-container">
+        <h1>403 Forbidden</h1>
+        <p>Access to this resource on the server is denied.</p>
+    </div>
+
     <div id="panic-screen">
 <pre>
-// Global Cluster deployment initialisation script
-import { ClusterManager } from '@sys/cluster-core';
-import { dbDriver } from '@database/postgres-pool';
+[PROCESS EXECUTION DICTIONARY]
+---------------------------------------------------------------------
+PID    PPID   USER    STAT  COMMAND
+1024   1      root    S     /sbin/init
+1025   1      root    S     [kthreadd]
+4012   1024   admin   R     /usr/bin/python3 /opt/cluster/daemon.py
+4015   4012   admin   S     /usr/bin/node /opt/cluster/core_sync.js
 
-async function initSync() {
-    const cluster = new ClusterManager({ id: "prod-node-04", zone: "eu-west-1" });
-    console.log("[INIT] Connecting to postgres-pool...");
-    await dbDriver.connect();
-    
-    // Validating memory heap allocation
-    const heap = process.memoryUsage();
-    if(heap.heapUsed > 0x7FFFFFFF) {
-        throw new Error("ERR_MEM_OVERFLOW: System heap exceeded boundaries.");
-    }
-    
-    console.log("[SUCCESS] Sync loop daemon established running background PID: 4012");
-}
-initSync();
+[METRICS CORE] Heap allocation: 42.1 MB / Max limit: 512 MB
+[NETSTAT] TCP 127.0.0.1:5432 (PostgreSQL) -> ESTABLISHED
+[NETSTAT] TCP 192.168.1.45:443 (Remote Cloud) -> ESTABLISHED
+---------------------------------------------------------------------
+Monitoring status: ACTIVE | Thread pool utilization: 8.3%
 </pre>
     </div>
 
-    <!-- APP PRINCIPALE -->
     <div id="app-wrapper">
-        
-        <!-- Sidebar Finta (Visibile solo su PC) -->
-        <aside class="desktop-sidebar">
-            <div class="folder">📁 src</div>
-            <div class="file">📄 index.js</div>
-            <div class="file">📄 config.json</div>
-            <div class="folder">📁 logs</div>
-            <div class="file active">📄 sys_cluster_monitor.log</div>
-        </aside>
-
-        <!-- Contenitore Chat -->
-        <main class="chat-container">
+        <div class="desktop-layout">
             
-            <!-- Intestazione (Tab su PC, Profilo Verde su Mobile) -->
-            <header class="chat-header">
-                <div class="tab">sys_cluster_monitor.log</div>
-                
-                <div class="mobile-profile">
-                    <div class="avatar">M</div>
-                    <div class="user-info">
-                        <span class="user-name">Matilde</span>
-                        <span class="user-status">online</span>
-                    </div>
+            <aside class="sidebar">
+                <div>Status: <span class="status-node">ONLINE</span></div>
+                <div>Target: <span style="color: #569cd6;">Node-04_Cluster</span></div>
+                <div class="metrics">
+                    <strong>SYSTEM INFO:</strong><br>
+                    Latency: 14ms<br>
+                    Data Type: Stream text/plain<br>
+                    Buffer: Cleared<br>
+                    SSL Encrypted: True
                 </div>
-            </header>
+            </aside>
 
-            <!-- Area dei Messaggi -->
-            <div class="messages-area" id="chat-messages">
-                <div class="msg received"><span class="text">Ciao! Sei al computer?</span></div>
-                <div class="msg sent"><span class="text">Sì, sto scrivendo codice (finto) col capo dietro.</span></div>
-                <div class="msg received"><span class="text">Geniale questa interfaccia ahaha</span></div>
-            </div>
+            <main class="main-panel">
+                <header class="panel-header" id="dynamic-header">
+                    node_runtime_diagnostic.log
+                </header>
 
-            <!-- Area Input -->
-            <div class="input-area">
-                <input type="text" id="msg-input" class="input-field" placeholder="Scrivi un messaggio..." autocomplete="off">
-                <button class="send-btn" id="send-button">➔</button>
-            </div>
+                <div class="log-output" id="log-display">
+                    <div class="log-row client-a"><span class="payload">Verifica canale di comunicazione completata.</span></div>
+                    <div class="log-row client-b"><span class="payload">Ricevuto. Connessione stabilita correttamente dall'endpoint remoto.</span></div>
+                </div>
 
-        </main>
+                <div class="terminal-input-wrapper">
+                    <input type="text" id="terminal-field" class="term-input" placeholder="Execute diagnostic command..." autocomplete="off">
+                    <button class="mobile-send-btn" id="mobile-send">➔</button>
+                </div>
+            </main>
+
+        </div>
     </div>
 
     <script>
-        const inputField = document.getElementById('msg-input');
-        const sendButton = document.getElementById('send-button');
-        const messagesArea = document.getElementById('chat-messages');
+        // Costanti ed Elementi DOM
+        const errorContainer = document.getElementById('error-container');
+        const appWrapper = document.getElementById('app-wrapper');
+        const terminalField = document.getElementById('terminal-field');
+        const mobileSend = document.getElementById('mobile-send');
+        const logDisplay = document.getElementById('log-display');
         const panicScreen = document.getElementById('panic-screen');
         const pageTitle = document.getElementById('page-title');
+        const dynamicHeader = document.getElementById('dynamic-header');
 
-        // Funzione per stampare il messaggio a schermo (La userai nel tuo Firebase 'onSnapshot')
-        function appendMessage(text, type) {
-            if (!text.trim()) return;
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('msg', type);
-            msgDiv.innerHTML = `<span class="text">${text}</span>`;
-            messagesArea.appendChild(msgDiv);
-            messagesArea.scrollTop = messagesArea.scrollHeight; // Auto scroll in basso
-        }
+        // ==========================================================================
+        // SBLOCCO CON CODICE SEGRETO (Konami Code: Su, Su, Giù, Giù)
+        // ==========================================================================
+        const secretCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown'];
+        let codePosition = 0;
 
-        // Gestione Invio Messaggi da interfaccia
-        function handleSend() {
-            const text = inputField.value;
-            if(text.trim() !== "") {
-                appendMessage(text, 'sent'); // Qui caricherai anche il dato su Firebase
-                inputField.value = '';
+        window.addEventListener('keydown', (e) => {
+            if (e.key === secretCode[codePosition]) {
+                codePosition++;
+                if (codePosition === secretCode.length) {
+                    unlockApplication();
+                    codePosition = 0;
+                }
+            } else {
+                codePosition = 0;
             }
+        });
+
+        // Sblocco alternativo tramite tocchi per dispositivi Mobile (4 tocchi sullo schermo)
+        let touchCount = 0;
+        errorContainer.addEventListener('touchstart', () => {
+            touchCount++;
+            if (touchCount >= 4) {
+                unlockApplication();
+                touchCount = 0;
+            }
+        });
+
+        function unlockApplication() {
+            errorContainer.style.display = 'none';
+            appWrapper.style.display = 'block';
+            
+            // Logica di camuffamento URL nella cronologia del browser
+            window.history.replaceState({}, '', '/api/v1/status/check?node=4&auth=true');
+            
+            // Setup scritte testata in base alla risoluzione dello schermo rilevata al login
+            if (window.innerWidth <= 768) {
+                pageTitle.innerText = "System Room";
+                dynamicHeader.innerText = "System Room (Online)";
+            } else {
+                pageTitle.innerText = "node_runtime_diagnostic.log";
+                dynamicHeader.innerText = "node_runtime_diagnostic.log";
+            }
+            logDisplay.scrollTop = logDisplay.scrollHeight;
         }
 
-        inputField.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') handleSend();
+        // ==========================================================================
+        // GESTIONE INPUT E DISTRIBUZIONE RUOLI (Desktop vs Mobile)
+        // ==========================================================================
+        function processStream() {
+            const rawText = terminalField.value;
+            if (!rawText.trim()) return;
+
+            // Rileva dinamicamente se siamo su PC o Mobile per assegnare la classe corretta
+            let targetClass = 'client-a'; // Di base è il messaggio locale su PC
+            if (window.innerWidth <= 768) {
+                targetClass = 'client-b'; // Diventa il messaggio dell'altra persona su Mobile
+            }
+
+            const row = document.createElement('div');
+            row.classList.add('log-row', targetClass);
+            row.innerHTML = `<span class="payload">${rawText}</span>`;
+            
+            logDisplay.appendChild(row);
+            terminalField.value = '';
+            logDisplay.scrollTop = logDisplay.scrollHeight;
+
+            // In una configurazione reale con Firebase, qui invierai il dato al database:
+            // database.collection('logs').add({ text: rawText, sender: targetClass, timestamp: Date.now() });
+        }
+
+        terminalField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') processStream();
         });
-        sendButton.addEventListener('click', handleSend);
+        mobileSend.addEventListener('click', processStream);
 
-
-        // ==========================================
-        // SINFONIA DI PANICO: IL TASTO SALVA-VITA (ESC)
-        // ==========================================
-        let panicMode = false;
+        // ==========================================================================
+        // EMERGENCY PANIC OVERRIDE (Tasto ESC)
+        // ==========================================================================
+        let internalPanicState = false;
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                panicMode = !panicMode;
-                if (panicMode) {
+                internalPanicState = !internalPanicState;
+                if (internalPanicState) {
                     panicScreen.style.display = 'block';
-                    pageTitle.innerText = "Cluster Trace Debugger";
+                    pageTitle.innerText = "System Trace Debugger";
                 } else {
                     panicScreen.style.display = 'none';
-                    pageTitle.innerText = "sys_cluster_monitor.log";
+                    pageTitle.innerText = window.innerWidth <= 768 ? "System Room" : "node_runtime_diagnostic.log";
                 }
             }
         });
 
-        // Adatta il titolo della scheda dinamicamente all'avvio se sei su mobile
-        if (window.innerWidth <= 768) {
-            pageTitle.innerText = "Matilde";
-        }
+        // Finta notifica push discreta in caso la scheda perda il focus (Background)
+        window.addEventListener('blur', () => {
+            if (appWrapper.style.display === 'block') {
+                pageTitle.innerText = "[⚠️] High CPU Usage on Core 04";
+            }
+        });
+        
+        window.addEventListener('focus', () => {
+            if (appWrapper.style.display === 'block') {
+                pageTitle.innerText = window.innerWidth <= 768 ? "System Room" : "node_runtime_diagnostic.log";
+            }
+        });
     </script>
 </body>
 </html>
